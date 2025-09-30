@@ -1,6 +1,5 @@
 <script lang="ts">
-import { Editor } from '@monaco-editor/react';
-import { onMount } from 'svelte';
+import MonacoEditor from '$lib/components/MonacoEditor.svelte';
 import { api } from '$lib/api';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
@@ -20,7 +19,6 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = defaultPipeline;
-let isEditorReady = false;
 let showConnectionModal = false;
 let showDatabaseSelector = false;
 let showCollectionSelector = false;
@@ -31,10 +29,6 @@ $: collections = $pipelineStore.collections;
 $: results = $pipelineStore.results;
 $: isExecuting = $pipelineStore.isExecuting;
 $: error = $pipelineStore.error;
-
-onMount(() => {
-	isEditorReady = true;
-});
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
@@ -228,24 +222,12 @@ function handleEditorChange(value: string | undefined) {
 			<!-- Editor -->
 			<div class="flex-1 border-b border-gray-200">
 				<div class="h-full">
-					{#if isEditorReady}
-						<Editor
-							height="100%"
-							defaultLanguage="json"
-							value={editorContent}
-							onChange={handleEditorChange}
-							theme="vs-dark"
-							options={{
-								minimap: { enabled: false },
-								fontSize: 14,
-								lineNumbers: 'on',
-								renderWhitespace: 'selection',
-								tabSize: 2,
-								formatOnPaste: true,
-								formatOnType: true,
-							}}
-						/>
-					{/if}
+					<MonacoEditor
+						value={editorContent}
+						language="json"
+						theme="vs-dark"
+						onChange={handleEditorChange}
+					/>
 				</div>
 			</div>
 
