@@ -18,46 +18,44 @@
 	}
 </script>
 
-<div style="padding: 1rem;">
-	<h3 style="font-size: 0.875rem; font-weight: 600; color: #f3f4f6; margin-bottom: 1rem;">
+<div style="padding: var(--space-lg);">
+	<h3 style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-lg);">
 		Stage-by-Stage Results
 	</h3>
 
 	{#if stages.length === 0}
-		<p style="font-size: 0.875rem; color: #9ca3af;">
+		<p style="font-size: var(--text-sm); color: var(--color-text-tertiary);">
 			Run pipeline with preview to see stage-by-stage results.
 		</p>
 	{:else}
-		<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+		<div style="display: flex; flex-direction: column; gap: var(--space-md);">
 			{#each stages as stage, index}
-				<div
-					style="background: #1f2937; border: 1px solid #374151; border-radius: 0.5rem; overflow: hidden;"
-				>
+				<div class="card" style="padding: 0; overflow: hidden;">
 					<!-- Stage Header -->
 					<button
 						onclick={() => toggleStage(index)}
-						style="width: 100%; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; cursor: pointer; text-align: left;"
+						style="width: 100%; padding: var(--space-md) var(--space-lg); display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; cursor: pointer; text-align: left;"
 					>
 						<div style="flex: 1;">
-							<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+							<div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs);">
 								<span
-									style="display: inline-block; width: 1.5rem; height: 1.5rem; background: #3b82f6; border-radius: 50%; color: white; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; justify-content: center;"
+									style="display: inline-flex; width: 1.5rem; height: 1.5rem; background: var(--color-primary); border-radius: 50%; color: var(--color-secondary); font-size: var(--text-xs); font-weight: 600; align-items: center; justify-content: center;"
 								>
 									{index + 1}
 								</span>
-								<span style="font-family: monospace; font-size: 0.875rem; color: #60a5fa;">
+								<span style="font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-primary);">
 									{Object.keys(stage.stage)[0]}
 								</span>
 							</div>
-							<div style="display: flex; gap: 1rem; font-size: 0.75rem; color: #9ca3af; margin-left: 2rem;">
-								<span>{stage.count} documents</span>
-								<span>{formatTime(stage.executionTime)}</span>
+							<div style="display: flex; gap: var(--space-lg); font-size: var(--text-xs); color: var(--color-text-tertiary); margin-left: 2rem;">
+								<span class="badge badge-info">{stage.count} documents</span>
+								<span class="badge badge-success">{formatTime(stage.executionTime)}</span>
 							</div>
 						</div>
 						<svg
-							style="width: 1.25rem; height: 1.25rem; color: #9ca3af; transform: {expandedStage === index
+							style="width: 1.25rem; height: 1.25rem; color: var(--color-text-tertiary); transform: {expandedStage === index
 								? 'rotate(180deg)'
-								: 'rotate(0deg)'}; transition: transform 0.2s;"
+								: 'rotate(0deg)'}; transition: transform var(--transition-base);"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -69,27 +67,29 @@
 
 					<!-- Stage Content (Expanded) -->
 					{#if expandedStage === index}
-						<div style="border-top: 1px solid #374151; padding: 1rem;">
+						<div style="border-top: 1px solid var(--glass-border); padding: var(--space-lg);">
 							<!-- Stage Definition -->
-							<div style="margin-bottom: 1rem;">
-								<div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; margin-bottom: 0.5rem;">
+							<div style="margin-bottom: var(--space-lg);">
+								<div style="font-size: var(--text-xs); font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-sm);">
 									Stage Definition
 								</div>
-								<pre
-									style="background: #111827; padding: 0.75rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.75rem; color: #e5e7eb; overflow-x: auto;">{JSON.stringify(stage.stage, null, 2)}</pre>
+								<div class="code-block">
+									<pre style="margin: 0; font-size: var(--text-xs); color: var(--color-text-secondary);">{JSON.stringify(stage.stage, null, 2)}</pre>
+								</div>
 							</div>
 
 							<!-- Preview Documents -->
 							<div>
-								<div style="font-size: 0.75rem; font-weight: 600; color: #9ca3af; margin-bottom: 0.5rem;">
+								<div style="font-size: var(--text-xs); font-weight: 600; color: var(--color-text-secondary); margin-bottom: var(--space-sm);">
 									Preview ({stage.preview.length} of {stage.count} documents)
 								</div>
-								<pre
-									style="background: #111827; padding: 0.75rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.75rem; color: #e5e7eb; overflow-x: auto; max-height: 300px; overflow-y: auto;">{JSON.stringify(
+								<div class="code-block" style="max-height: 300px; overflow-y: auto;">
+									<pre style="margin: 0; font-size: var(--text-xs); color: var(--color-text-secondary);">{JSON.stringify(
 										stage.preview,
 										null,
 										2
 									)}</pre>
+								</div>
 							</div>
 						</div>
 					{/if}
