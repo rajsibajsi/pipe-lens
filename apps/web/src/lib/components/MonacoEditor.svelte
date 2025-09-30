@@ -12,8 +12,9 @@
 	let monaco: typeof Monaco;
 
 	onMount(async () => {
-		// Dynamically import Monaco Editor
-		monaco = await import('monaco-editor');
+		// Import Monaco with worker setup
+		const monacoModule = await import('$lib/monaco-setup');
+		monaco = monacoModule.monaco;
 
 		if (editorContainer) {
 			editor = monaco.editor.create(editorContainer, {
