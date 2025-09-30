@@ -105,16 +105,16 @@ function handleEditorChange(value: string | undefined) {
 					{/if}
 				</p>
 			</div>
-			<div class="flex gap-3">
+			<div style="display: flex; gap: 0.75rem;">
 				<button
-					class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+					style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer;"
 				>
 					Save
 				</button>
 				<button
 					onclick={handleRunPipeline}
 					disabled={isExecuting || !connection}
-					class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: white; background: {isExecuting || !connection ? '#93c5fd' : '#2563eb'}; border: none; border-radius: 0.5rem; cursor: {isExecuting || !connection ? 'not-allowed' : 'pointer'}; opacity: {isExecuting || !connection ? 0.5 : 1};"
 				>
 					{isExecuting ? 'Running...' : 'Run Pipeline'}
 				</button>
