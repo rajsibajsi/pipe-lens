@@ -171,13 +171,13 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
 
 ### Frontend
 **Technology Stack:**
-- **Framework:** React 18+ with TypeScript
-- **State Management:** Zustand or Redux Toolkit
-- **UI Library:** shadcn/ui + Tailwind CSS
-- **Charts:** Recharts or Chart.js
+- **Framework:** SvelteKit with TypeScript
+- **State Management:** Svelte stores (built-in)
+- **UI Library:** shadcn-svelte + Tailwind CSS
+- **Charts:** Apache ECharts or Chart.js
 - **Code Editor:** Monaco Editor (VS Code editor)
-- **Drag-and-Drop:** dnd-kit or react-beautiful-dnd
-- **JSON Viewer:** react-json-view
+- **Drag-and-Drop:** svelte-dnd-action
+- **JSON Viewer:** svelte-jsoneditor
 
 ### Backend
 **Technology Stack:**
@@ -190,8 +190,9 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
 - **Database:** MongoDB for user data & saved pipelines
 
 ### Desktop Application (Optional Phase)
-- **Framework:** Electron
-- **Purpose:** Better local MongoDB access, no CORS issues
+- **Framework:** Tauri (Rust + SvelteKit)
+- **Purpose:** Better local MongoDB access, no CORS issues, smaller bundle size
+- **Alternative:** Electron if Tauri integration proves challenging
 
 ### Infrastructure
 - **Hosting:** Vercel/Netlify (frontend), Railway/Render (backend)
@@ -281,17 +282,17 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
 ### Deliverables:
 - [ ] Repository setup with CI/CD pipeline
 - [ ] Development environment configuration
-- [ ] Frontend project scaffolding (React + TypeScript + Vite)
+- [ ] Frontend project scaffolding (SvelteKit + TypeScript)
 - [ ] Backend project scaffolding (Node.js + TypeScript + Express)
 - [ ] Database schema design
 - [ ] Authentication system architecture
-- [ ] Design system setup (Tailwind + shadcn/ui)
+- [ ] Design system setup (Tailwind + shadcn-svelte)
 - [ ] Basic routing structure
 
 ### Technical Tasks:
 - Set up monorepo structure (pnpm workspaces or Turborepo)
 - Configure ESLint, Prettier, Husky
-- Set up testing frameworks (Vitest + React Testing Library)
+- Set up testing frameworks (Vitest + Svelte Testing Library + Playwright)
 - Create Docker development environment
 - Set up MongoDB local instance
 - Design database collections (users, pipelines, connections)
@@ -447,7 +448,7 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
    - Axis labels
 
 ### Technical Implementation:
-- Recharts integration
+- Apache ECharts or Chart.js integration
 - Chart data transformer
 - Chart type selector component
 - Export to PNG functionality
@@ -529,10 +530,10 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
    - Video tutorials
 
 ### Technical Implementation:
-- React Suspense for code splitting
+- SvelteKit dynamic imports for code splitting
 - Service worker for caching
 - Performance profiling
-- SEO optimization
+- SEO optimization (built-in with SvelteKit)
 - Analytics integration
 
 ---
@@ -698,7 +699,7 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
 - Background job queue (Bull/BullMQ)
 - API versioning
 - Rate limiting and quotas
-- Electron desktop app build
+- Tauri desktop app build (or Electron as fallback)
 
 ---
 
@@ -734,9 +735,12 @@ Transform the way developers work with MongoDB aggregation pipelines by providin
 ### Technology Decisions Rationale
 
 **React vs Vue vs Svelte:**
-- ✅ React: Largest ecosystem, best tooling, most developers
-- Mature libraries for all needed features
-- Strong TypeScript support
+- ✅ **Svelte/SvelteKit**: Best performance, smallest bundle size, less boilerplate
+- Superior developer experience with built-in reactivity
+- Excellent TypeScript support
+- Perfect for complex interactive UIs (drag-and-drop, live previews)
+- Built-in routing, SSR, and API routes with SvelteKit
+- Smaller learning curve, easier maintenance
 
 **MongoDB Driver vs Mongoose:**
 - ✅ MongoDB Driver: Direct control, better for aggregations
