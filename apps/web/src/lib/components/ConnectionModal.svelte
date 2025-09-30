@@ -2,8 +2,12 @@
 import { api } from '$lib/api';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 
-export let isOpen = false;
-export let onClose: () => void;
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+}
+
+let { isOpen, onClose }: Props = $props();
 
 let connectionName = 'Local MongoDB';
 let connectionUri = 'mongodb://admin:password@localhost:27017';
