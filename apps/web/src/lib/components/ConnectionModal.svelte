@@ -54,54 +54,54 @@ async function handleConnect() {
 </script>
 
 {#if isOpen}
-	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-			<div class="p-6">
-				<h2 class="text-2xl font-bold text-gray-900 mb-4">Connect to MongoDB</h2>
+	<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999;">
+		<div style="background: white; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-width: 28rem; width: 100%; margin: 0 1rem;">
+			<div style="padding: 1.5rem;">
+				<h2 style="font-size: 1.5rem; font-weight: bold; color: #111827; margin-bottom: 1rem;">Connect to MongoDB</h2>
 
-				<div class="space-y-4">
+				<div style="display: flex; flex-direction: column; gap: 1rem;">
 					<div>
-						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="name" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">
 							Connection Name
 						</label>
 						<input
 							id="name"
 							type="text"
 							bind:value={connectionName}
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+							style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem;"
 							placeholder="My MongoDB"
 						/>
 					</div>
 
 					<div>
-						<label for="uri" class="block text-sm font-medium text-gray-700 mb-1">
+						<label for="uri" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">
 							Connection URI
 						</label>
 						<input
 							id="uri"
 							type="text"
 							bind:value={connectionUri}
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+							style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem;"
 							placeholder="mongodb://localhost:27017"
 						/>
-						<p class="text-xs text-gray-500 mt-1">
+						<p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
 							Example: mongodb://username:password@host:port
 						</p>
 					</div>
 
 					{#if error}
-						<div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-							<p class="text-sm text-red-800">{error}</p>
+						<div style="padding: 0.75rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">
+							<p style="font-size: 0.875rem; color: #991b1b;">{error}</p>
 						</div>
 					{/if}
 				</div>
 
-				<div class="flex gap-3 mt-6">
+				<div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
 					<button
 						type="button"
 						onclick={onClose}
 						disabled={isConnecting}
-						class="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+						style="flex: 1; padding: 0.5rem 1rem; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; font-weight: 500; cursor: pointer; opacity: {isConnecting ? 0.5 : 1};"
 					>
 						Cancel
 					</button>
@@ -109,7 +109,7 @@ async function handleConnect() {
 						type="button"
 						onclick={handleConnect}
 						disabled={isConnecting}
-						class="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+						style="flex: 1; padding: 0.5rem 1rem; color: white; background: #2563eb; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; opacity: {isConnecting ? 0.5 : 1};"
 					>
 						{isConnecting ? 'Connecting...' : 'Connect'}
 					</button>
