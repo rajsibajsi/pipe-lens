@@ -118,7 +118,7 @@ function handleEditorChange(value: string | undefined) {
 					Save
 				</button>
 				<button
-					on:click={handleRunPipeline}
+					onclick={handleRunPipeline}
 					disabled={isExecuting || !connection}
 					class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
@@ -160,7 +160,7 @@ function handleEditorChange(value: string | undefined) {
 
 						<div class="relative">
 							<button
-								on:click={() => (showDatabaseSelector = !showDatabaseSelector)}
+								onclick={() => (showDatabaseSelector = !showDatabaseSelector)}
 								class="w-full px-3 py-2 text-sm text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-blue-500"
 							>
 								<div class="text-xs text-gray-500">Database</div>
@@ -174,7 +174,7 @@ function handleEditorChange(value: string | undefined) {
 								>
 									{#each databases as db}
 										<button
-											on:click={() => handleSelectDatabase(db)}
+											onclick={() => handleSelectDatabase(db)}
 											class="w-full px-3 py-2 text-sm text-left hover:bg-blue-50"
 										>
 											{db}
@@ -187,7 +187,7 @@ function handleEditorChange(value: string | undefined) {
 						{#if connection.selectedDatabase}
 							<div class="relative">
 								<button
-									on:click={() => (showCollectionSelector = !showCollectionSelector)}
+									onclick={() => (showCollectionSelector = !showCollectionSelector)}
 									class="w-full px-3 py-2 text-sm text-left text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-blue-500"
 								>
 									<div class="text-xs text-gray-500">Collection</div>
@@ -201,7 +201,7 @@ function handleEditorChange(value: string | undefined) {
 									>
 										{#each collections as col}
 											<button
-												on:click={() => handleSelectCollection(col)}
+												onclick={() => handleSelectCollection(col)}
 												class="w-full px-3 py-2 text-sm text-left hover:bg-blue-50"
 											>
 												{col}
@@ -214,7 +214,7 @@ function handleEditorChange(value: string | undefined) {
 					</div>
 				{:else}
 					<button
-						on:click={() => (showConnectionModal = true)}
+						onclick={() => (showConnectionModal = true)}
 						class="w-full px-3 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
 					>
 						Connect to MongoDB
