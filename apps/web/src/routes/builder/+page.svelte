@@ -19,16 +19,16 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = defaultPipeline;
-let showConnectionModal = false;
-let showDatabaseSelector = false;
-let showCollectionSelector = false;
+let showConnectionModal = $state(false);
+let showDatabaseSelector = $state(false);
+let showCollectionSelector = $state(false);
 
-$: connection = $pipelineStore.connection;
-$: databases = $pipelineStore.databases;
-$: collections = $pipelineStore.collections;
-$: results = $pipelineStore.results;
-$: isExecuting = $pipelineStore.isExecuting;
-$: error = $pipelineStore.error;
+let connection = $derived($pipelineStore.connection);
+let databases = $derived($pipelineStore.databases);
+let collections = $derived($pipelineStore.collections);
+let results = $derived($pipelineStore.results);
+let isExecuting = $derived($pipelineStore.isExecuting);
+let error = $derived($pipelineStore.error);
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
