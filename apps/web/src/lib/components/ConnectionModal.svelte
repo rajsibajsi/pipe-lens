@@ -9,10 +9,10 @@ interface Props {
 
 let { isOpen, onClose }: Props = $props();
 
-let connectionName = 'Local MongoDB';
-let connectionUri = 'mongodb://admin:password@localhost:27017';
-let isConnecting = false;
-let error = '';
+let connectionName = $state('Local MongoDB');
+let connectionUri = $state('mongodb://admin:password@localhost:27017');
+let isConnecting = $state(false);
+let error = $state('');
 
 async function handleConnect() {
 	isConnecting = true;
