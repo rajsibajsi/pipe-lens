@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import * as monaco from 'monaco-editor';
+	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
 	export let value = '';
 	export let language = 'json';
@@ -8,9 +8,13 @@
 	export let onChange: ((value: string) => void) | undefined = undefined;
 
 	let editorContainer: HTMLDivElement;
-	let editor: monaco.editor.IStandaloneCodeEditor | undefined;
+	let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
+	let monaco: typeof Monaco;
 
-	onMount(() => {
+	onMount(async () => {
+		// Dynamically import Monaco Editor
+		monaco = await import('monaco-editor');
+
 		if (editorContainer) {
 			editor = monaco.editor.create(editorContainer, {
 				value: value,
@@ -45,12 +49,12 @@
 	}
 
 	// Update editor theme when prop changes
-	$: if (editor && theme) {
+	$: if (monaco && editor && theme) {
 		monaco.editor.setTheme(theme);
 	}
 
 	// Update editor language when prop changes
-	$: if (editor && language) {
+	$: if (monaco && editor && language) {
 		const model = editor.getModel();
 		if (model) {
 			monaco.editor.setModelLanguage(model, language);

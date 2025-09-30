@@ -1,16 +1,20 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import monacoEditorPluginDefault from 'vite-plugin-monaco-editor';
-
-const monacoEditorPlugin = monacoEditorPluginDefault.default || monacoEditorPluginDefault;
 
 export default defineConfig({
-	plugins: [
-		sveltekit(),
-		monacoEditorPlugin({
-			languageWorkers: ['json', 'typescript'],
-		}),
-	],
+	plugins: [sveltekit()],
+	optimizeDeps: {
+		include: ['monaco-editor'],
+	},
+	build: {
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					monaco: ['monaco-editor'],
+				},
+			},
+		},
+	},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 	},
