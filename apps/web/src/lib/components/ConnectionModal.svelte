@@ -95,7 +95,7 @@ async function handleConnect() {
 				<div class="flex gap-3 mt-6">
 					<button
 						type="button"
-						on:click={onClose}
+						onclick={onClose}
 						disabled={isConnecting}
 						class="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
 					>
@@ -103,7 +103,7 @@ async function handleConnect() {
 					</button>
 					<button
 						type="button"
-						on:click={handleConnect}
+						onclick={handleConnect}
 						disabled={isConnecting}
 						class="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
 					>
