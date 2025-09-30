@@ -124,6 +124,9 @@ importers:
       vite:
         specifier: ^7.1.7
         version: 7.1.7(@types/node@20.19.18)(jiti@2.6.0)(lightningcss@1.30.1)(tsx@4.20.6)
+      vite-plugin-monaco-editor:
+        specifier: ^1.1.0
+        version: 1.1.0(monaco-editor@0.53.0)
       vitest:
         specifier: ^1.3.0
         version: 1.6.1(@types/node@20.19.18)(@vitest/ui@3.2.4)(lightningcss@1.30.1)
@@ -2230,6 +2233,11 @@ packages:
     resolution: {integrity: sha512-YAXkfvGtuTzwWbDSACdJSg4A4DZiAqckWe90Zapc/sEX3XvHcw1NdurM/6od8J207tSDqNbSsgdCacBgvJKFuA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
+
+  vite-plugin-monaco-editor@1.1.0:
+    resolution: {integrity: sha512-IvtUqZotrRoVqwT0PBBDIZPNraya3BxN/bfcNfnxZ5rkJiGcNtO5eAOWWSgT7zullIAEqQwxMU83yL9J5k7gww==}
+    peerDependencies:
+      monaco-editor: '>=0.33.0'
 
   vite@5.4.20:
     resolution: {integrity: sha512-j3lYzGC3P+B5Yfy/pfKNgVEg4+UtcIJcVRt2cDjIOmhLourAqPqf8P7acgxeiSgUB7E3p2P8/3gNIgDLpwzs4g==}
@@ -4340,6 +4348,10 @@ snapshots:
       - sugarss
       - supports-color
       - terser
+
+  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.53.0):
+    dependencies:
+      monaco-editor: 0.53.0
 
   vite@5.4.20(@types/node@20.19.18)(lightningcss@1.30.1):
     dependencies:
