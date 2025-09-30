@@ -30,6 +30,21 @@ export interface PipelineExecutionResponse {
 	message?: string;
 }
 
+export interface StageResult {
+	stageIndex: number;
+	stage: object;
+	count: number;
+	preview: unknown[];
+	executionTime: number;
+}
+
+export interface PipelineStagesResponse {
+	success: boolean;
+	stages: StageResult[];
+	error?: string;
+	message?: string;
+}
+
 class ApiClient {
 	// Connection endpoints
 	async testConnection(uri: string): Promise<ConnectionTestResponse> {
@@ -88,6 +103,20 @@ class ApiClient {
 		pipeline: unknown[],
 	): Promise<PipelineExecutionResponse> {
 		const response = await fetch(`${API_BASE_URL}/pipelines/execute`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ connectionId, database, collection, pipeline }),
+		});
+		return response.json();
+	}
+
+	async executePipelineWithStages(
+		connectionId: string,
+		database: string,
+		collection: string,
+		pipeline: unknown[],
+	): Promise<PipelineStagesResponse> {
+		const response = await fetch(`${API_BASE_URL}/pipelines/execute-stages`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ connectionId, database, collection, pipeline }),

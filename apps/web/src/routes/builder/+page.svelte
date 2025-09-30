@@ -1,5 +1,6 @@
 <script lang="ts">
 import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+import StagePreview from '$lib/components/StagePreview.svelte';
 import { api } from '$lib/api';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
@@ -27,6 +28,8 @@ let connection = $derived($pipelineStore.connection);
 let databases = $derived($pipelineStore.databases);
 let collections = $derived($pipelineStore.collections);
 let results = $derived($pipelineStore.results);
+let stageResults = $derived($pipelineStore.stageResults);
+let viewMode = $derived($pipelineStore.viewMode);
 let isExecuting = $derived($pipelineStore.isExecuting);
 let error = $derived($pipelineStore.error);
 
@@ -84,6 +87,44 @@ async function handleRunPipeline() {
 	}
 }
 
+async function handleRunWithPreview() {
+	if (!connection?.selectedDatabase || !connection?.selectedCollection) {
+		pipelineStore.setError('Please select a database and collection');
+		return;
+	}
+
+	try {
+		const pipeline = JSON.parse(editorContent);
+
+		// Validate pipeline
+		const validation = await api.validatePipeline(pipeline);
+		if (!validation.valid) {
+			pipelineStore.setError(validation.error || 'Invalid pipeline');
+			return;
+		}
+
+		pipelineStore.setExecuting(true);
+		pipelineStore.setError(null);
+
+		const result = await api.executePipelineWithStages(
+			connection.id,
+			connection.selectedDatabase,
+			connection.selectedCollection,
+			pipeline,
+		);
+
+		if (result.success) {
+			pipelineStore.setStageResults(result.stages);
+		} else {
+			pipelineStore.setError(result.message || 'Pipeline execution failed');
+		}
+	} catch (err) {
+		pipelineStore.setError(err instanceof Error ? err.message : 'Failed to run pipeline');
+	} finally {
+		pipelineStore.setExecuting(false);
+	}
+}
+
 function handleEditorChange(value: string | undefined) {
 	if (value !== undefined) {
 		editorContent = value;
@@ -110,6 +151,13 @@ function handleEditorChange(value: string | undefined) {
 					style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; cursor: pointer;"
 				>
 					Save
+				</button>
+				<button
+					onclick={handleRunWithPreview}
+					disabled={isExecuting || !connection}
+					style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: white; background: {isExecuting || !connection ? '#8b5cf6' : '#7c3aed'}; border: none; border-radius: 0.5rem; cursor: {isExecuting || !connection ? 'not-allowed' : 'pointer'}; opacity: {isExecuting || !connection ? 0.5 : 1};"
+				>
+					{isExecuting ? 'Running...' : 'Run with Preview'}
 				</button>
 				<button
 					onclick={handleRunPipeline}
@@ -208,6 +256,7 @@ function handleEditorChange(value: string | undefined) {
 					</div>
 				{:else}
 					<button
+						data-testid="connect-button"
 						onclick={() => (showConnectionModal = true)}
 						class="w-full px-3 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
 					>
@@ -232,38 +281,47 @@ function handleEditorChange(value: string | undefined) {
 			</div>
 
 			<!-- Results Panel -->
-			<div class="h-1/3 bg-gray-900 text-white p-4 overflow-auto">
-				<div class="flex items-center justify-between mb-3">
-					<h3 class="text-sm font-semibold">Pipeline Results</h3>
-					{#if results.length > 0}
-						<span class="text-xs text-gray-400">{results.length} documents</span>
-					{/if}
-				</div>
-
+			<div class="h-1/3 bg-gray-900 text-white overflow-auto">
 				{#if error}
-					<div class="p-3 bg-red-900 border border-red-700 rounded-lg mb-3">
-						<p class="text-sm text-red-200">{error}</p>
+					<div style="padding: 1rem;">
+						<div class="p-3 bg-red-900 border border-red-700 rounded-lg">
+							<p class="text-sm text-red-200">{error}</p>
+						</div>
 					</div>
 				{/if}
 
-				{#if results.length > 0}
-					<pre
-						class="text-xs font-mono text-gray-300 whitespace-pre-wrap">{JSON.stringify(
-							results,
-							null,
-							2
-						)}</pre>
+				{#if viewMode === 'stages' && stageResults.length > 0}
+					<StagePreview stages={stageResults} />
+				{:else if viewMode === 'results' && results.length > 0}
+					<div style="padding: 1rem;">
+						<div class="flex items-center justify-between mb-3">
+							<h3 class="text-sm font-semibold">Pipeline Results</h3>
+							<span class="text-xs text-gray-400">{results.length} documents</span>
+						</div>
+						<pre
+							class="text-xs font-mono text-gray-300 whitespace-pre-wrap">{JSON.stringify(
+								results,
+								null,
+								2
+							)}</pre>
+					</div>
 				{:else if !connection}
-					<div class="text-sm text-gray-400">
-						<p>Connect to MongoDB and run your pipeline to see results here.</p>
+					<div style="padding: 1rem;">
+						<div class="text-sm text-gray-400">
+							<p>Connect to MongoDB and run your pipeline to see results here.</p>
+						</div>
 					</div>
 				{:else if !connection.selectedDatabase || !connection.selectedCollection}
-					<div class="text-sm text-gray-400">
-						<p>Select a database and collection to run your pipeline.</p>
+					<div style="padding: 1rem;">
+						<div class="text-sm text-gray-400">
+							<p>Select a database and collection to run your pipeline.</p>
+						</div>
 					</div>
 				{:else}
-					<div class="text-sm text-gray-400">
-						<p>Click "Run Pipeline" to execute your aggregation.</p>
+					<div style="padding: 1rem;">
+						<div class="text-sm text-gray-400">
+							<p>Click "Run Pipeline" or "Run with Preview" to execute your aggregation.</p>
+						</div>
 					</div>
 				{/if}
 			</div>

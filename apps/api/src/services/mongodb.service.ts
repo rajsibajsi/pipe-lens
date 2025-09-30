@@ -100,6 +100,64 @@ class MongoDBService {
 		const result = await collection.aggregate(pipeline).toArray();
 		return result;
 	}
+
+	async executePipelineWithStages(
+		connectionId: string,
+		dbName: string,
+		collectionName: string,
+		pipeline: object[],
+	): Promise<
+		{
+			stageIndex: number;
+			stage: object;
+			count: number;
+			preview: unknown[];
+			executionTime: number;
+		}[]
+	> {
+		const db = this.getDatabase(connectionId, dbName);
+		if (!db) {
+			throw new Error(`No active connection: ${connectionId}`);
+		}
+
+		const collection = db.collection(collectionName);
+		const results: {
+			stageIndex: number;
+			stage: object;
+			count: number;
+			preview: unknown[];
+			executionTime: number;
+		}[] = [];
+
+		// Execute pipeline cumulatively, stage by stage
+		for (let i = 0; i < pipeline.length; i++) {
+			const currentPipeline = pipeline.slice(0, i + 1);
+			const startTime = Date.now();
+
+			// Execute with preview limit
+			const preview = await collection
+				.aggregate([...currentPipeline, { $limit: 10 }])
+				.toArray();
+
+			// Get actual count
+			const countResult = await collection
+				.aggregate([...currentPipeline, { $count: 'total' }])
+				.toArray();
+
+			const count = countResult.length > 0 ? (countResult[0] as { total: number }).total : 0;
+			const executionTime = Date.now() - startTime;
+
+			results.push({
+				stageIndex: i,
+				stage: pipeline[i],
+				count,
+				preview,
+				executionTime,
+			});
+		}
+
+		return results;
+	}
 }
 
 export const mongoService = new MongoDBService();
