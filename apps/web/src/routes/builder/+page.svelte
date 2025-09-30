@@ -18,7 +18,7 @@ const defaultPipeline = `[
   }
 ]`;
 
-let editorContent = defaultPipeline;
+let editorContent = $state(defaultPipeline);
 let showConnectionModal = $state(false);
 let showDatabaseSelector = $state(false);
 let showCollectionSelector = $state(false);

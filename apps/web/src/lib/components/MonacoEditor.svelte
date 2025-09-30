@@ -63,4 +63,4 @@
 	}
 </script>
 
-<div bind:this={editorContainer} class="w-full h-full" />
+<div bind:this={editorContainer} class="w-full h-full"></div>
