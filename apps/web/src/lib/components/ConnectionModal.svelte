@@ -2,11 +2,11 @@
 import { api } from '$lib/api';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 
-export const isOpen = false;
+export let isOpen = false;
 export let onClose: () => void;
 
-const connectionName = 'Local MongoDB';
-const connectionUri = 'mongodb://admin:password@localhost:27017';
+let connectionName = 'Local MongoDB';
+let connectionUri = 'mongodb://admin:password@localhost:27017';
 let isConnecting = false;
 let error = '';
 

@@ -21,7 +21,7 @@ const defaultPipeline = `[
 
 let editorContent = defaultPipeline;
 let isEditorReady = false;
-const showConnectionModal = false;
+let showConnectionModal = false;
 let showDatabaseSelector = false;
 let showCollectionSelector = false;
 
