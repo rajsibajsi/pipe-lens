@@ -104,7 +104,7 @@ export class PipelineService {
 	 * Get pipeline by ID
 	 */
 	async getPipelineById(pipelineId: string, userId?: string): Promise<IPipeline | null> {
-		const query: any = { _id: pipelineId };
+    const query: Record<string, unknown> = { _id: pipelineId };
 		
 		// If userId provided, ensure user owns the pipeline or it's public
 		if (userId) {
@@ -121,7 +121,7 @@ export class PipelineService {
 	 * Get user's pipelines
 	 */
 	async getUserPipelines(userId: string, filters: PipelineFilters = {}): Promise<IPipeline[]> {
-		const query: any = { userId };
+    const query: Record<string, unknown> = { userId };
 		
 		// Apply filters
 		if (filters.tags && filters.tags.length > 0) {
@@ -145,13 +145,13 @@ export class PipelineService {
 		}
 
 		// Build sort object
-		const sort: any = {};
+    const sort: Record<string, 1 | -1> = {};
 		const sortBy = filters.sortBy || 'updatedAt';
 		const sortOrder = filters.sortOrder || 'desc';
 		sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
 		// Build query options
-		const options: any = { sort };
+    const options: Record<string, unknown> = { sort };
 		if (filters.limit) {
 			options.limit = filters.limit;
 		}
@@ -166,7 +166,7 @@ export class PipelineService {
 	 * Get public pipelines
 	 */
 	async getPublicPipelines(filters: PipelineFilters = {}): Promise<IPipeline[]> {
-		const query: any = { isPublic: true };
+    const query: Record<string, unknown> = { isPublic: true };
 		
 		// Apply filters
 		if (filters.tags && filters.tags.length > 0) {
@@ -190,13 +190,13 @@ export class PipelineService {
 		}
 
 		// Build sort object
-		const sort: any = {};
+    const sort: Record<string, 1 | -1> = {};
 		const sortBy = filters.sortBy || 'createdAt';
 		const sortOrder = filters.sortOrder || 'desc';
 		sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
 		// Build query options
-		const options: any = { sort };
+    const options: Record<string, unknown> = { sort };
 		if (filters.limit) {
 			options.limit = filters.limit;
 		}
@@ -339,11 +339,12 @@ export class PipelineService {
 	/**
 	 * Calculate pipeline complexity
 	 */
-	private calculateComplexity(pipeline: object[]): 'simple' | 'medium' | 'complex' {
+    private calculateComplexity(pipeline: object[]): 'simple' | 'medium' | 'complex' {
 		const stageCount = pipeline.length;
-		const hasComplexStages = pipeline.some((stage: any) => 
-			stage.$lookup || stage.$facet || stage.$graphLookup || stage.$unionWith
-		);
+        const hasComplexStages = pipeline.some((stage: unknown) => {
+            const s = stage as Record<string, unknown>;
+            return Boolean(s.$lookup || s.$facet || s.$graphLookup || s.$unionWith);
+        });
 		
 		if (stageCount <= 3 && !hasComplexStages) return 'simple';
 		if (stageCount <= 6 && !hasComplexStages) return 'medium';
