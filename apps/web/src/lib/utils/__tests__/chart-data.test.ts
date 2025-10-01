@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { 
-	detectChartType, 
-	transformToChartData, 
-	getChartConfig,
-	type ChartType 
+import { describe, expect, it } from 'vitest';
+import {
+    detectChartType,
+    getChartConfig,
+    transformToChartData,
+    type ChartType
 } from '../chart-data';
 
 describe('chart-data utilities', () => {
