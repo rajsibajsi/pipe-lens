@@ -1,9 +1,22 @@
 <script lang="ts">
-    import { browser } from '$app/environment';
-    import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
-    import { onDestroy, onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+	import { onDestroy, onMount } from 'svelte';
 
-    onMount(async () => {
+	// Props (Svelte 5 runes)
+	const { value, language, theme, onChange } = $props<{
+		value: string;
+		language?: string;
+		theme?: string;
+		onChange?: (value: string | undefined) => void;
+	}>();
+
+	// Locals
+	let editorContainer: HTMLDivElement | null = null;
+	let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
+	let monaco: typeof Monaco | null = null;
+
+		onMount(async () => {
 		// Import Monaco with worker setup
 		const monacoModule = await import('$lib/monaco-setup');
 		monaco = monacoModule.monaco;
@@ -11,8 +24,8 @@
 		if (editorContainer) {
 			editor = monaco.editor.create(editorContainer, {
 				value: value,
-				language: language,
-				theme: theme,
+				language: language ?? 'plaintext',
+				theme: theme ?? 'vs-dark',
 				automaticLayout: true,
 				minimap: { enabled: false },
 				fontSize: 14,
@@ -24,11 +37,11 @@
 			});
 
 			// Listen for content changes
-            editor.onDidChangeModelContent(() => {
-                if (editor && onChange) {
-                    onChange(editor.getValue());
-                }
-            });
+			editor.onDidChangeModelContent(() => {
+				if (editor && onChange) {
+					onChange(editor.getValue());
+				}
+			});
 		}
 	});
 
@@ -36,7 +49,7 @@
 		editor?.dispose();
 	});
 
-    // Update editor value when prop changes (client-only)
+	// Update editor value when prop changes (client-only)
     $effect(() => {
         if (!browser) return;
         if (editor && value !== editor.getValue()) {
@@ -44,21 +57,21 @@
         }
     });
 
-    // Update editor theme when prop changes (client-only)
+	// Update editor theme when prop changes (client-only)
     $effect(() => {
         if (!browser) return;
-        if (monaco && editor && theme) {
-            monaco.editor.setTheme(theme);
+		if (monaco && editor && theme) {
+			monaco.editor.setTheme(theme);
         }
     });
 
-    // Update editor language when prop changes (client-only)
+	// Update editor language when prop changes (client-only)
     $effect(() => {
         if (!browser) return;
-        if (monaco && editor && language) {
+		if (monaco && editor && language) {
             const model = editor.getModel();
             if (model) {
-                monaco.editor.setModelLanguage(model, language);
+				monaco.editor.setModelLanguage(model, language);
             }
         }
     });

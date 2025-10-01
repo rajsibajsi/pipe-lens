@@ -100,7 +100,7 @@ const stageTemplates: Record<string, object> = {
 function insertStage(stageOperator: string) {
     try {
         const parsed = JSON.parse(editorContent);
-        const pipelineArray = Array.isArray(parsed) ? parsed : [];
+        const pipelineArray: any[] = Array.isArray(parsed) ? (parsed as any[]) : [];
         const template = stageTemplates[stageOperator];
         if (!template) return;
         pipelineArray.push(template);
@@ -111,7 +111,7 @@ function insertStage(stageOperator: string) {
         // If editor content is not valid JSON, initialize a new pipeline with the stage
         const template = stageTemplates[stageOperator];
         if (!template) return;
-        const pipelineArray = [template];
+        const pipelineArray: any[] = [template];
         editorContent = JSON.stringify(pipelineArray, null, 2);
         pipelineStore.setPipeline(pipelineArray);
         toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);

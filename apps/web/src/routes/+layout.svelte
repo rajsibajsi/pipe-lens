@@ -257,6 +257,7 @@
 	.app-nav {
 		display: flex;
 		gap: var(--space-lg);
+		align-items: center;
 	}
 
 	.nav-link {
@@ -268,6 +269,14 @@
 
 	.nav-link:hover {
 		color: var(--color-text-primary);
+	}
+
+	/* Override global accessibility min-size for compact header links */
+	.app-nav .nav-link {
+		min-height: 0;
+		min-width: 0;
+		line-height: 1.2;
+		padding: 0;
 	}
 
 	.nav-button {
