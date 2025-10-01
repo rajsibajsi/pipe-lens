@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
     import { onDestroy, onMount } from 'svelte';
 
@@ -35,29 +36,32 @@
 		editor?.dispose();
 	});
 
-    // Update editor value when prop changes
+    // Update editor value when prop changes (client-only)
     $effect(() => {
+        if (!browser) return;
         if (editor && value !== editor.getValue()) {
             editor.setValue(value);
         }
     });
 
-	// Update editor theme when prop changes
-	$effect(() => {
-		if (monaco && editor && theme) {
-			monaco.editor.setTheme(theme);
-		}
-	});
+    // Update editor theme when prop changes (client-only)
+    $effect(() => {
+        if (!browser) return;
+        if (monaco && editor && theme) {
+            monaco.editor.setTheme(theme);
+        }
+    });
 
-	// Update editor language when prop changes
-	$effect(() => {
-		if (monaco && editor && language) {
-			const model = editor.getModel();
-			if (model) {
-				monaco.editor.setModelLanguage(model, language);
-			}
-		}
-	});
+    // Update editor language when prop changes (client-only)
+    $effect(() => {
+        if (!browser) return;
+        if (monaco && editor && language) {
+            const model = editor.getModel();
+            if (model) {
+                monaco.editor.setModelLanguage(model, language);
+            }
+        }
+    });
 </script>
 
 <div bind:this={editorContainer} class="w-full h-full"></div>
