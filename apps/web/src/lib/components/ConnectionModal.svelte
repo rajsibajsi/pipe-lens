@@ -54,66 +54,75 @@ async function handleConnect() {
 </script>
 
 {#if isOpen}
-	<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999;">
-		<div style="background: white; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-width: 28rem; width: 100%; margin: 0 1rem;">
-			<div style="padding: 1.5rem;">
-				<h2 style="font-size: 1.5rem; font-weight: bold; color: #111827; margin-bottom: 1rem;">Connect to MongoDB</h2>
+	<div class="modal-backdrop">
+		<div class="modal">
+			<div class="modal-header">
+				<h2 class="modal-title">Connect to MongoDB</h2>
+			</div>
 
-				<div style="display: flex; flex-direction: column; gap: 1rem;">
-					<div>
-						<label for="name" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">
-							Connection Name
-						</label>
-						<input
-							id="name"
-							type="text"
-							bind:value={connectionName}
-							style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem;"
-							placeholder="My MongoDB"
-						/>
+			<div class="modal-body">
+				<div class="input-group">
+					<label for="name" class="input-label">
+						Connection Name
+					</label>
+					<input
+						id="name"
+						type="text"
+						bind:value={connectionName}
+						class="input"
+						placeholder="My MongoDB"
+					/>
+				</div>
+
+				<div class="input-group" style="margin-top: var(--space-md);">
+					<label for="uri" class="input-label">
+						Connection URI
+					</label>
+					<input
+						id="uri"
+						type="text"
+						bind:value={connectionUri}
+						class="input"
+						style="font-family: var(--font-mono);"
+						placeholder="mongodb://localhost:27017"
+					/>
+					<p style="font-size: var(--text-xs); color: var(--color-text-tertiary); margin-top: var(--space-xs);">
+						Example: mongodb://username:password@host:port
+					</p>
+				</div>
+
+				{#if error}
+					<div class="alert alert-error" style="margin-top: var(--space-md);">
+						<svg style="width: 1.25rem; height: 1.25rem; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+						</svg>
+						<p style="font-size: var(--text-sm); margin: 0;">{error}</p>
 					</div>
+				{/if}
+			</div>
 
-					<div>
-						<label for="uri" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">
-							Connection URI
-						</label>
-						<input
-							id="uri"
-							type="text"
-							bind:value={connectionUri}
-							style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem;"
-							placeholder="mongodb://localhost:27017"
-						/>
-						<p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
-							Example: mongodb://username:password@host:port
-						</p>
-					</div>
-
-					{#if error}
-						<div style="padding: 0.75rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem;">
-							<p style="font-size: 0.875rem; color: #991b1b;">{error}</p>
-						</div>
+			<div class="modal-footer">
+				<button
+					type="button"
+					onclick={onClose}
+					disabled={isConnecting}
+					class="btn btn-secondary"
+					style="flex: 1;"
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					onclick={handleConnect}
+					disabled={isConnecting}
+					class="btn btn-primary"
+					style="flex: 1;"
+				>
+					{#if isConnecting}
+						<span class="spinner"></span>
 					{/if}
-				</div>
-
-				<div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-					<button
-						type="button"
-						onclick={onClose}
-						disabled={isConnecting}
-						style="flex: 1; padding: 0.5rem 1rem; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 0.5rem; font-weight: 500; cursor: pointer; opacity: {isConnecting ? 0.5 : 1};"
-					>
-						Cancel
-					</button>
-					<button
-						type="button"
-						onclick={handleConnect}
-						disabled={isConnecting}
-						style="flex: 1; padding: 0.5rem 1rem; color: white; background: #2563eb; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; opacity: {isConnecting ? 0.5 : 1};"
-					>
-						{isConnecting ? 'Connecting...' : 'Connect'}
-					</button>
-				</div>
+					{isConnecting ? 'Connecting...' : 'Connect'}
+				</button>
 			</div>
 		</div>
 	</div>

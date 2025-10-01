@@ -36,6 +36,44 @@ router.post('/execute', async (req: Request, res: Response) => {
 	}
 });
 
+// Execute pipeline with stage-by-stage results
+router.post('/execute-stages', async (req: Request, res: Response) => {
+	try {
+		const { connectionId, database, collection, pipeline, sampleSize = 10 } = req.body;
+
+		if (!connectionId || !database || !collection || !pipeline) {
+			res.status(400).json({
+				error: 'connectionId, database, collection, and pipeline are required',
+			});
+			return;
+		}
+
+		if (!Array.isArray(pipeline)) {
+			res.status(400).json({ error: 'pipeline must be an array' });
+			return;
+		}
+
+		const result = await mongoService.executePipelineWithStages(
+			connectionId,
+			database,
+			collection,
+			pipeline,
+			sampleSize,
+		);
+
+		res.json({
+			success: true,
+			stages: result,
+		});
+	} catch (error) {
+		console.error('Pipeline stage execution error:', error);
+		res.status(500).json({
+			error: 'Failed to execute pipeline stages',
+			message: error instanceof Error ? error.message : 'Unknown error',
+		});
+	}
+});
+
 // Validate pipeline syntax
 router.post('/validate', async (req: Request, res: Response) => {
 	try {

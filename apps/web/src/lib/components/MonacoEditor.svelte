@@ -2,10 +2,14 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-	export let value = '';
-	export let language = 'json';
-	export let theme = 'vs-dark';
-	export let onChange: ((value: string) => void) | undefined = undefined;
+	interface Props {
+		value?: string;
+		language?: string;
+		theme?: string;
+		onChange?: (value: string) => void;
+	}
+
+	let { value = '', language = 'json', theme = 'vs-dark', onChange }: Props = $props();
 
 	let editorContainer: HTMLDivElement;
 	let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
@@ -45,22 +49,28 @@
 	});
 
 	// Update editor value when prop changes
-	$: if (editor && value !== editor.getValue()) {
-		editor.setValue(value);
-	}
+	$effect(() => {
+		if (editor && value !== editor.getValue()) {
+			editor.setValue(value);
+		}
+	});
 
 	// Update editor theme when prop changes
-	$: if (monaco && editor && theme) {
-		monaco.editor.setTheme(theme);
-	}
+	$effect(() => {
+		if (monaco && editor && theme) {
+			monaco.editor.setTheme(theme);
+		}
+	});
 
 	// Update editor language when prop changes
-	$: if (monaco && editor && language) {
-		const model = editor.getModel();
-		if (model) {
-			monaco.editor.setModelLanguage(model, language);
+	$effect(() => {
+		if (monaco && editor && language) {
+			const model = editor.getModel();
+			if (model) {
+				monaco.editor.setModelLanguage(model, language);
+			}
 		}
-	}
+	});
 </script>
 
 <div bind:this={editorContainer} class="w-full h-full"></div>
