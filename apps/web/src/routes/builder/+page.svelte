@@ -1,8 +1,8 @@
 <script lang="ts">
-import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-import StagePreview from '$lib/components/StagePreview.svelte';
 import { api } from '$lib/api';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
+import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+import StagePreview from '$lib/components/StagePreview.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 
 const defaultPipeline = `[
@@ -200,15 +200,24 @@ function handleEditorChange(value: string | undefined) {
 			<div style="display: flex; gap: var(--space-md); align-items: center;">
 				<!-- Sample Size Control -->
 				<div style="display: flex; align-items: center; gap: var(--space-sm);">
-					<label style="font-size: var(--text-xs); color: var(--color-text-secondary);">
+					<label for="sample-size-input" style="font-size: var(--text-xs); color: var(--color-text-secondary);">
 						Sample Size:
 					</label>
 					<input
+						id="sample-size-input"
 						type="number"
 						min="1"
 						max={maxSampleSize}
 						value={sampleSize}
-						oninput={(e) => pipelineStore.setSampleSize(parseInt(e.target.value) || 10)}
+						oninput={(e) => {
+							const value = parseInt((e.target as HTMLInputElement).value) || 10;
+							const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
+							pipelineStore.setSampleSize(clampedValue);
+							// Update the input value to reflect the clamped value
+							if (value !== clampedValue) {
+								(e.target as HTMLInputElement).value = clampedValue.toString();
+							}
+						}}
 						style="width: 4rem; padding: var(--space-xs); font-size: var(--text-xs); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--color-bg-secondary); color: var(--color-text-primary);"
 					/>
 					<span style="font-size: var(--text-xs); color: var(--color-text-tertiary);">

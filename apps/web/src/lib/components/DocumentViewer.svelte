@@ -1,24 +1,66 @@
 <script lang="ts">
-	interface DocumentViewerProps {
+	import { onMount } from 'svelte';
+
+	interface DocumentItem {
+		key: string;
+		value: unknown;
+		type: string;
+		path: string;
+		depth: number;
+		isExpanded: boolean;
+		hasChanged: boolean;
+	}
+
+	interface Props {
 		documents: unknown[];
 		title?: string;
-		maxHeight?: string;
 		showFieldTypes?: boolean;
 		highlightChanges?: boolean;
 		previousDocuments?: unknown[];
+		maxHeight?: string;
 	}
 
 	let {
-		documents,
-		title = 'Documents',
-		maxHeight = '300px',
+		documents = [],
+		title = 'Document Viewer',
 		showFieldTypes = true,
 		highlightChanges = false,
-		previousDocuments = []
-	}: DocumentViewerProps = $props();
+		previousDocuments = [],
+		maxHeight = '400px'
+	}: Props = $props();
 
-	let expandedFields = $state<Set<string>>(new Set());
-	let selectedDocument = $state<number>(0);
+	let selectedDocument = $state(0);
+	let expandedFields = $state(new Set<string>());
+
+	// Derived state for document items
+	let documentItems = $derived(
+		documents.length > 0 ? renderObject(documents[selectedDocument] as Record<string, unknown>) : []
+	);
+
+	onMount(() => {
+		// Reset state when documents change
+		selectedDocument = 0;
+		expandedFields = new Set();
+	});
+
+	function getType(value: unknown): string {
+		if (value === null) return 'null';
+		if (Array.isArray(value)) return 'array';
+		return typeof value;
+	}
+
+	function getFieldIcon(type: string): string {
+		const icons: Record<string, string> = {
+			string: '📝',
+			number: '🔢',
+			boolean: '✅',
+			object: '📦',
+			array: '📋',
+			null: '❌',
+			undefined: '❓'
+		};
+		return icons[type] || '❓';
+	}
 
 	function toggleField(path: string) {
 		if (expandedFields.has(path)) {
@@ -26,108 +68,77 @@
 		} else {
 			expandedFields.add(path);
 		}
-		expandedFields = new Set(expandedFields);
+		expandedFields = new Set(expandedFields); // Trigger reactivity
 	}
 
-	function getFieldType(value: unknown): string {
+	function isExpanded(path: string): boolean {
+		return expandedFields.has(path);
+	}
+
+	function hasChanged(path: string, value: unknown): boolean {
+		if (!highlightChanges || !previousDocuments.length) return false;
+		
+		const currentDoc = documents[selectedDocument] as Record<string, unknown>;
+		const prevDoc = previousDocuments[selectedDocument] as Record<string, unknown>;
+		
+		if (!prevDoc) return false;
+		
+		const pathParts = path.split('.');
+		let currentValue: unknown = currentDoc;
+		let prevValue: unknown = prevDoc;
+		
+		for (const part of pathParts) {
+			if (currentValue && typeof currentValue === 'object' && part in currentValue) {
+				currentValue = (currentValue as Record<string, unknown>)[part];
+			} else {
+				currentValue = undefined;
+			}
+			
+			if (prevValue && typeof prevValue === 'object' && part in prevValue) {
+				prevValue = (prevValue as Record<string, unknown>)[part];
+			} else {
+				prevValue = undefined;
+			}
+		}
+		
+		return JSON.stringify(currentValue) !== JSON.stringify(prevValue);
+	}
+
+	function formatValue(value: unknown): string {
 		if (value === null) return 'null';
-		if (Array.isArray(value)) return 'array';
-		if (typeof value === 'object') return 'object';
-		return typeof value;
-	}
-
-	function getFieldIcon(type: string): string {
-		switch (type) {
-			case 'string': return '📝';
-			case 'number': return '🔢';
-			case 'boolean': return '✅';
-			case 'object': return '📦';
-			case 'array': return '📋';
-			case 'null': return '❌';
-			default: return '❓';
-		}
-	}
-
-	function formatValue(value: unknown, maxLength = 100): string {
-		if (value === null) return 'null';
-		if (typeof value === 'string') {
-			return value.length > maxLength ? `"${value.substring(0, maxLength)}..."` : `"${value}"`;
-		}
-		if (typeof value === 'number' || typeof value === 'boolean') {
-			return String(value);
-		}
-		if (Array.isArray(value)) {
-			return `[${value.length} items]`;
-		}
+		if (value === undefined) return 'undefined';
+		if (typeof value === 'string') return `"${value}"`;
 		if (typeof value === 'object') {
-			const keys = Object.keys(value as Record<string, unknown>);
-			return `{${keys.length} properties}`;
+			return Array.isArray(value) ? `[${value.length} items]` : `{${Object.keys(value).length} fields}`;
 		}
 		return String(value);
 	}
 
-	function hasChanged(path: string, currentValue: unknown): boolean {
-		if (!highlightChanges || !previousDocuments[selectedDocument]) return false;
-		
-		const prevDoc = previousDocuments[selectedDocument] as Record<string, unknown>;
-		const pathParts = path.split('.');
-		let prevValue = prevDoc;
-		
-		for (const part of pathParts) {
-			if (prevValue && typeof prevValue === 'object' && part in prevValue) {
-				prevValue = (prevValue as Record<string, unknown>)[part];
-			} else {
-				return true; // Field was added
-			}
-		}
-		
-		return JSON.stringify(prevValue) !== JSON.stringify(currentValue);
-	}
-
-	function renderObject(obj: Record<string, unknown>, path = '', depth = 0): unknown[] {
-		const items: unknown[] = [];
+	function renderObject(obj: Record<string, unknown>, path = '', depth = 0): DocumentItem[] {
+		const items: DocumentItem[] = [];
 		
 		for (const [key, value] of Object.entries(obj)) {
 			const currentPath = path ? `${path}.${key}` : key;
-			const fieldType = getFieldType(value);
+			const type = getType(value);
 			const isExpanded = expandedFields.has(currentPath);
-			const hasChanged = hasChanged(currentPath, value);
+			const hasValueChanged = hasChanged(currentPath, value);
 			
 			items.push({
 				key,
 				value,
+				type,
 				path: currentPath,
-				type: fieldType,
+				depth,
 				isExpanded,
-				hasChanged,
-				depth
+				hasChanged: hasValueChanged
 			});
 			
-			if (isExpanded && (fieldType === 'object' || fieldType === 'array')) {
-				if (fieldType === 'object' && typeof value === 'object' && value !== null) {
+			// Add children if expanded and is object/array
+			if (isExpanded && (type === 'object' || type === 'array')) {
+				if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
 					items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
-				} else if (fieldType === 'array' && Array.isArray(value)) {
-					value.forEach((item, index) => {
-						const itemPath = `${currentPath}[${index}]`;
-						const itemType = getFieldType(item);
-						const itemExpanded = expandedFields.has(itemPath);
-						const itemChanged = hasChanged(itemPath, item);
-						
-						items.push({
-							key: `[${index}]`,
-							value: item,
-							path: itemPath,
-							type: itemType,
-							isExpanded: itemExpanded,
-							hasChanged: itemChanged,
-							depth: depth + 1,
-							isArrayItem: true
-						});
-						
-						if (itemExpanded && typeof item === 'object' && item !== null) {
-							items.push(...renderObject(item as Record<string, unknown>, itemPath, depth + 2));
-						}
-					});
+				} else if (type === 'array' && Array.isArray(value)) {
+					items.push(...renderArray(value, currentPath, depth + 1));
 				}
 			}
 		}
@@ -135,7 +146,50 @@
 		return items;
 	}
 
-	$: documentItems = documents.length > 0 ? renderObject(documents[selectedDocument] as Record<string, unknown>) : [];
+	function renderArray(arr: unknown[], path: string, depth: number): DocumentItem[] {
+		const items: DocumentItem[] = [];
+		
+		for (let i = 0; i < arr.length; i++) {
+			const value = arr[i];
+			const currentPath = `${path}[${i}]`;
+			const type = getType(value);
+			const isExpanded = expandedFields.has(currentPath);
+			const hasValueChanged = hasChanged(currentPath, value);
+			
+			items.push({
+				key: `[${i}]`,
+				value,
+				type,
+				path: currentPath,
+				depth,
+				isExpanded,
+				hasChanged: hasValueChanged
+			});
+			
+			// Add children if expanded and is object/array
+			if (isExpanded && (type === 'object' || type === 'array')) {
+				if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
+					items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
+				} else if (type === 'array' && Array.isArray(value)) {
+					items.push(...renderArray(value, currentPath, depth + 1));
+				}
+			}
+		}
+		
+		return items;
+	}
+
+	function nextDocument() {
+		if (selectedDocument < documents.length - 1) {
+			selectedDocument++;
+		}
+	}
+
+	function prevDocument() {
+		if (selectedDocument > 0) {
+			selectedDocument--;
+		}
+	}
 </script>
 
 <div style="display: flex; flex-direction: column; height: 100%;">
@@ -148,47 +202,41 @@
 			{#if documents.length > 1}
 				<div style="display: flex; align-items: center; gap: var(--space-xs);">
 					<button
-						onclick={() => selectedDocument = Math.max(0, selectedDocument - 1)}
+						onclick={prevDocument}
 						disabled={selectedDocument === 0}
-						class="btn btn-ghost"
-						style="padding: var(--space-xs); font-size: var(--text-xs);"
+						style="padding: var(--space-xs); background: transparent; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); cursor: pointer; font-size: var(--text-xs);"
 					>
 						←
 					</button>
-					<span style="font-size: var(--text-xs); color: var(--color-text-tertiary);">
+					<span style="font-size: var(--text-xs); color: var(--color-text-secondary);">
 						{selectedDocument + 1} of {documents.length}
 					</span>
 					<button
-						onclick={() => selectedDocument = Math.min(documents.length - 1, selectedDocument + 1)}
+						onclick={nextDocument}
 						disabled={selectedDocument === documents.length - 1}
-						class="btn btn-ghost"
-						style="padding: var(--space-xs); font-size: var(--text-xs);"
+						style="padding: var(--space-xs); background: transparent; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--color-text-secondary); cursor: pointer; font-size: var(--text-xs);"
 					>
 						→
 					</button>
 				</div>
 			{/if}
 		</div>
-		
-		{#if documents.length > 0}
+		<div style="display: flex; align-items: center; gap: var(--space-sm);">
 			<span style="font-size: var(--text-xs); color: var(--color-text-tertiary);">
-				{Object.keys((documents[selectedDocument] as Record<string, unknown>) || {}).length} fields
+				{documentItems.length} fields
 			</span>
-		{/if}
+		</div>
 	</div>
 
 	<!-- Document Content -->
-	<div style="flex: 1; overflow-y: auto; max-height: {maxHeight};">
+	<div style="flex: 1; overflow-y: auto; padding: var(--space-sm); max-height: {maxHeight};">
 		{#if documents.length === 0}
-			<div style="text-align: center; padding: var(--space-xl); color: var(--color-text-tertiary);">
-				<svg style="width: 2rem; height: 2rem; margin: 0 auto var(--space-sm); opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-				</svg>
-				<p style="font-size: var(--text-sm); margin: 0;">No documents to display</p>
+			<div style="text-align: center; color: var(--color-text-tertiary); padding: var(--space-lg);">
+				No documents to display
 			</div>
 		{:else}
-			<div style="font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.5;">
-				{#each documentItems as item}
+			<div style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: var(--text-xs); line-height: 1.5;">
+				{#each documentItems as item (item.path)}
 					<div
 						style="display: flex; align-items: flex-start; gap: var(--space-xs); padding: 2px 0; margin-left: {item.depth * 1}rem;"
 					>
@@ -201,7 +249,7 @@
 								{item.isExpanded ? '−' : '+'}
 							</button>
 						{:else}
-							<span style="width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center; color: transparent;">•</span>
+							<span style="width: 1rem; display: inline-block;"></span>
 						{/if}
 
 						<!-- Field Name -->
@@ -228,7 +276,7 @@
 						<!-- Change Indicator -->
 						{#if item.hasChanged && highlightChanges}
 							<span style="color: var(--color-warning); font-size: 0.75rem;" title="Field changed">
-								●
+								*
 							</span>
 						{/if}
 					</div>
@@ -237,3 +285,7 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	/* Document viewer specific styles */
+</style>

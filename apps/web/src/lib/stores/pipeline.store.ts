@@ -105,7 +105,9 @@ function createPipelineStore() {
 				// Limit cache size to 50 entries
 				if (newCache.size > 50) {
 					const firstKey = newCache.keys().next().value;
-					newCache.delete(firstKey);
+					if (firstKey) {
+						newCache.delete(firstKey);
+					}
 				}
 				return { ...state, cache: newCache };
 			});
