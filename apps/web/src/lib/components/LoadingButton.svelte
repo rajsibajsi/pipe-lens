@@ -9,7 +9,7 @@ interface Props {
 		style?: string;
 		variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
-		children: string | number | HTMLElement | null;
+		children: () => unknown;
 	}
 
 const { 

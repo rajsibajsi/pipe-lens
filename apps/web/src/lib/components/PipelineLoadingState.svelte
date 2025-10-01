@@ -1,6 +1,6 @@
 <script lang="ts">
-    import SkeletonLoader from './SkeletonLoader.svelte';
     import LoadingSpinner from './LoadingSpinner.svelte';
+    import SkeletonLoader from './SkeletonLoader.svelte';
 
     interface Props {
         stageCount?: number;
