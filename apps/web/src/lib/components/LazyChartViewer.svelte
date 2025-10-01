@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { createLazyComponent } from '$lib/utils/lazy-loading';
 	import { onMount } from 'svelte';
 	import LoadingSpinner from './LoadingSpinner.svelte';
-	import { createLazyComponent } from '$lib/utils/lazy-loading';
 
 	interface Props {
 		data: any[];
@@ -68,8 +68,8 @@
 			<p>{chartLoader.error.message}</p>
 		</div>
 	{:else if chartLoader.component}
-		<svelte:component
-			this={chartLoader.component}
+		{@const ChartComponent = chartLoader.component}
+		<ChartComponent
 			{data}
 			{title}
 			{showControls}

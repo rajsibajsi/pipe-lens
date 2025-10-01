@@ -6,6 +6,7 @@
 		disabled?: boolean;
 		onclick?: () => void;
 		className?: string;
+		style?: string;
 		variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
 		children: any;
@@ -16,6 +17,7 @@
 		disabled = false,
 		onclick,
 		className = '',
+		style = '',
 		variant = 'primary',
 		size = 'md',
 		children
@@ -47,6 +49,7 @@
 	disabled={disabled || loading}
 	onclick={handleClick}
 	aria-disabled={disabled || loading}
+	style={style}
 >
 	{#if loading}
 		<LoadingSpinner size="sm" />

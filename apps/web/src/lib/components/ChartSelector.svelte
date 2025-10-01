@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChartType, ChartConfig } from '$lib/utils/chart-data';
+	import type { ChartConfig, ChartType } from '$lib/utils/chart-data';
 
 	interface Props {
 		selectedType: ChartType;
@@ -17,7 +17,7 @@
 		{ type: 'table' as ChartType, label: 'Data Table', icon: '📋', description: 'View raw data in table format' }
 	];
 
-	const showAdvanced = $state(false);
+	let showAdvanced = $state(false);
 
 	function handleTypeChange(type: ChartType) {
 		onTypeChange(type);
@@ -25,6 +25,10 @@
 
 	function handleConfigChange(key: keyof ChartConfig, value: unknown) {
 		onConfigChange({ [key]: value });
+	}
+
+	function toggleAdvanced() {
+		showAdvanced = !showAdvanced;
 	}
 
 	const colorPresets = [
@@ -57,7 +61,7 @@
 			<h4 class="config-title">Configuration</h4>
 			<button
 				class="btn btn-ghost btn-sm"
-				onclick={() => showAdvanced = !showAdvanced}
+				onclick={toggleAdvanced}
 			>
 				{showAdvanced ? 'Hide' : 'Show'} Advanced
 			</button>
@@ -130,8 +134,8 @@
 				{/if}
 
 				<div class="config-field">
-					<label class="config-label">Color Scheme</label>
-					<div class="color-presets">
+					<label class="config-label" for="color-scheme">Color Scheme</label>
+					<div class="color-presets" id="color-scheme" role="group" aria-labelledby="color-scheme">
 						{#each colorPresets as preset, index}
 							<button
 								class="color-preset {config.colors?.join(',') === preset.join(',') ? 'selected' : ''}"

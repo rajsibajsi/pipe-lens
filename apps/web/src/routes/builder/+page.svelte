@@ -29,11 +29,10 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = $state(defaultPipeline);
-const showConnectionModal = $state(false);
+  let showConnectionModal = $state(false);
 let showDatabaseSelector = $state(false);
 let showCollectionSelector = $state(false);
 let showPipelineManager = $state(false);
-const showMobileMenu = $state(false);
 
 // Initialize keyboard shortcuts
 onMount(() => {
@@ -269,177 +268,92 @@ function handleEditorChange(value: string | undefined) {
 </script>
 
 <div style="height: 100vh; display: flex; flex-direction: column;">
-	<!-- Header -->
-	<header style="background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--glass-border); padding: var(--space-lg) var(--space-xl);">
-		<div style="display: flex; align-items: center; justify-content: space-between;">
-			<div>
-				<h1 style="font-size: var(--text-2xl); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">Pipeline Builder</h1>
-				<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
+	<!-- Top Toolbar -->
+	<div class="top-toolbar">
+		<div class="toolbar-content">
+			<div class="toolbar-left">
+				<div class="connection-info">
 					{#if connection?.selectedDatabase && connection?.selectedCollection}
-						{connection.selectedDatabase}.{connection.selectedCollection}
+						<span class="connection-text">{connection.selectedDatabase}.{connection.selectedCollection}</span>
 					{:else}
-						Build and test MongoDB aggregation pipelines
+						<span class="connection-text">Select database and collection</span>
 					{/if}
-				</p>
+				</div>
 			</div>
-			<div class="header-controls">
-				<!-- Desktop Controls -->
-				<div class="desktop-controls">
-					<!-- Sample Size Control -->
-					<div class="sample-size-control">
-						<label for="sample-size-input" class="sample-size-label">
-							Sample Size:
-						</label>
-						<input
-							id="sample-size-input"
-							type="number"
-							min="1"
-							max={maxSampleSize}
-							value={sampleSize}
-							oninput={(e) => {
-								const value = parseInt((e.target as HTMLInputElement).value) || 10;
-								const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
-								pipelineStore.setSampleSize(clampedValue);
-								// Update the input value to reflect the clamped value
-								if (value !== clampedValue) {
-									(e.target as HTMLInputElement).value = clampedValue.toString();
-								}
-							}}
-							class="sample-size-input"
-						/>
-						<span class="sample-size-max">
-							/ {maxSampleSize}
-						</span>
-					</div>
-
-					{#if authState.isAuthenticated}
-						<button
-							onclick={openPipelineManager}
-							class="btn btn-secondary"
-							title="Manage saved pipelines"
-						>
-							📚 Pipelines
-						</button>
-					{/if}
-					<button
-						onclick={() => pipelineStore.clearCache()}
-						class="btn btn-ghost"
-						title="Clear cache"
-					>
-						🗑️ Clear Cache
-					</button>
-					<button
-						onclick={() => pipelineStore.toggleDiff()}
-						class="btn btn-ghost"
-						class:active={diff.showDiff}
-						title="Toggle diff view"
-					>
-						🔍 Diff View
-					</button>
-					<LoadingButton
-						loading={isExecuting}
-						disabled={!connection}
-						onclick={handleRunWithPreview}
-						className="btn-primary"
-						style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
-					>
-						Run with Preview
-					</LoadingButton>
-					<LoadingButton
-						loading={isExecuting}
-						disabled={!connection}
-						onclick={handleRunPipeline}
-						className="btn-primary"
-					>
-						Run Pipeline
-					</LoadingButton>
+			
+			<div class="toolbar-right">
+				<!-- Sample Size Control -->
+				<div class="sample-size-control">
+					<label for="sample-size-input" class="sample-size-label">
+						Sample:
+					</label>
+					<input
+						id="sample-size-input"
+						type="number"
+						min="1"
+						max={maxSampleSize}
+						value={sampleSize}
+						oninput={(e) => {
+							const value = parseInt((e.target as HTMLInputElement).value) || 10;
+							const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
+							pipelineStore.setSampleSize(clampedValue);
+							if (value !== clampedValue) {
+								(e.target as HTMLInputElement).value = clampedValue.toString();
+							}
+						}}
+						class="sample-size-input"
+					/>
+					<span class="sample-size-max">/{maxSampleSize}</span>
 				</div>
 
-				<!-- Mobile Menu Button -->
+				{#if authState.isAuthenticated}
+					<button
+						onclick={openPipelineManager}
+						class="btn btn-secondary"
+						title="Manage saved pipelines"
+					>
+						📚
+					</button>
+				{/if}
+				
 				<button
-					class="mobile-menu-button"
-					onclick={() => showMobileMenu = !showMobileMenu}
-					title="Toggle mobile menu"
+					onclick={() => pipelineStore.clearCache()}
+					class="btn btn-ghost"
+					title="Clear cache"
 				>
-					☰
+					🗑️
 				</button>
+				
+				<button
+					onclick={() => pipelineStore.toggleDiff()}
+					class="btn btn-ghost"
+					class:active={diff.showDiff}
+					title="Toggle diff view"
+				>
+					🔍
+				</button>
+
+				<LoadingButton
+					loading={isExecuting}
+					disabled={!connection}
+					onclick={handleRunWithPreview}
+					className="btn btn-primary"
+					style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
+				>
+					Run with Preview
+				</LoadingButton>
+				
+				<LoadingButton
+					loading={isExecuting}
+					disabled={!connection}
+					onclick={handleRunPipeline}
+					className="btn btn-primary"
+				>
+					Run Pipeline
+				</LoadingButton>
 			</div>
-
-			<!-- Mobile Controls -->
-			{#if showMobileMenu}
-				<div class="mobile-controls">
-					<div class="mobile-controls-content">
-						<!-- Sample Size Control -->
-						<div class="mobile-sample-size">
-							<label for="mobile-sample-size-input" class="mobile-sample-size-label">
-								Sample Size
-							</label>
-							<div class="mobile-sample-size-input-group">
-								<input
-									id="mobile-sample-size-input"
-									type="number"
-									min="1"
-									max={maxSampleSize}
-									value={sampleSize}
-									oninput={(e) => {
-										const value = parseInt((e.target as HTMLInputElement).value) || 10;
-										const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
-										pipelineStore.setSampleSize(clampedValue);
-										if (value !== clampedValue) {
-											(e.target as HTMLInputElement).value = clampedValue.toString();
-										}
-									}}
-									class="mobile-sample-size-input"
-								/>
-								<span class="mobile-sample-size-max">/ {maxSampleSize}</span>
-							</div>
-						</div>
-
-						<div class="mobile-buttons">
-							{#if authState.isAuthenticated}
-								<button
-									onclick={() => { openPipelineManager(); showMobileMenu = false; }}
-									class="btn btn-secondary mobile-btn"
-								>
-									📚 Pipelines
-								</button>
-							{/if}
-							<button
-								onclick={() => { pipelineStore.clearCache(); showMobileMenu = false; }}
-								class="btn btn-ghost mobile-btn"
-							>
-								🗑️ Clear Cache
-							</button>
-							<button
-								onclick={() => { pipelineStore.toggleDiff(); showMobileMenu = false; }}
-								class="btn btn-ghost mobile-btn"
-								class:active={diff.showDiff}
-							>
-								🔍 Diff View
-							</button>
-							<LoadingButton
-								loading={isExecuting}
-								disabled={!connection}
-								onclick={() => { handleRunWithPreview(); showMobileMenu = false; }}
-								className="btn-primary mobile-btn"
-								style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
-							>
-								Run with Preview
-							</LoadingButton>
-							<LoadingButton
-								loading={isExecuting}
-								disabled={!connection}
-								onclick={() => { handleRunPipeline(); showMobileMenu = false; }}
-								className="btn-primary mobile-btn"
-							>
-								Run Pipeline
-							</LoadingButton>
-						</div>
-					</div>
-				</div>
-			{/if}
 		</div>
-	</header>
+	</div>
 
 	<!-- Main Content -->
 	<div style="flex: 1; display: flex; overflow: hidden;">
@@ -675,119 +589,73 @@ function handleEditorChange(value: string | undefined) {
 />
 
 <style>
-	/* Header Controls */
-	.header-controls {
+	/* Top Toolbar */
+	.top-toolbar {
+		background: var(--glass-bg);
+		backdrop-filter: blur(16px);
+		border-bottom: 1px solid var(--glass-border);
+		padding: var(--space-md) var(--space-lg);
+		position: sticky;
+		top: 0;
+		z-index: 50;
+	}
+
+	.toolbar-content {
 		display: flex;
-		gap: var(--space-md);
+		align-items: center;
+		justify-content: space-between;
+		max-width: 100%;
+	}
+
+	.toolbar-left {
+		display: flex;
 		align-items: center;
 	}
 
-	.desktop-controls {
+	.toolbar-right {
 		display: flex;
+		align-items: center;
 		gap: var(--space-md);
+	}
+
+	.connection-info {
+		display: flex;
 		align-items: center;
 	}
 
-	.mobile-menu-button {
-		display: none;
-		background: none;
-		border: 1px solid var(--glass-border);
-		border-radius: var(--radius-sm);
-		padding: var(--space-sm);
-		color: var(--color-text-primary);
-		cursor: pointer;
-		font-size: var(--text-lg);
-		transition: all 0.2s ease;
-	}
-
-	.mobile-menu-button:hover {
-		background: var(--color-bg-tertiary);
+	.connection-text {
+		font-size: var(--text-sm);
+		color: var(--color-text-secondary);
+		font-weight: 500;
 	}
 
 	/* Sample Size Control */
 	.sample-size-control {
 		display: flex;
 		align-items: center;
-		gap: var(--space-sm);
+		gap: var(--space-xs);
 	}
 
 	.sample-size-label {
 		font-size: var(--text-xs);
 		color: var(--color-text-secondary);
+		font-weight: 500;
 	}
 
 	.sample-size-input {
-		width: 4rem;
+		width: 3rem;
 		padding: var(--space-xs);
 		font-size: var(--text-xs);
 		border: 1px solid var(--glass-border);
 		border-radius: var(--radius-sm);
 		background: var(--color-bg-secondary);
 		color: var(--color-text-primary);
+		text-align: center;
 	}
 
 	.sample-size-max {
 		font-size: var(--text-xs);
 		color: var(--color-text-tertiary);
-	}
-
-	/* Mobile Controls */
-	.mobile-controls {
-		display: none;
-		background: var(--color-bg-secondary);
-		border-top: 1px solid var(--glass-border);
-		padding: var(--space-md);
-		animation: slideDown 0.3s ease-out;
-	}
-
-	.mobile-controls-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-md);
-	}
-
-	.mobile-sample-size {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-xs);
-	}
-
-	.mobile-sample-size-label {
-		font-size: var(--text-sm);
-		color: var(--color-text-secondary);
-		font-weight: 500;
-	}
-
-	.mobile-sample-size-input-group {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-	}
-
-	.mobile-sample-size-input {
-		width: 5rem;
-		padding: var(--space-sm);
-		font-size: var(--text-sm);
-		border: 1px solid var(--glass-border);
-		border-radius: var(--radius-sm);
-		background: var(--color-bg-primary);
-		color: var(--color-text-primary);
-	}
-
-	.mobile-sample-size-max {
-		font-size: var(--text-sm);
-		color: var(--color-text-tertiary);
-	}
-
-	.mobile-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-	}
-
-	.mobile-btn {
-		width: 100%;
-		justify-content: center;
 	}
 
 	/* Button active state */
@@ -798,7 +666,7 @@ function handleEditorChange(value: string | undefined) {
 
 	/* Responsive Design */
 	@media (max-width: 1024px) {
-		.desktop-controls {
+		.toolbar-right {
 			gap: var(--space-sm);
 		}
 
@@ -808,72 +676,38 @@ function handleEditorChange(value: string | undefined) {
 	}
 
 	@media (max-width: 768px) {
-		.desktop-controls {
-			display: none;
+		.top-toolbar {
+			padding: var(--space-sm) var(--space-md);
 		}
 
-		.mobile-menu-button {
-			display: block;
+		.toolbar-content {
+			flex-direction: column;
+			gap: var(--space-sm);
+			align-items: stretch;
 		}
 
-		.mobile-controls {
-			display: block;
+		.toolbar-left {
+			justify-content: center;
 		}
 
-		.header-controls {
-			justify-content: space-between;
+		.toolbar-right {
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.connection-text {
+			font-size: var(--text-xs);
 		}
 	}
 
 	@media (max-width: 480px) {
-		.mobile-controls {
-			padding: var(--space-sm);
-		}
-
-		.mobile-buttons {
+		.toolbar-right {
 			gap: var(--space-xs);
 		}
 
-		.mobile-btn {
-			padding: var(--space-sm);
-			font-size: var(--text-sm);
-		}
-	}
-
-	/* Main content responsive */
-	@media (max-width: 768px) {
-		.main-content {
-			flex-direction: column;
-		}
-
-		.sidebar {
-			width: 100%;
-			height: auto;
-			max-height: 200px;
-			border-right: none;
-			border-bottom: 1px solid var(--glass-border);
-		}
-
-		.editor-section {
-			height: 50vh;
-		}
-
-		.results-section {
-			height: 50vh;
-		}
-	}
-
-	/* Connection selector responsive */
-	@media (max-width: 480px) {
-		.connection-selector {
-			flex-direction: column;
-			align-items: stretch;
-			gap: var(--space-sm);
-		}
-
-		.connection-selector button {
-			width: 100%;
-			justify-content: center;
+		.btn {
+			padding: var(--space-xs) var(--space-sm);
+			font-size: var(--text-xs);
 		}
 	}
 </style>

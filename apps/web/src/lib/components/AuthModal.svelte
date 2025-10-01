@@ -117,11 +117,13 @@
 	<div
 		class="auth-modal-overlay"
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="auth-modal-title"
+		tabindex="-1"
 	>
-		<div class="auth-modal" onclick={(e) => e.stopPropagation()}>
+		<div class="auth-modal" onclick={(e) => e.stopPropagation()} role="presentation">
 			<div class="auth-modal-header">
 				<h2 id="auth-modal-title">
 					{currentMode === 'login' ? 'Sign In' : 'Create Account'}

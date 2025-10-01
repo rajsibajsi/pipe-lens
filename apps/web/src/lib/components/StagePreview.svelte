@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { StageResult } from '$lib/stores/pipeline.store';
-	import DocumentViewer from './DocumentViewer.svelte';
-	import DiffViewer from './DiffViewer.svelte';
-	import ChartViewer from './ChartViewer.svelte';
 	import { createDiff } from '$lib/utils/diff';
+	import ChartViewer from './ChartViewer.svelte';
+	import DiffViewer from './DiffViewer.svelte';
+	import DocumentViewer from './DocumentViewer.svelte';
 
 	interface Props {
 		stages: StageResult[];
@@ -14,10 +14,14 @@
 
 	const { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
 	let expandedStage = $state<number | null>(null);
-	const viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
+	let viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
 
 	function toggleStage(index: number) {
 		expandedStage = expandedStage === index ? null : index;
+	}
+
+	function setViewMode(mode: 'preview' | 'side-by-side' | 'diff' | 'chart') {
+		viewMode = mode;
 	}
 
 	function formatTime(ms: number): string {
@@ -146,21 +150,21 @@
 								</span>
 								<div style="display: flex; background: var(--color-bg-tertiary); border-radius: var(--radius-sm); padding: 2px;">
 									<button
-										onclick={() => (viewMode = 'preview')}
+										onclick={() => setViewMode('preview')}
 										class="btn btn-ghost"
 										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'preview' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'preview' ? 'white' : 'var(--color-text-secondary)'};"
 									>
 										Preview
 									</button>
 									<button
-										onclick={() => (viewMode = 'side-by-side')}
+										onclick={() => setViewMode('side-by-side')}
 										class="btn btn-ghost"
 										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'side-by-side' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'side-by-side' ? 'white' : 'var(--color-text-secondary)'};"
 									>
 										Side-by-Side
 									</button>
 									<button
-										onclick={() => (viewMode = 'chart')}
+										onclick={() => setViewMode('chart')}
 										class="btn btn-ghost"
 										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'chart' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'chart' ? 'white' : 'var(--color-text-secondary)'};"
 									>
@@ -168,7 +172,7 @@
 									</button>
 									{#if showDiff && index > 0}
 										<button
-											onclick={() => (viewMode = 'diff')}
+											onclick={() => setViewMode('diff')}
 											class="btn btn-ghost"
 											style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'diff' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'diff' ? 'white' : 'var(--color-text-secondary)'};"
 										>

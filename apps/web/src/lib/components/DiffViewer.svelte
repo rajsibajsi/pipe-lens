@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { DiffChange, DiffResult } from '$lib/utils/diff';
-	import { 
-		getChangeTypeColor, 
-		getChangeTypeIcon, 
-		formatPath, 
-		hasNestedChanges,
-		filterChangesByType,
-		getChangesAtLevel
+	import {
+	  filterChangesByType,
+	  formatPath,
+	  getChangesAtLevel,
+	  getChangeTypeColor,
+	  getChangeTypeIcon,
+	  hasNestedChanges
 	} from '$lib/utils/diff';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		diffResult: DiffResult;
@@ -20,14 +20,16 @@
 
 	const {
 		diffResult,
-		showUnchanged = false,
-		filterType = 'all',
+		showUnchanged: initialShowUnchanged = false,
+		filterType: initialFilterType = 'all',
 		maxDepth = 10,
 		highlightChanges = true
 	}: Props = $props();
 
 	let expandedPaths = $state(new Set<string>());
 	let selectedChange = $state<DiffChange | null>(null);
+	let showUnchanged = $state(initialShowUnchanged);
+	let filterType = $state(initialFilterType);
 
 	// Reactive state for filtered changes
 	let filteredChanges: DiffChange[] = $state([]);
@@ -184,6 +186,7 @@
 								<span 
 									class="expand-button"
 									onclick={(e) => { e.stopPropagation(); togglePath(change.path); }}
+									onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); togglePath(change.path); }}}
 									role="button"
 									tabindex="0"
 								>
@@ -335,14 +338,7 @@
 		margin: 0;
 	}
 
-	.control-item select {
-		padding: var(--space-xs);
-		border: 1px solid var(--glass-border);
-		border-radius: var(--radius-sm);
-		background: var(--color-bg-primary);
-		color: var(--color-text-primary);
-		font-size: var(--text-xs);
-	}
+	/* .control-item select styles removed - no longer needed */
 
 	.diff-content {
 		flex: 1;

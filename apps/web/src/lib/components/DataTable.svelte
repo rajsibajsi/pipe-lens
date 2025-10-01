@@ -17,9 +17,9 @@
 
 	let sortColumn = $state<string | null>(null);
 	let sortDirection = $state<'asc' | 'desc'>('asc');
-	const searchTerm = $state('');
+	let searchTerm = $state('');
 	let currentPage = $state(1);
-	const pageSize = $state(50);
+	let pageSize = $state(50);
 
 	// Computed properties
 	let filteredData = $state<(string | number)[][]>([]);

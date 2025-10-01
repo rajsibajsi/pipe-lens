@@ -15,9 +15,9 @@
 	let activeTab = $state<'saved' | 'public' | 'templates'>('saved');
 	let isLoading = $state(false);
 	let error = $state('');
-	const searchQuery = $state('');
-	const selectedCategory = $state('');
-	const selectedDifficulty = $state('');
+	let searchQuery = $state('');
+	let selectedCategory = $state('');
+	let selectedDifficulty = $state('');
 
 	// Pipeline data
 	let savedPipelines = $state<any[]>([]);
@@ -118,12 +118,18 @@
 				name: saveName.trim(),
 				description: saveDescription.trim() || undefined,
 				tags: saveTags.split(',').map(tag => tag.trim()).filter(tag => tag),
-				pipeline: pipelineState.pipeline,
+				pipeline: pipelineState.pipeline as object[],
 				connectionId: pipelineState.connection.id,
-				database: pipelineState.connection.selectedDatabase,
-				collection: pipelineState.connection.selectedCollection,
+				database: pipelineState.connection.selectedDatabase || '',
+				collection: pipelineState.connection.selectedCollection || '',
 				sampleSize: pipelineState.sampleSize,
-				isPublic: saveIsPublic
+				isPublic: saveIsPublic,
+				metadata: {
+					estimatedExecutionTime: undefined,
+					complexity: 'simple' as const,
+					category: 'general',
+					difficulty: 'beginner' as const
+				}
 			};
 
 			if (authState.isAuthenticated) {
@@ -334,11 +340,13 @@
 	<div
 		class="pipeline-manager-overlay"
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="pipeline-manager-title"
+		tabindex="-1"
 	>
-		<div class="pipeline-manager" onclick={(e) => e.stopPropagation()}>
+		<div class="pipeline-manager" onclick={(e) => e.stopPropagation()} role="presentation">
 			<div class="pipeline-manager-header">
 				<h2 id="pipeline-manager-title">Pipeline Manager</h2>
 				<button class="pipeline-manager-close" onclick={onClose} aria-label="Close modal">

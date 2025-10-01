@@ -198,11 +198,13 @@
 	<div
 		class="profile-modal-overlay"
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="profile-modal-title"
+		tabindex="-1"
 	>
-		<div class="profile-modal" onclick={(e) => e.stopPropagation()}>
+		<div class="profile-modal" onclick={(e) => e.stopPropagation()} role="presentation">
 			<div class="profile-modal-header">
 				<h2 id="profile-modal-title">User Profile</h2>
 				<button class="profile-modal-close" onclick={onClose} aria-label="Close modal">
@@ -283,8 +285,8 @@
 						</div>
 
 						<div class="form-group">
-							<label>Plan</label>
-							<div class="plan-info">
+							<label for="plan-display">Plan</label>
+							<div class="plan-info" id="plan-display">
 								<span class="plan-badge plan-{authState.user?.plan || 'free'}">
 									{authState.user?.plan || 'free'}
 								</span>

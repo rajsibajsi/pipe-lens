@@ -1,4 +1,63 @@
-/* Accessibility styles for WCAG compliance */
+/* Accessibility Styles - WCAG 2.1 AA Compliance */
+
+/* Skip to content link */
+.skip-to-content {
+	position: absolute;
+	top: -40px;
+	left: 6px;
+	background: var(--color-primary);
+	color: white;
+	padding: 8px;
+	text-decoration: none;
+	border-radius: 4px;
+	z-index: 1000;
+	transition: top 0.3s ease;
+}
+
+.skip-to-content:focus {
+	top: 6px;
+}
+
+/* Focus indicators */
+*:focus {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+*:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/* Enhanced focus for keyboard users */
+*:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	:root {
+		--color-text-primary: #000000;
+		--color-text-secondary: #333333;
+		--color-bg-primary: #ffffff;
+		--color-bg-secondary: #f5f5f5;
+		--color-primary: #0066cc;
+		--glass-border: #000000;
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
 
 /* Screen reader only content */
 .sr-only {
@@ -13,156 +72,176 @@
 	border: 0;
 }
 
-/* Focus indicators */
-.focus-visible {
-	outline: 2px solid var(--color-primary);
-	outline-offset: 2px;
+/* Screen reader only content that becomes visible on focus */
+.sr-only-focusable:focus {
+	position: static;
+	width: auto;
+	height: auto;
+	padding: inherit;
+	margin: inherit;
+	overflow: visible;
+	clip: auto;
+	white-space: normal;
 }
 
-/* Skip links */
-.skip-link {
-	position: absolute;
-	top: -40px;
-	left: 6px;
-	background: var(--color-primary);
-	color: var(--color-bg-primary);
-	padding: 8px;
-	text-decoration: none;
-	border-radius: 4px;
-	z-index: 1000;
-	transition: top 0.3s;
+/* Error states */
+.error {
+	border-color: #dc2626 !important;
+	box-shadow: 0 0 0 1px #dc2626 !important;
 }
 
-.skip-link:focus {
-	top: 6px;
+.error-message {
+	color: #dc2626;
+	font-size: 0.875rem;
+	margin-top: 0.25rem;
 }
 
-/* Field errors */
-.field-error {
-	color: var(--color-error);
-	font-size: var(--text-sm);
-	margin-top: var(--space-xs);
+/* Success states */
+.success {
+	border-color: #16a34a !important;
+	box-shadow: 0 0 0 1px #16a34a !important;
+}
+
+/* Warning states */
+.warning {
+	border-color: #d97706 !important;
+	box-shadow: 0 0 0 1px #d97706 !important;
+}
+
+/* Form accessibility */
+label {
 	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+	color: var(--color-text-primary);
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-	:root {
-		--color-text-primary: #ffffff;
-		--color-text-secondary: #ffffff;
-		--color-bg-primary: #000000;
-		--color-bg-secondary: #000000;
-		--glass-border: #ffffff;
-	}
+/* Required field indicator */
+.required::after {
+	content: " *";
+	color: #dc2626;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-		scroll-behavior: auto !important;
-	}
-
-	/* Disable parallax and complex animations */
-	.parallax,
-	.complex-animation {
-		transform: none !important;
-	}
-}
-
-/* Focus management */
-.focus-trap {
-	position: relative;
-}
-
-.focus-trap::before,
-.focus-trap::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	pointer-events: none;
-	z-index: -1;
+/* Field descriptions */
+.field-description {
+	font-size: 0.875rem;
+	color: var(--color-text-secondary);
+	margin-top: 0.25rem;
 }
 
 /* Button accessibility */
-button:focus-visible,
-.btn:focus-visible {
-	outline: 2px solid var(--color-primary);
-	outline-offset: 2px;
-}
-
-button:disabled,
-.btn:disabled {
+button:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
 }
 
 /* Link accessibility */
-a:focus-visible {
-	outline: 2px solid var(--color-primary);
-	outline-offset: 2px;
-}
-
 a:not([href]) {
 	cursor: default;
 }
 
-/* Form accessibility */
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-	outline: 2px solid var(--color-primary);
-	outline-offset: 2px;
-}
-
-input[aria-invalid="true"],
-textarea[aria-invalid="true"],
-select[aria-invalid="true"] {
-	border-color: var(--color-error);
+a:not([href]):focus {
+	outline: none;
 }
 
 /* Table accessibility */
 table {
 	border-collapse: collapse;
+	width: 100%;
 }
 
 th {
 	text-align: left;
 	font-weight: 600;
+	background-color: var(--color-bg-secondary);
+	padding: 0.75rem;
 }
 
-/* Modal accessibility */
-[role="dialog"] {
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	z-index: 1000;
+td {
+	padding: 0.75rem;
+	border-top: 1px solid var(--glass-border);
 }
 
-[role="dialog"]:focus {
-	outline: none;
+/* List accessibility */
+ul, ol {
+	margin: 0;
+	padding-left: 1.5rem;
 }
 
-/* Alert accessibility */
-[role="alert"] {
-	color: var(--color-error);
-	font-weight: 500;
+li {
+	margin-bottom: 0.25rem;
 }
 
-[role="status"] {
+/* Heading hierarchy */
+h1, h2, h3, h4, h5, h6 {
+	margin-top: 0;
+	margin-bottom: 0.5rem;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+/* Color contrast improvements */
+.text-low-contrast {
 	color: var(--color-text-secondary);
 }
 
-/* Live regions */
-[aria-live] {
+.text-high-contrast {
+	color: var(--color-text-primary);
+}
+
+/* Interactive element sizing */
+button, input, select, textarea, a {
+	min-height: 44px;
+	min-width: 44px;
+}
+
+/* Small interactive elements with proper spacing */
+button.small, input.small, select.small, textarea.small, a.small {
+	min-height: 32px;
+	min-width: 32px;
+	padding: 0.5rem;
+}
+
+/* Modal accessibility */
+.modal-backdrop {
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+	background-color: var(--color-bg-primary);
+	border-radius: 0.5rem;
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Toast accessibility */
+.toast {
+	background-color: var(--color-bg-primary);
+	border: 1px solid var(--glass-border);
+	border-radius: 0.5rem;
+	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state accessibility */
+.loading {
+	position: relative;
+}
+
+.loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin: -10px 0 0 -10px;
+	border: 2px solid var(--color-primary);
+	border-radius: 50%;
+	border-top-color: transparent;
+	animation: spin 1s linear infinite;
+}
+
+/* ARIA live regions */
+.aria-live {
 	position: absolute;
 	left: -10000px;
 	width: 1px;
@@ -170,56 +249,39 @@ th {
 	overflow: hidden;
 }
 
-/* Tooltip accessibility */
-[aria-describedby] {
-	position: relative;
+/* Focus trap for modals */
+.focus-trap {
+	outline: none;
 }
 
-/* Skip to content */
-.skip-to-content {
-	position: absolute;
-	top: -100px;
-	left: 0;
-	background: var(--color-primary);
-	color: var(--color-bg-primary);
-	padding: var(--space-sm) var(--space-md);
-	text-decoration: none;
-	border-radius: var(--radius-sm);
-	z-index: 1000;
-	transition: top 0.3s ease;
+/* Keyboard navigation indicators */
+.keyboard-nav button:focus,
+.keyboard-nav a:focus,
+.keyboard-nav input:focus,
+.keyboard-nav select:focus,
+.keyboard-nav textarea:focus {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
 }
 
-.skip-to-content:focus {
-	top: var(--space-sm);
-}
-
-/* High contrast mode for specific elements */
-@media (prefers-contrast: high) {
-	.btn {
-		border: 2px solid currentColor;
-	}
-	
-	.card,
-	.modal {
-		border: 2px solid currentColor;
+/* Touch target sizing for mobile */
+@media (max-width: 768px) {
+	button, input, select, textarea, a {
+		min-height: 48px;
+		min-width: 48px;
 	}
 }
 
-/* Print styles for accessibility */
+/* Print styles */
 @media print {
-	.sr-only {
-		position: static;
-		width: auto;
-		height: auto;
-		padding: 0;
-		margin: 0;
-		overflow: visible;
-		clip: auto;
-		white-space: normal;
+	.skip-to-content,
+	.modal-backdrop,
+	.toast {
+		display: none !important;
 	}
 	
-	.skip-link,
-	.mobile-menu-button {
-		display: none;
+	* {
+		background: white !important;
+		color: black !important;
 	}
 }

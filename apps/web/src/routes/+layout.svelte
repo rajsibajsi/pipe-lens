@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import favicon from '$lib/assets/favicon.svg';
 	import AuthModal from '$lib/components/AuthModal.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
@@ -82,10 +83,9 @@
 </svelte:head>
 
 	<div class="app-layout">
-		<!-- Skip to main content link -->
-		<a href="#main-content" class="skip-to-content">Skip to main content</a>
-		
+
 		<!-- Navigation Header -->
+		{#if $page.url.pathname !== '/builder'}
 		<header class="app-header">
 		<div class="app-header-content">
 			<div class="app-logo">
@@ -99,7 +99,7 @@
 				<a href="/" class="nav-link">Home</a>
 				<a href="/builder" class="nav-link">Builder</a>
 				<button
-					class="nav-link nav-button"
+					class="nav-button"
 					onclick={() => showTutorial = true}
 					title="Show tutorial (Ctrl+H)"
 				>
@@ -154,6 +154,7 @@
 			</div>
 		</div>
 	</header>
+		{/if}
 
 	<!-- Main Content -->
 	<main id="main-content" class="app-main">
@@ -276,6 +277,13 @@
 		font-family: inherit;
 		font-size: inherit;
 		font-weight: inherit;
+		display: flex;
+		align-items: center;
+		padding: 0;
+		color: var(--color-text-secondary);
+		text-decoration: none;
+		font-weight: 500;
+		transition: color 0.2s ease;
 	}
 
 	.nav-button:hover {
