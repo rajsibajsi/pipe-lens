@@ -1,16 +1,19 @@
 <script lang="ts">
 	import type { StageResult } from '$lib/stores/pipeline.store';
 	import DocumentViewer from './DocumentViewer.svelte';
+	import DiffViewer from './DiffViewer.svelte';
+	import { createDiff } from '$lib/utils/diff';
 
 	interface Props {
 		stages: StageResult[];
 		showFieldTypes?: boolean;
 		highlightChanges?: boolean;
+		showDiff?: boolean;
 	}
 
-	let { stages, showFieldTypes = true, highlightChanges = false }: Props = $props();
+	let { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
 	let expandedStage = $state<number | null>(null);
-	let viewMode = $state<'preview' | 'side-by-side'>('preview');
+	let viewMode = $state<'preview' | 'side-by-side' | 'diff'>('preview');
 
 	function toggleStage(index: number) {
 		expandedStage = expandedStage === index ? null : index;
@@ -24,6 +27,27 @@
 	function getPreviousStageDocuments(index: number): unknown[] {
 		if (index === 0) return [];
 		return stages[index - 1]?.preview || [];
+	}
+
+	function calculateDiff(stageIndex: number) {
+		if (stageIndex === 0) return null;
+		
+		const currentStage = stages[stageIndex];
+		const previousStage = stages[stageIndex - 1];
+		
+		if (!currentStage || !previousStage) return null;
+		
+		// Compare the first document from each stage
+		const currentDoc = currentStage.preview[0];
+		const previousDoc = previousStage.preview[0];
+		
+		if (!currentDoc || !previousDoc) return null;
+		
+		return createDiff(previousDoc, currentDoc);
+	}
+
+	function getDiffForStage(stageIndex: number) {
+		return calculateDiff(stageIndex);
 	}
 </script>
 
@@ -134,6 +158,15 @@
 									>
 										Side-by-Side
 									</button>
+									{#if showDiff && index > 0}
+										<button
+											onclick={() => (viewMode = 'diff')}
+											class="btn btn-ghost"
+											style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'diff' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'diff' ? 'white' : 'var(--color-text-secondary)'};"
+										>
+											Diff
+										</button>
+									{/if}
 								</div>
 							</div>
 
@@ -147,7 +180,7 @@
 									highlightChanges={highlightChanges}
 									previousDocuments={getPreviousStageDocuments(index)}
 								/>
-							{:else}
+							{:else if viewMode === 'side-by-side'}
 								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
 									<div>
 										<DocumentViewer
@@ -169,6 +202,19 @@
 										/>
 									</div>
 								</div>
+							{:else if viewMode === 'diff'}
+								{#if getDiffForStage(index)}
+									<DiffViewer
+										diffResult={getDiffForStage(index)!}
+										showUnchanged={false}
+										filterType="all"
+										highlightChanges={true}
+									/>
+								{:else}
+									<div style="text-align: center; color: var(--color-text-tertiary); padding: var(--space-lg);">
+										No changes to display (first stage or no previous stage)
+									</div>
+								{/if}
 							{/if}
 						</div>
 					{/if}

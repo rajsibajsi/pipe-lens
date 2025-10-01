@@ -34,6 +34,7 @@ let isExecuting = $derived($pipelineStore.isExecuting);
 let error = $derived($pipelineStore.error);
 let sampleSize = $derived($pipelineStore.sampleSize);
 let maxSampleSize = $derived($pipelineStore.maxSampleSize);
+let diff = $derived($pipelineStore.diff);
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
@@ -237,6 +238,14 @@ function handleEditorChange(value: string | undefined) {
 					🗑️ Clear Cache
 				</button>
 				<button
+					onclick={() => pipelineStore.toggleDiff()}
+					class="btn btn-ghost"
+					style="font-size: var(--text-xs); background: {diff.showDiff ? 'var(--color-primary)' : 'transparent'}; color: {diff.showDiff ? 'white' : 'var(--color-text-secondary)'};"
+					title="Toggle diff view"
+				>
+					🔍 Diff View
+				</button>
+				<button
 					onclick={handleRunWithPreview}
 					disabled={isExecuting || !connection}
 					class="btn btn-primary"
@@ -386,7 +395,11 @@ function handleEditorChange(value: string | undefined) {
 				{/if}
 
 				{#if viewMode === 'stages' && stageResults.length > 0}
-					<StagePreview stages={stageResults} />
+					<StagePreview 
+						stages={stageResults} 
+						showDiff={diff.showDiff}
+						highlightChanges={true}
+					/>
 				{:else if viewMode === 'results' && results.length > 0}
 					<div style="padding: var(--space-lg);">
 						<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md);">
