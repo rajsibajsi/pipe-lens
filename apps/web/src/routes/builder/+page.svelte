@@ -83,6 +83,41 @@ const maxSampleSize = $derived($pipelineStore.maxSampleSize);
 const diff = $derived($pipelineStore.diff);
 const authState = $derived($userStore);
 
+// Pre-built templates for common stages
+const stageTemplates: Record<string, object> = {
+    '$match': { $match: { field: 'value' } },
+    '$project': { $project: { field: 1 } },
+    '$group': { $group: { _id: '$field', count: { $sum: 1 } } },
+    '$sort': { $sort: { field: 1 } },
+    '$limit': { $limit: 10 },
+    '$skip': { $skip: 10 },
+    '$lookup': { $lookup: { from: 'otherCollection', localField: 'field', foreignField: 'field', as: 'joined' } },
+    '$unwind': { $unwind: '$arrayField' },
+    '$addFields': { $addFields: { newField: 'value' } },
+    '$replaceRoot': { $replaceRoot: { newRoot: '$doc' } }
+};
+
+function insertStage(stageOperator: string) {
+    try {
+        const parsed = JSON.parse(editorContent);
+        const pipelineArray = Array.isArray(parsed) ? parsed : [];
+        const template = stageTemplates[stageOperator];
+        if (!template) return;
+        pipelineArray.push(template);
+        editorContent = JSON.stringify(pipelineArray, null, 2);
+        pipelineStore.setPipeline(pipelineArray);
+        toastStore.success('Stage added', `${stageOperator} inserted into pipeline`);
+    } catch {
+        // If editor content is not valid JSON, initialize a new pipeline with the stage
+        const template = stageTemplates[stageOperator];
+        if (!template) return;
+        const pipelineArray = [template];
+        editorContent = JSON.stringify(pipelineArray, null, 2);
+        pipelineStore.setPipeline(pipelineArray);
+        toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);
+    }
+}
+
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
 
@@ -364,8 +399,10 @@ function handleEditorChange(value: string | undefined) {
 				<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
 					{#each ['$match', '$project', '$group', '$sort', '$limit', '$skip', '$lookup', '$unwind', '$addFields', '$replaceRoot'] as stage}
 						<button
+							onclick={() => insertStage(stage)}
 							class="btn btn-ghost"
 							style="justify-content: flex-start; font-family: var(--font-mono); width: 100%;"
+							title={`Insert ${stage} stage`}
 						>
 							{stage}
 						</button>
