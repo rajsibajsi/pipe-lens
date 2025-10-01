@@ -10,7 +10,6 @@
 		className?: string;
 	}
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
 const { 
     icon = '📄',
     title,
@@ -18,6 +17,10 @@ const {
     action,
     className = ''
 }: Props = $props();
+
+// Mark props as used for the linter (they are used in the template)
+const __use = (..._args: unknown[]) => {};
+__use(icon, title, description, action, className);
 </script>
 
 <div class="empty-state {className}">

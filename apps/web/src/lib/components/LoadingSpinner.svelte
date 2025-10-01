@@ -6,7 +6,6 @@
 		text?: string;
 	}
 
-    // biome-ignore lint/correctness/noUnusedVariables: used in template styles/attrs
     const { 
         size = 'md', 
         color = 'var(--color-primary)', 
@@ -14,12 +13,16 @@
         text = ''
     }: Props = $props();
 
-    // biome-ignore lint/correctness/noUnusedVariables: used in template
+    // Mark props as used for linter; they are referenced in the template
+    const __use = (..._args: unknown[]) => {};
+    __use(size, color, className, text);
+
     const sizeClasses = {
 		sm: 'w-4 h-4',
 		md: 'w-6 h-6',
 		lg: 'w-8 h-8'
 	};
+    __use(sizeClasses);
 </script>
 
 <div class="loading-spinner-container {className}">

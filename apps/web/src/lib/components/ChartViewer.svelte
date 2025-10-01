@@ -20,13 +20,17 @@ import ChartSelector from './ChartSelector.svelte';
 		height?: string;
 	}
 
-	const { 
+const { 
 		data, 
 		title = 'Data Visualization',
 		showControls = true,
 		width = '100%',
 		height = '400px'
 	}: Props = $props();
+
+// Linter: acknowledge usage in template
+const __use = (..._args: unknown[]) => {};
+__use(showControls, width, height);
 
 	let selectedChartType = $state<ChartType>('table');
 	let chartConfig = $state<ChartConfig>(getChartConfig(data, 'table', title));

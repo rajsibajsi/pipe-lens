@@ -14,6 +14,10 @@ let connectionUri = $state('mongodb://admin:password@localhost:27017');
 let isConnecting = $state(false);
 let error = $state('');
 
+// Mark as used for linter
+const __use = (..._args: unknown[]) => {};
+__use(isOpen, connectionName, connectionUri, isConnecting, error);
+
 async function handleConnect() {
     isConnecting = true;
     error = '';
