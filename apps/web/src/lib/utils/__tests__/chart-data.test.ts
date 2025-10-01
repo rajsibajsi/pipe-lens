@@ -60,10 +60,14 @@ describe('chart-data utilities', () => {
 			const result = transformToChartData(data, 'bar');
 			
 			expect(result).toHaveProperty('labels');
-			expect(result).toHaveProperty('datasets');
+		expect(result).toHaveProperty('datasets');
+		if ('labels' in result) {
 			expect(result.labels).toEqual(['A', 'B']);
+		}
+		if ('datasets' in result) {
 			expect(result.datasets).toHaveLength(1);
 			expect(result.datasets[0].data).toEqual([10, 20]);
+		}
 		});
 
 		it('should transform data to pie chart format', () => {
@@ -74,9 +78,13 @@ describe('chart-data utilities', () => {
 			const result = transformToChartData(data, 'pie');
 			
 			expect(result).toHaveProperty('labels');
-			expect(result).toHaveProperty('datasets');
+		expect(result).toHaveProperty('datasets');
+		if ('labels' in result) {
 			expect(result.labels).toEqual(['A', 'B']);
+		}
+		if ('datasets' in result) {
 			expect(result.datasets[0].data).toEqual([30, 70]);
+		}
 		});
 
 		it('should transform data to line chart format', () => {
@@ -87,9 +95,13 @@ describe('chart-data utilities', () => {
 			const result = transformToChartData(data, 'line');
 			
 			expect(result).toHaveProperty('labels');
-			expect(result).toHaveProperty('datasets');
+		expect(result).toHaveProperty('datasets');
+		if ('labels' in result) {
 			expect(result.labels).toEqual(['2023-01-01', '2023-01-02']);
+		}
+		if ('datasets' in result) {
 			expect(result.datasets[0].data).toEqual([100, 150]);
+		}
 		});
 
 		it('should transform data to table format', () => {
@@ -100,19 +112,27 @@ describe('chart-data utilities', () => {
 			const result = transformToChartData(data, 'table');
 			
 			expect(result).toHaveProperty('columns');
-			expect(result).toHaveProperty('rows');
+		expect(result).toHaveProperty('rows');
+		if ('columns' in result) {
 			expect(result.columns).toEqual(['name', 'age', 'city']);
+		}
+		if ('rows' in result) {
 			expect(result.rows).toHaveLength(2);
 			expect(result.rows[0]).toEqual(['John', '30', 'New York']);
+		}
 		});
 
 		it('should handle empty data gracefully', () => {
 			const result = transformToChartData([], 'bar');
 			
 			expect(result).toHaveProperty('labels');
-			expect(result).toHaveProperty('datasets');
+		expect(result).toHaveProperty('datasets');
+		if ('labels' in result) {
 			expect(result.labels).toEqual([]);
+		}
+		if ('datasets' in result) {
 			expect(result.datasets).toEqual([]);
+		}
 		});
 
 		it('should handle fallback scenarios for bar chart', () => {
@@ -123,9 +143,13 @@ describe('chart-data utilities', () => {
 			const result = transformToChartData(data, 'bar');
 			
 			expect(result).toHaveProperty('labels');
-			expect(result).toHaveProperty('datasets');
+		expect(result).toHaveProperty('datasets');
+		if ('labels' in result) {
 			expect(result.labels).toHaveLength(2);
+		}
+		if ('datasets' in result) {
 			expect(result.datasets).toHaveLength(1); // Fallback creates single dataset
+		}
 		});
 	});
 

@@ -4,7 +4,9 @@ import ChartViewer from '$lib/components/ChartViewer.svelte';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
 import MonacoEditor from '$lib/components/MonacoEditor.svelte';
 import StagePreview from '$lib/components/StagePreview.svelte';
+import PipelineManager from '$lib/components/PipelineManager.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
+import { userStore } from '$lib/stores/user.store';
 
 const defaultPipeline = `[
   {
@@ -24,6 +26,7 @@ let editorContent = $state(defaultPipeline);
 let showConnectionModal = $state(false);
 let showDatabaseSelector = $state(false);
 let showCollectionSelector = $state(false);
+let showPipelineManager = $state(false);
 
 let connection = $derived($pipelineStore.connection);
 let databases = $derived($pipelineStore.databases);
@@ -36,6 +39,7 @@ let error = $derived($pipelineStore.error);
 let sampleSize = $derived($pipelineStore.sampleSize);
 let maxSampleSize = $derived($pipelineStore.maxSampleSize);
 let diff = $derived($pipelineStore.diff);
+let authState = $derived($userStore);
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
@@ -51,6 +55,35 @@ async function handleSelectDatabase(database: string) {
 function handleSelectCollection(collection: string) {
 	pipelineStore.selectCollection(collection);
 	showCollectionSelector = false;
+}
+
+function handleLoadPipeline(pipeline: any) {
+	// Load pipeline data into the editor
+	editorContent = JSON.stringify(pipeline.pipeline, null, 2);
+	
+	// Update pipeline store
+	pipelineStore.setPipeline(pipeline.pipeline);
+	
+	// Set connection if available
+	if (pipeline.connectionId && pipeline.database && pipeline.collection) {
+		// Note: In a real app, you'd need to ensure the connection exists
+		// For now, we'll just update the database and collection
+		pipelineStore.selectDatabase(pipeline.database);
+		pipelineStore.selectCollection(pipeline.collection);
+	}
+	
+	// Set sample size if available
+	if (pipeline.sampleSize) {
+		pipelineStore.setSampleSize(pipeline.sampleSize);
+	}
+}
+
+function openPipelineManager() {
+	showPipelineManager = true;
+}
+
+function closePipelineManager() {
+	showPipelineManager = false;
 }
 
 async function handleRunPipeline() {
@@ -227,9 +260,15 @@ function handleEditorChange(value: string | undefined) {
 					</span>
 				</div>
 
-				<button class="btn btn-secondary">
-					Save
-				</button>
+				{#if authState.isAuthenticated}
+					<button
+						onclick={openPipelineManager}
+						class="btn btn-secondary"
+						title="Manage saved pipelines"
+					>
+						📚 Pipelines
+					</button>
+				{/if}
 				<button
 					onclick={() => pipelineStore.clearCache()}
 					class="btn btn-ghost"
@@ -493,4 +532,10 @@ function handleEditorChange(value: string | undefined) {
 <ConnectionModal
 	isOpen={showConnectionModal}
 	onClose={() => (showConnectionModal = false)}
+/>
+
+<PipelineManager
+	isOpen={showPipelineManager}
+	onClose={closePipelineManager}
+	onLoadPipeline={handleLoadPipeline}
 />

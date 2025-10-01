@@ -1,8 +1,10 @@
 import { type Db, MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 
 class MongoDBService {
 	private clients: Map<string, MongoClient> = new Map();
 	private databases: Map<string, Db> = new Map();
+	private mongooseConnected = false;
 
 	async connect(connectionId: string, uri: string): Promise<void> {
 		if (this.clients.has(connectionId)) {
@@ -33,6 +35,29 @@ class MongoDBService {
 	async disconnectAll(): Promise<void> {
 		const promises = Array.from(this.clients.keys()).map((id) => this.disconnect(id));
 		await Promise.all(promises);
+		
+		// Disconnect Mongoose
+		if (this.mongooseConnected) {
+			await mongoose.disconnect();
+			this.mongooseConnected = false;
+		}
+	}
+
+	async connectMongoose(): Promise<void> {
+		if (this.mongooseConnected) {
+			return;
+		}
+
+		const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/pipe-lens';
+		
+		try {
+			await mongoose.connect(mongoUri);
+			this.mongooseConnected = true;
+			console.log('✅ Connected to MongoDB via Mongoose');
+		} catch (error) {
+			console.error('❌ Mongoose connection failed:', error);
+			throw new Error(`Failed to connect to MongoDB via Mongoose: ${error}`);
+		}
 	}
 
 	getClient(connectionId: string): MongoClient | undefined {
