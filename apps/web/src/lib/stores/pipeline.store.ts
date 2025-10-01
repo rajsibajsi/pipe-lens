@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import type { DiffResult } from '$lib/utils/diff';
 
 export interface Connection {
 	id: string;
@@ -28,6 +29,14 @@ export interface CachedResult {
 	collection: string;
 }
 
+export interface DiffState {
+	showDiff: boolean;
+	diffResult: DiffResult | null;
+	selectedStageIndex: number | null;
+	diffFilter: 'all' | 'added' | 'removed' | 'modified';
+	showUnchanged: boolean;
+}
+
 export interface PipelineState {
 	connection: Connection | null;
 	databases: string[];
@@ -41,6 +50,7 @@ export interface PipelineState {
 	sampleSize: number;
 	maxSampleSize: number;
 	cache: Map<string, CachedResult>;
+	diff: DiffState;
 }
 
 const initialState: PipelineState = {
@@ -56,6 +66,13 @@ const initialState: PipelineState = {
 	sampleSize: 10,
 	maxSampleSize: 500,
 	cache: new Map(),
+	diff: {
+		showDiff: false,
+		diffResult: null,
+		selectedStageIndex: null,
+		diffFilter: 'all',
+		showUnchanged: false,
+	},
 };
 
 function createPipelineStore() {
@@ -128,6 +145,44 @@ function createPipelineStore() {
 					? { ...state.connection, selectedCollection: collection }
 					: null,
 			})),
+		
+		// Diff methods
+		toggleDiff: () => update((state) => ({
+			...state,
+			diff: { ...state.diff, showDiff: !state.diff.showDiff }
+		})),
+		
+		setDiffResult: (diffResult: DiffResult | null) => update((state) => ({
+			...state,
+			diff: { ...state.diff, diffResult }
+		})),
+		
+		setSelectedStageIndex: (stageIndex: number | null) => update((state) => ({
+			...state,
+			diff: { ...state.diff, selectedStageIndex: stageIndex }
+		})),
+		
+		setDiffFilter: (filter: 'all' | 'added' | 'removed' | 'modified') => update((state) => ({
+			...state,
+			diff: { ...state.diff, diffFilter: filter }
+		})),
+		
+		toggleShowUnchanged: () => update((state) => ({
+			...state,
+			diff: { ...state.diff, showUnchanged: !state.diff.showUnchanged }
+		})),
+		
+		resetDiff: () => update((state) => ({
+			...state,
+			diff: {
+				showDiff: false,
+				diffResult: null,
+				selectedStageIndex: null,
+				diffFilter: 'all',
+				showUnchanged: false,
+			}
+		})),
+		
 		reset: () => set(initialState),
 	};
 }
