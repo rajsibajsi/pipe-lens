@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+    import { onDestroy, onMount } from 'svelte';
 
     onMount(async () => {
 		// Import Monaco with worker setup
