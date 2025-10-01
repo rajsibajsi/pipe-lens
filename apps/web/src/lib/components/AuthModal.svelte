@@ -56,7 +56,8 @@ function switchMode() {
 		resetForm();
 	}
 
-	async function handleSubmit() {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+async function handleSubmit() {
 		if (isLoading) return;
 
 		// Validation

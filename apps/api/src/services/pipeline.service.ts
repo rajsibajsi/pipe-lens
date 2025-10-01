@@ -1,4 +1,4 @@
-import { IPipeline, Pipeline } from '../models/Pipeline';
+import { type IPipeline, Pipeline } from '../models/Pipeline';
 import { User } from '../models/User';
 
 export interface CreatePipelineData {
@@ -374,7 +374,7 @@ export class PipelineService {
 	/**
 	 * Import pipeline from JSON
 	 */
-	async importPipeline(userId: string, importData: any, name: string): Promise<IPipeline> {
+    async importPipeline(userId: string, importData: Record<string, unknown>, name: string): Promise<IPipeline> {
 		const pipelineData: CreatePipelineData = {
 			userId,
 			name,

@@ -3,24 +3,26 @@
 	import { onMount } from 'svelte';
 	import LoadingSpinner from './LoadingSpinner.svelte';
 
-	interface Props {
-		data: any[];
+    interface Props {
+        data: unknown[];
 		title?: string;
 		showControls?: boolean;
 		width?: string;
 		height?: string;
 	}
 
-	const { 
-		data, 
-		title = 'Chart', 
-		showControls = true, 
-		width = '100%', 
-		height = '100%' 
-	}: Props = $props();
+    const { 
+        data,
+        title = 'Chart',
+        showControls = true,
+        width = '100%',
+        height = '100%'
+    }: Props = $props();
+    const __use = (..._args: unknown[]) => {};
+    __use(data, title, showControls, width, height);
 
 	// Lazy load ChartViewer component
-	const chartLoader = createLazyComponent(
+    const chartLoader = createLazyComponent(
 		() => import('./ChartViewer.svelte'),
 		LoadingSpinner
 	);
