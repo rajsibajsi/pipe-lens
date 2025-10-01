@@ -10,14 +10,14 @@
 		onLoadPipeline?: (pipeline: any) => void;
 	}
 
-	let { isOpen, onClose, onLoadPipeline }: Props = $props();
+	const { isOpen, onClose, onLoadPipeline }: Props = $props();
 
 	let activeTab = $state<'saved' | 'public' | 'templates'>('saved');
 	let isLoading = $state(false);
 	let error = $state('');
-	let searchQuery = $state('');
-	let selectedCategory = $state('');
-	let selectedDifficulty = $state('');
+	const searchQuery = $state('');
+	const selectedCategory = $state('');
+	const selectedDifficulty = $state('');
 
 	// Pipeline data
 	let savedPipelines = $state<any[]>([]);
@@ -33,8 +33,8 @@
 	let showSaveForm = $state(false);
 
 	// Reactive state from stores
-	let authState = $derived($userStore);
-	let pipelineState = $derived($pipelineStore);
+	const authState = $derived($userStore);
+	const pipelineState = $derived($pipelineStore);
 
 	// Initialize data when modal opens
 	$effect(() => {

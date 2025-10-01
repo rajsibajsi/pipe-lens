@@ -8,7 +8,7 @@
 		onConfigChange: (config: Partial<ChartConfig>) => void;
 	}
 
-	let { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
+	const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
 
 	const chartTypes = [
 		{ type: 'bar' as ChartType, label: 'Bar Chart', icon: '📊', description: 'Compare values across categories' },
@@ -17,13 +17,13 @@
 		{ type: 'table' as ChartType, label: 'Data Table', icon: '📋', description: 'View raw data in table format' }
 	];
 
-	let showAdvanced = $state(false);
+	const showAdvanced = $state(false);
 
 	function handleTypeChange(type: ChartType) {
 		onTypeChange(type);
 	}
 
-	function handleConfigChange(key: keyof ChartConfig, value: any) {
+	function handleConfigChange(key: keyof ChartConfig, value: unknown) {
 		onConfigChange({ [key]: value });
 	}
 

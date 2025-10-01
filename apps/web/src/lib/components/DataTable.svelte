@@ -8,7 +8,7 @@
 		showExport?: boolean;
 	}
 
-	let { 
+	const { 
 		data, 
 		title = 'Data Table', 
 		maxHeight = '400px',
@@ -17,9 +17,9 @@
 
 	let sortColumn = $state<string | null>(null);
 	let sortDirection = $state<'asc' | 'desc'>('asc');
-	let searchTerm = $state('');
+	const searchTerm = $state('');
 	let currentPage = $state(1);
-	let pageSize = $state(50);
+	const pageSize = $state(50);
 
 	// Computed properties
 	let filteredData = $state<(string | number)[][]>([]);

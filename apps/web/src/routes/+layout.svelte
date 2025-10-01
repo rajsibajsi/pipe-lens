@@ -1,26 +1,58 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import AuthModal from '$lib/components/AuthModal.svelte';
+	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+	import KeyboardShortcutsHelp from '$lib/components/KeyboardShortcutsHelp.svelte';
+	import ToastContainer from '$lib/components/ToastContainer.svelte';
+	import TutorialModal from '$lib/components/TutorialModal.svelte';
 	import UserProfile from '$lib/components/UserProfile.svelte';
 	import { userStore } from '$lib/stores/user.store';
+	import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import '../styles/components.css';
 	import '../styles/design-system.css';
 
-	let { children } = $props();
+	const { children } = $props();
 
 	// Authentication state
 	let showAuthModal = $state(false);
 	let showUserProfile = $state(false);
 	let authMode = $state<'login' | 'register'>('login');
+	let showKeyboardShortcuts = $state(false);
+	let showTutorial = $state(false);
 
 	// Reactive state from store
-	let authState = $derived($userStore);
+	const authState = $derived($userStore);
 
 	// Initialize user on mount
 	onMount(() => {
 		userStore.getCurrentUser();
+		
+		// Register common keyboard shortcuts
+		keyboardShortcuts.register({
+			key: 'F1',
+			action: () => showKeyboardShortcuts = true,
+			description: 'Show keyboard shortcuts help'
+		});
+
+		keyboardShortcuts.register({
+			key: 'Escape',
+			action: () => {
+				if (showKeyboardShortcuts) showKeyboardShortcuts = false;
+				if (showAuthModal) showAuthModal = false;
+				if (showUserProfile) showUserProfile = false;
+				if (showTutorial) showTutorial = false;
+			},
+			description: 'Close modals'
+		});
+
+		keyboardShortcuts.register({
+			key: 'h',
+			ctrlKey: true,
+			action: () => showTutorial = true,
+			description: 'Show tutorial'
+		});
 	});
 
 	function openAuthModal(mode: 'login' | 'register' = 'login') {
@@ -49,9 +81,12 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="app-layout">
-	<!-- Navigation Header -->
-	<header class="app-header">
+	<div class="app-layout">
+		<!-- Skip to main content link -->
+		<a href="#main-content" class="skip-to-content">Skip to main content</a>
+		
+		<!-- Navigation Header -->
+		<header class="app-header">
 		<div class="app-header-content">
 			<div class="app-logo">
 				<a href="/" class="logo-link">
@@ -63,6 +98,13 @@
 			<nav class="app-nav">
 				<a href="/" class="nav-link">Home</a>
 				<a href="/builder" class="nav-link">Builder</a>
+				<button
+					class="nav-link nav-button"
+					onclick={() => showTutorial = true}
+					title="Show tutorial (Ctrl+H)"
+				>
+					Help
+				</button>
 			</nav>
 
 			<div class="app-auth">
@@ -114,8 +156,10 @@
 	</header>
 
 	<!-- Main Content -->
-	<main class="app-main">
-		{@render children()}
+	<main id="main-content" class="app-main">
+		<ErrorBoundary>
+			{@render children()}
+		</ErrorBoundary>
 	</main>
 
 	<!-- Footer -->
@@ -137,6 +181,22 @@
 <UserProfile
 	isOpen={showUserProfile}
 	onClose={closeUserProfile}
+/>
+
+<!-- Toast Notifications -->
+<ToastContainer />
+
+<!-- Keyboard Shortcuts Help -->
+<KeyboardShortcutsHelp
+	isOpen={showKeyboardShortcuts}
+	onClose={() => showKeyboardShortcuts = false}
+/>
+
+<!-- Tutorial Modal -->
+<TutorialModal
+	isOpen={showTutorial}
+	onClose={() => showTutorial = false}
+	onComplete={() => showTutorial = false}
 />
 
 <style>
@@ -206,6 +266,19 @@
 	}
 
 	.nav-link:hover {
+		color: var(--color-text-primary);
+	}
+
+	.nav-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+	}
+
+	.nav-button:hover {
 		color: var(--color-text-primary);
 	}
 

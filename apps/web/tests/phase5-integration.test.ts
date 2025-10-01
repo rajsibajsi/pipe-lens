@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { userStore } from '../src/lib/stores/user.store.js';
-import { pipelineStore } from '../src/lib/stores/pipeline.store.js';
+import { get } from 'svelte/store';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocalStorageService } from '../src/lib/services/local-storage.service.js';
+import { pipelineStore } from '../src/lib/stores/pipeline.store.js';
+import { userStore } from '../src/lib/stores/user.store.js';
 
 // Mock fetch
 global.fetch = vi.fn();
 
-// Mock crypto for UUID generation
-Object.defineProperty(global, 'crypto', {
-	value: {
-		randomUUID: vi.fn(() => 'mock-uuid-123')
-	}
-});
+// localStorage and crypto are mocked in setup.ts
 
 describe('Phase 5 - Integration Tests', () => {
 	beforeEach(() => {
@@ -68,21 +64,21 @@ describe('Phase 5 - Integration Tests', () => {
 			});
 
 			// User should be unauthenticated initially
-			expect(userStore.getState().isAuthenticated).toBe(false);
+			expect(get(userStore).isAuthenticated).toBe(false);
 
 			// After registration, user should be authenticated
 			await userStore.register('New User', 'new@example.com', 'password123');
 
 			await new Promise(resolve => setTimeout(resolve, 0)); // Allow state to update
 
-			expect(userStore.getState().isAuthenticated).toBe(true);
-			expect(userStore.getState().user).toEqual({
+			expect(get(userStore).isAuthenticated).toBe(true);
+			expect(get(userStore).user).toEqual({
 				name: 'New User',
 				email: 'new@example.com'
 			});
 
 			// Pipeline should be ready to save
-			expect(pipelineStore.getState().pipeline).toEqual([{ $match: { status: 'active' } }]);
+			expect(get(pipelineStore).pipeline).toEqual([{ $match: { status: 'active' } }]);
 		});
 
 		it('should handle guest user pipeline saving to local storage', async () => {
@@ -106,7 +102,7 @@ describe('Phase 5 - Integration Tests', () => {
 			});
 
 			// Guest user should not be authenticated
-			expect(userStore.getState().isAuthenticated).toBe(false);
+			expect(get(userStore).isAuthenticated).toBe(false);
 
 			// Save pipeline to local storage
 			LocalStorageService.savePipeline({
@@ -177,7 +173,7 @@ describe('Phase 5 - Integration Tests', () => {
 			localStorageMock.getItem.mockReturnValue('mock-token');
 
 			// User should be authenticated
-			expect(userStore.getState().isAuthenticated).toBe(true);
+			expect(get(userStore).isAuthenticated).toBe(true);
 
 			// Load pipelines
 			const response = await fetch('/api/pipelines/saved');
@@ -199,7 +195,7 @@ describe('Phase 5 - Integration Tests', () => {
 			pipelineStore.setSampleSize(pipeline.sampleSize);
 
 			// Verify pipeline was loaded
-			expect(pipelineStore.getState().pipeline).toEqual([
+			expect(get(pipelineStore).pipeline).toEqual([
 				{ $match: { status: 'active' } },
 				{ $group: { _id: '$category', total: { $sum: '$amount' } } }
 			]);
@@ -266,7 +262,7 @@ describe('Phase 5 - Integration Tests', () => {
 			});
 
 			// User should be authenticated
-			expect(userStore.getState().isAuthenticated).toBe(true);
+			expect(get(userStore).isAuthenticated).toBe(true);
 
 			// Load public pipelines
 			const response = await fetch('/api/pipelines/saved/public');
@@ -285,7 +281,7 @@ describe('Phase 5 - Integration Tests', () => {
 				id: undefined,
 				createdAt: undefined,
 				updatedAt: undefined,
-				userId: userStore.getState().user?._id,
+				userId: get(userStore).user?._id,
 				isPublic: false
 			};
 
@@ -333,11 +329,11 @@ describe('Phase 5 - Integration Tests', () => {
 
 			await new Promise(resolve => setTimeout(resolve, 0)); // Allow state to update
 
-			expect(userStore.getState().isAuthenticated).toBe(false);
-			expect(userStore.getState().user).toBeNull();
+			expect(get(userStore).isAuthenticated).toBe(false);
+			expect(get(userStore).user).toBeNull();
 
 			// User should still be able to use the app as guest
-			expect(userStore.getState().isAuthenticated).toBe(false);
+			expect(get(userStore).isAuthenticated).toBe(false);
 		});
 
 		it('should handle network errors gracefully', async () => {
@@ -394,8 +390,8 @@ describe('Phase 5 - Integration Tests', () => {
 
 			await new Promise(resolve => setTimeout(resolve, 0)); // Allow state to update
 
-			expect(userStore.getState().isAuthenticated).toBe(true);
-			expect(userStore.getState().user).toEqual({
+			expect(get(userStore).isAuthenticated).toBe(true);
+			expect(get(userStore).user).toEqual({
 				name: 'Test User',
 				email: 'test@example.com'
 			});
@@ -420,8 +416,8 @@ describe('Phase 5 - Integration Tests', () => {
 
 			await new Promise(resolve => setTimeout(resolve, 0)); // Allow state to update
 
-			expect(userStore.getState().isAuthenticated).toBe(false);
-			expect(userStore.getState().user).toBeNull();
+			expect(get(userStore).isAuthenticated).toBe(false);
+			expect(get(userStore).user).toBeNull();
 		});
 	});
 

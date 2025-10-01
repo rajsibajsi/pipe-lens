@@ -18,7 +18,7 @@
 		highlightChanges?: boolean;
 	}
 
-	let {
+	const {
 		diffResult,
 		showUnchanged = false,
 		filterType = 'all',

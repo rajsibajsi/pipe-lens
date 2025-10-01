@@ -10,7 +10,7 @@
 		height?: string;
 	}
 
-	let { data, config, width = '100%', height = '400px' }: Props = $props();
+	const { data, config, width = '100%', height = '400px' }: Props = $props();
 
 	let chartContainer: HTMLDivElement;
 	let chartInstance: any;

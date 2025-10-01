@@ -20,7 +20,7 @@
 		maxHeight?: string;
 	}
 
-	let {
+	const {
 		documents = [],
 		title = 'Document Viewer',
 		showFieldTypes = true,
@@ -33,7 +33,7 @@
 	let expandedFields = $state(new Set<string>());
 
 	// Derived state for document items
-	let documentItems = $derived(
+	const documentItems = $derived(
 		documents.length > 0 ? renderObject(documents[selectedDocument] as Record<string, unknown>) : []
 	);
 

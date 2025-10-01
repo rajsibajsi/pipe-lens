@@ -1,25 +1,5 @@
 import { vi } from 'vitest';
 
-// Mock SvelteKit modules
-vi.mock('$app/environment', () => ({
-	browser: true,
-	dev: false,
-	prerendering: false
-}));
-
-vi.mock('$app/stores', () => ({
-	page: {
-		subscribe: vi.fn(() => () => {}),
-		url: new URL('http://localhost:3000')
-	},
-	navigating: {
-		subscribe: vi.fn(() => () => {})
-	}
-}));
-
-// Mock fetch globally
-global.fetch = vi.fn();
-
 // Mock localStorage
 const localStorageMock = {
 	getItem: vi.fn(),
@@ -30,73 +10,88 @@ const localStorageMock = {
 	key: vi.fn()
 };
 
-// Mock window and localStorage for Node.js environment
-if (typeof window === 'undefined') {
-	global.window = {} as any;
-}
-
-Object.defineProperty(global.window, 'localStorage', {
-	value: localStorageMock
-});
-
-// Mock URL methods
-global.URL.createObjectURL = vi.fn(() => 'mock-url');
-global.URL.revokeObjectURL = vi.fn();
-
-// Mock crypto
-Object.defineProperty(global, 'crypto', {
+// Mock window object
+Object.defineProperty(global, 'window', {
 	value: {
-		randomUUID: vi.fn(() => 'mock-uuid-123')
-	}
-});
-
-// Mock document methods
-const mockAnchor = {
-	href: '',
-	download: '',
-	click: vi.fn()
-};
-
-// Mock document for Node.js environment
-if (typeof document === 'undefined') {
-	global.document = {
-		createElement: vi.fn((tagName) => {
-			if (tagName === 'a') {
-				return mockAnchor as any;
+		localStorage: localStorageMock,
+		document: {
+			createElement: vi.fn((tagName) => ({
+				tagName,
+				textContent: '',
+				className: '',
+				setAttribute: vi.fn(),
+				remove: vi.fn(),
+				appendChild: vi.fn(),
+				style: {}
+			})),
+			body: {
+				appendChild: vi.fn(),
+				removeChild: vi.fn()
 			}
-			return { tagName } as any;
-		}),
-		body: {
-			appendChild: vi.fn(() => mockAnchor as any),
-			removeChild: vi.fn(() => mockAnchor as any)
 		}
-	} as any;
-} else {
-	vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
-		if (tagName === 'a') {
-			return mockAnchor as any;
-		}
-		return document.createElement(tagName);
-	});
-
-	vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockAnchor as any);
-	vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockAnchor as any);
-}
-
-// Mock confirm dialog
-global.confirm = vi.fn(() => true);
-
-// Mock window methods
-Object.defineProperty(global.window, 'location', {
-	value: {
-		href: 'http://localhost:3000',
-		reload: vi.fn()
 	},
 	writable: true
 });
 
-// Reset all mocks before each test
+// Mock localStorage globally
+Object.defineProperty(global, 'localStorage', {
+	value: localStorageMock,
+	writable: true
+});
+
+// Mock browser environment from SvelteKit
+Object.defineProperty(global, 'browser', {
+	value: true,
+	writable: true
+});
+
+// Mock crypto for UUID generation
+Object.defineProperty(global, 'crypto', {
+	value: {
+		randomUUID: vi.fn(() => 'mock-uuid-123')
+	},
+	writable: true
+});
+
+// Mock KeyboardEvent
+class MockKeyboardEvent {
+	key: string;
+	ctrlKey: boolean;
+	shiftKey: boolean;
+	altKey: boolean;
+	metaKey: boolean;
+	target: any;
+	preventDefault: any;
+	stopPropagation: any;
+
+	constructor(type: string, init: any = {}) {
+		this.key = init.key || '';
+		this.ctrlKey = init.ctrlKey || false;
+		this.shiftKey = init.shiftKey || false;
+		this.altKey = init.altKey || false;
+		this.metaKey = init.metaKey || false;
+		this.target = init.target || null;
+		this.preventDefault = vi.fn();
+		this.stopPropagation = vi.fn();
+	}
+}
+
+// Mock KeyboardEvent globally
+Object.defineProperty(global, 'KeyboardEvent', {
+	value: MockKeyboardEvent,
+	writable: true
+});
+
+// Mock SvelteKit browser environment
+vi.mock('$app/environment', () => ({
+	browser: true
+}));
+
+// Reset mocks before each test
 beforeEach(() => {
 	vi.clearAllMocks();
 	localStorageMock.getItem.mockReturnValue(null);
+	localStorageMock.setItem.mockImplementation(() => {});
+	localStorageMock.removeItem.mockImplementation(() => {});
+	localStorageMock.clear.mockImplementation(() => {});
 });
