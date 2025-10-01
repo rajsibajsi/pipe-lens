@@ -9,6 +9,8 @@
 	}
 
 const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(selectedType, config, onTypeChange, onConfigChange);
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 const chartTypes = [

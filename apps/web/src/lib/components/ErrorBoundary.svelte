@@ -1,17 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	interface Props {
-		children: any;
-		fallback?: any;
-		onError?: (error: Error, errorInfo: any) => void;
-	}
+interface Props {
+		children: () => unknown;
+		fallback?: () => unknown;
+		onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
+}
 
-	const { children, fallback, onError }: Props = $props();
+const { children, fallback, onError }: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(children, fallback, onError);
 
-	let hasError = $state(false);
+let hasError = $state(false);
 	let error = $state<Error | null>(null);
-	let errorInfo = $state<any>(null);
+let errorInfo = $state<Record<string, unknown> | null>(null);
 
 	onMount(() => {
 		// Listen for unhandled errors

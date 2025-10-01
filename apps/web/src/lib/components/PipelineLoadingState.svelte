@@ -1,18 +1,20 @@
 <script lang="ts">
-	import SkeletonLoader from './SkeletonLoader.svelte';
-	import LoadingSpinner from './LoadingSpinner.svelte';
+    import SkeletonLoader from './SkeletonLoader.svelte';
+    import LoadingSpinner from './LoadingSpinner.svelte';
 
-	interface Props {
-		stageCount?: number;
-		showStages?: boolean;
-		message?: string;
-	}
+    interface Props {
+        stageCount?: number;
+        showStages?: boolean;
+        message?: string;
+    }
 
-	const { 
-		stageCount = 3, 
-		showStages = false,
-		message = 'Executing pipeline...'
-	}: Props = $props();
+    const { 
+        stageCount = 3,
+        showStages = false,
+        message = 'Executing pipeline...'
+    }: Props = $props();
+    const __use = (..._args: unknown[]) => {};
+    __use(stageCount, showStages, message, SkeletonLoader, LoadingSpinner);
 </script>
 
 <div class="pipeline-loading">
