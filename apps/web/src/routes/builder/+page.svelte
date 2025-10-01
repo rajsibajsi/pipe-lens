@@ -3,6 +3,7 @@ import { api } from '$lib/api';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
 import MonacoEditor from '$lib/components/MonacoEditor.svelte';
 import StagePreview from '$lib/components/StagePreview.svelte';
+import ChartViewer from '$lib/components/ChartViewer.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 
 const defaultPipeline = `[
@@ -383,6 +384,40 @@ function handleEditorChange(value: string | undefined) {
 
 			<!-- Results Panel -->
 			<div style="height: 33.333%; background: var(--color-bg-secondary); color: var(--color-text-primary); overflow: auto; border-top: 1px solid var(--glass-border);">
+				<!-- View Mode Toggle -->
+				{#if results.length > 0 || stageResults.length > 0}
+					<div style="padding: var(--space-md); border-bottom: 1px solid var(--glass-border); background: var(--color-bg-tertiary);">
+						<div style="display: flex; align-items: center; gap: var(--space-sm);">
+							<span style="font-size: var(--text-xs); font-weight: 600; color: var(--color-text-secondary);">
+								View Mode:
+							</span>
+							<div style="display: flex; background: var(--color-bg-primary); border-radius: var(--radius-sm); padding: 2px;">
+								<button
+									onclick={() => pipelineStore.setViewMode('results')}
+									class="btn btn-ghost"
+									style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'results' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'results' ? 'white' : 'var(--color-text-secondary)'};"
+								>
+									📄 Results
+								</button>
+								<button
+									onclick={() => pipelineStore.setViewMode('stages')}
+									class="btn btn-ghost"
+									style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'stages' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'stages' ? 'white' : 'var(--color-text-secondary)'};"
+								>
+									🔍 Stages
+								</button>
+								<button
+									onclick={() => pipelineStore.setViewMode('chart')}
+									class="btn btn-ghost"
+									style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'chart' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'chart' ? 'white' : 'var(--color-text-secondary)'};"
+								>
+									📊 Chart
+								</button>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 				{#if error}
 					<div style="padding: var(--space-lg);">
 						<div class="alert alert-error">
@@ -414,6 +449,14 @@ function handleEditorChange(value: string | undefined) {
 							)}</pre>
 						</div>
 					</div>
+				{:else if viewMode === 'chart' && results.length > 0}
+					<ChartViewer
+						data={results}
+						title="Pipeline Results Visualization"
+						showControls={true}
+						width="100%"
+						height="100%"
+					/>
 				{:else if !connection}
 					<div style="padding: var(--space-lg);">
 						<div style="font-size: var(--text-sm); color: var(--color-text-tertiary); text-align: center; padding: var(--space-2xl);">
