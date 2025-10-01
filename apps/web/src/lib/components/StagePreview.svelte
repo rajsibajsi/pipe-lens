@@ -2,6 +2,7 @@
 	import type { StageResult } from '$lib/stores/pipeline.store';
 	import DocumentViewer from './DocumentViewer.svelte';
 	import DiffViewer from './DiffViewer.svelte';
+	import ChartViewer from './ChartViewer.svelte';
 	import { createDiff } from '$lib/utils/diff';
 
 	interface Props {
@@ -13,7 +14,7 @@
 
 	let { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
 	let expandedStage = $state<number | null>(null);
-	let viewMode = $state<'preview' | 'side-by-side' | 'diff'>('preview');
+	let viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
 
 	function toggleStage(index: number) {
 		expandedStage = expandedStage === index ? null : index;
@@ -158,6 +159,13 @@
 									>
 										Side-by-Side
 									</button>
+									<button
+										onclick={() => (viewMode = 'chart')}
+										class="btn btn-ghost"
+										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'chart' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'chart' ? 'white' : 'var(--color-text-secondary)'};"
+									>
+										📊 Chart
+									</button>
 									{#if showDiff && index > 0}
 										<button
 											onclick={() => (viewMode = 'diff')}
@@ -202,6 +210,14 @@
 										/>
 									</div>
 								</div>
+							{:else if viewMode === 'chart'}
+								<ChartViewer
+									data={stage.preview}
+									title="Stage {index + 1} Data Visualization"
+									showControls={true}
+									width="100%"
+									height="400px"
+								/>
 							{:else if viewMode === 'diff'}
 								{#if getDiffForStage(index)}
 									<DiffViewer

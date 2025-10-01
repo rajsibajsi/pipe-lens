@@ -46,7 +46,7 @@ export interface PipelineState {
 	stageResults: StageResult[];
 	isExecuting: boolean;
 	error: string | null;
-	viewMode: 'results' | 'stages';
+	viewMode: 'results' | 'stages' | 'chart';
 	sampleSize: number;
 	maxSampleSize: number;
 	cache: Map<string, CachedResult>;
@@ -90,7 +90,7 @@ function createPipelineStore() {
 			update((state) => ({ ...state, stageResults, viewMode: 'stages' })),
 		setExecuting: (isExecuting: boolean) => update((state) => ({ ...state, isExecuting })),
 		setError: (error: string | null) => update((state) => ({ ...state, error })),
-		setViewMode: (viewMode: 'results' | 'stages') => update((state) => ({ ...state, viewMode })),
+		setViewMode: (viewMode: 'results' | 'stages' | 'chart') => update((state) => ({ ...state, viewMode })),
 		setSampleSize: (sampleSize: number) => update((state) => ({ ...state, sampleSize: Math.min(sampleSize, state.maxSampleSize) })),
 		setMaxSampleSize: (maxSampleSize: number) => update((state) => ({ ...state, maxSampleSize })),
 		getCacheKey: (pipeline: unknown[], sampleSize: number, connectionId: string, database: string, collection: string) => {
