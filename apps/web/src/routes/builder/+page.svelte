@@ -3,8 +3,8 @@ import { api } from '$lib/api';
 import ChartViewer from '$lib/components/ChartViewer.svelte';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
 import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-import StagePreview from '$lib/components/StagePreview.svelte';
 import PipelineManager from '$lib/components/PipelineManager.svelte';
+import StagePreview from '$lib/components/StagePreview.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 import { userStore } from '$lib/stores/user.store';
 

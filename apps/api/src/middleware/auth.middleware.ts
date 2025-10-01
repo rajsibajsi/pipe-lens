@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/auth.service';
+import { NextFunction, Request, Response } from 'express';
 import { IUser } from '../models/User';
+import { AuthService } from '../services/auth.service';
 
 // Extend Express Request interface to include user
 declare global {

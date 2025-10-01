@@ -1,9 +1,9 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { type Request, type Response } from 'express';
+import authRouter from './routes/auth.routes.js';
 import connectionsRouter from './routes/connections.routes.js';
 import pipelinesRouter from './routes/pipelines.routes.js';
-import authRouter from './routes/auth.routes.js';
 import savedPipelinesRouter from './routes/saved-pipelines.routes.js';
 import { mongoService } from './services/mongodb.service.js';
 

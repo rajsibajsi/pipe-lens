@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express';
-import { PipelineService } from '../services/pipeline.service';
+import { Request, Response, Router } from 'express';
 import { authenticate, optionalAuth, rateLimit } from '../middleware/auth.middleware';
+import { PipelineService } from '../services/pipeline.service';
 
 const router = Router();
 const pipelineService = new PipelineService();

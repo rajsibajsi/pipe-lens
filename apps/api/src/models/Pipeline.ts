@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Document, Schema, model } from 'mongoose';
 
 export interface IPipeline extends Document {
 	_id: string;

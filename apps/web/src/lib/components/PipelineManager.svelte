@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { userStore } from '$lib/stores/user.store';
-	import { pipelineStore } from '$lib/stores/pipeline.store';
 	import { LocalStorageService, type LocalPipeline } from '$lib/services/local-storage.service';
+	import { pipelineStore } from '$lib/stores/pipeline.store';
+	import { userStore } from '$lib/stores/user.store';
 	import { onMount } from 'svelte';
 
 	interface Props {

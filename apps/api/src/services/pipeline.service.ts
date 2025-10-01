@@ -1,4 +1,4 @@
-import { Pipeline, IPipeline } from '../models/Pipeline';
+import { IPipeline, Pipeline } from '../models/Pipeline';
 import { User } from '../models/User';
 
 export interface CreatePipelineData {
