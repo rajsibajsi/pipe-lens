@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import transition styles */
+@import '../lib/utils/transitions.css';
+
+/* Import accessibility styles */
+@import '../lib/utils/accessibility.css';
