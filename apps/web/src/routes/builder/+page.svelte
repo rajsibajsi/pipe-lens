@@ -1,16 +1,16 @@
 <script lang="ts">
 import { api } from '$lib/api';
-import LazyChartViewer from '$lib/components/LazyChartViewer.svelte';
 import ConnectionModal from '$lib/components/ConnectionModal.svelte';
-import LoadingButton from '$lib/components/LoadingButton.svelte';
-import PipelineLoadingState from '$lib/components/PipelineLoadingState.svelte';
 import EmptyState from '$lib/components/EmptyState.svelte';
+import LazyChartViewer from '$lib/components/LazyChartViewer.svelte';
+import LoadingButton from '$lib/components/LoadingButton.svelte';
 import MonacoEditor from '$lib/components/MonacoEditor.svelte';
+import PipelineLoadingState from '$lib/components/PipelineLoadingState.svelte';
 import PipelineManager from '$lib/components/PipelineManager.svelte';
 import StagePreview from '$lib/components/StagePreview.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
-import { userStore } from '$lib/stores/user.store';
 import { toastStore } from '$lib/stores/toast.store';
+import { userStore } from '$lib/stores/user.store';
 import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
 import { onMount } from 'svelte';
 
@@ -29,11 +29,11 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = $state(defaultPipeline);
-let showConnectionModal = $state(false);
+const showConnectionModal = $state(false);
 let showDatabaseSelector = $state(false);
 let showCollectionSelector = $state(false);
 let showPipelineManager = $state(false);
-let showMobileMenu = $state(false);
+const showMobileMenu = $state(false);
 
 // Initialize keyboard shortcuts
 onMount(() => {
@@ -71,18 +71,18 @@ onMount(() => {
 	});
 });
 
-let connection = $derived($pipelineStore.connection);
-let databases = $derived($pipelineStore.databases);
-let collections = $derived($pipelineStore.collections);
-let results = $derived($pipelineStore.results);
-let stageResults = $derived($pipelineStore.stageResults);
-let viewMode = $derived($pipelineStore.viewMode);
-let isExecuting = $derived($pipelineStore.isExecuting);
-let error = $derived($pipelineStore.error);
-let sampleSize = $derived($pipelineStore.sampleSize);
-let maxSampleSize = $derived($pipelineStore.maxSampleSize);
-let diff = $derived($pipelineStore.diff);
-let authState = $derived($userStore);
+const connection = $derived($pipelineStore.connection);
+const databases = $derived($pipelineStore.databases);
+const collections = $derived($pipelineStore.collections);
+const results = $derived($pipelineStore.results);
+const stageResults = $derived($pipelineStore.stageResults);
+const viewMode = $derived($pipelineStore.viewMode);
+const isExecuting = $derived($pipelineStore.isExecuting);
+const error = $derived($pipelineStore.error);
+const sampleSize = $derived($pipelineStore.sampleSize);
+const maxSampleSize = $derived($pipelineStore.maxSampleSize);
+const diff = $derived($pipelineStore.diff);
+const authState = $derived($userStore);
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;

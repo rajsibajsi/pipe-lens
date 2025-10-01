@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { get } from 'svelte/store';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { LocalStorageService } from '../src/lib/services/local-storage.service.js';
 import { pipelineStore } from '../src/lib/stores/pipeline.store.js';
 import { userStore } from '../src/lib/stores/user.store.js';
-import { LocalStorageService } from '../src/lib/services/local-storage.service.js';
 
 // Mock fetch
 global.fetch = vi.fn();
 
-// Mock crypto for UUID generation
-Object.defineProperty(global, 'crypto', {
-	value: {
-		randomUUID: vi.fn(() => 'mock-uuid-123')
-	}
-});
+// localStorage and crypto are mocked in setup.ts
 
 describe('Phase 5 - Pipeline Management', () => {
 	beforeEach(() => {
@@ -32,7 +28,7 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			pipelineStore.setPipeline(testPipeline);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.pipeline).toEqual(testPipeline);
 		});
 
@@ -46,14 +42,14 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			pipelineStore.setConnection(testConnection);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.connection).toEqual(testConnection);
 		});
 
 		it('should handle sample size updates', () => {
 			pipelineStore.setSampleSize(50);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.sampleSize).toBe(50);
 		});
 
@@ -65,7 +61,7 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			pipelineStore.setResults(testResults);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.results).toEqual(testResults);
 		});
 
@@ -74,14 +70,14 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			pipelineStore.setError(errorMessage);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.error).toBe(errorMessage);
 		});
 
 		it('should handle execution state updates', () => {
 			pipelineStore.setExecuting(true);
 
-			const state = pipelineStore.getState();
+			const state = get(pipelineStore);
 			expect(state.isExecuting).toBe(true);
 
 			pipelineStore.setExecuting(false);

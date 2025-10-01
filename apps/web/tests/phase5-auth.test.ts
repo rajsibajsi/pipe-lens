@@ -1,8 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { get } from 'svelte/store';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { userStore } from '../src/lib/stores/user.store.js';
 
 // Mock fetch
 global.fetch = vi.fn();
+
+// localStorage is mocked in setup.ts
 
 describe('Phase 5 - Authentication', () => {
 	beforeEach(() => {
@@ -15,7 +18,7 @@ describe('Phase 5 - Authentication', () => {
 
 	describe('User Store', () => {
 		it('should initialize with default state', () => {
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 			expect(state.isLoading).toBe(false);
@@ -37,7 +40,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.login('test@example.com', 'password123');
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'Test User',
@@ -57,7 +60,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.login('test@example.com', 'wrongpassword');
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});
@@ -78,7 +81,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.register('New User', 'new@example.com', 'password123');
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'New User',
@@ -98,7 +101,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.register('New User', 'existing@example.com', 'password123');
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});
@@ -128,7 +131,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.logout();
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});
@@ -176,7 +179,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.getCurrentUser();
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'Test User',
@@ -198,7 +201,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.getCurrentUser();
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});
@@ -208,7 +211,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.getCurrentUser();
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});
@@ -219,7 +222,7 @@ describe('Phase 5 - Authentication', () => {
 
 			await userStore.login('test@example.com', 'password123');
 
-			const state = userStore.getState();
+			const state = get(userStore);
 			expect(state.isAuthenticated).toBe(false);
 			expect(state.user).toBeNull();
 		});

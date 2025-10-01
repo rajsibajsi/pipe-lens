@@ -7,10 +7,10 @@ interface Props {
 	onClose: () => void;
 }
 
-let { isOpen, onClose }: Props = $props();
+const { isOpen, onClose }: Props = $props();
 
-let connectionName = $state('Local MongoDB');
-let connectionUri = $state('mongodb://admin:password@localhost:27017');
+const connectionName = $state('Local MongoDB');
+const connectionUri = $state('mongodb://admin:password@localhost:27017');
 let isConnecting = $state(false);
 let error = $state('');
 

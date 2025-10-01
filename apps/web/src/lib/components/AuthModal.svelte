@@ -8,7 +8,7 @@
 		mode?: 'login' | 'register';
 	}
 
-	let { isOpen, onClose, mode = 'login' }: Props = $props();
+	const { isOpen, onClose, mode = 'login' }: Props = $props();
 
 	let currentMode = $state(mode);
 	let email = $state('');
@@ -19,7 +19,7 @@
 	let error = $state('');
 
 	// Reactive state from store
-	let authState = $derived($userStore);
+	const authState = $derived($userStore);
 
 	// Reset form when modal opens/closes
 	$effect(() => {

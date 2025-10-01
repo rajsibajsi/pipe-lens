@@ -6,7 +6,7 @@
 		text?: string;
 	}
 
-	let { 
+	const { 
 		size = 'md', 
 		color = 'var(--color-primary)', 
 		className = '',

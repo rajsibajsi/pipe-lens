@@ -11,7 +11,7 @@
 		height?: string;
 	}
 
-	let { 
+	const { 
 		data, 
 		title = 'Chart', 
 		showControls = true, 

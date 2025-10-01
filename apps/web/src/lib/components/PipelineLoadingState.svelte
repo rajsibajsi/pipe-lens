@@ -8,7 +8,7 @@
 		message?: string;
 	}
 
-	let { 
+	const { 
 		stageCount = 3, 
 		showStages = false,
 		message = 'Executing pipeline...'

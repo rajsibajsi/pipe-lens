@@ -12,9 +12,9 @@
 		showDiff?: boolean;
 	}
 
-	let { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
+	const { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
 	let expandedStage = $state<number | null>(null);
-	let viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
+	const viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
 
 	function toggleStage(index: number) {
 		expandedStage = expandedStage === index ? null : index;

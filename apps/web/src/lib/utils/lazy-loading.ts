@@ -168,27 +168,27 @@ export class MemoryManager {
 	private static cleanupFunctions = new Map<string, () => void>();
 
 	static register(id: string, instance: any, cleanup?: () => void) {
-		this.instances.set(id, instance);
+		MemoryManager.instances.set(id, instance);
 		if (cleanup) {
-			this.cleanupFunctions.set(id, cleanup);
+			MemoryManager.cleanupFunctions.set(id, cleanup);
 		}
 	}
 
 	static unregister(id: string) {
-		const cleanup = this.cleanupFunctions.get(id);
+		const cleanup = MemoryManager.cleanupFunctions.get(id);
 		if (cleanup) {
 			cleanup();
-			this.cleanupFunctions.delete(id);
+			MemoryManager.cleanupFunctions.delete(id);
 		}
-		this.instances.delete(id);
+		MemoryManager.instances.delete(id);
 	}
 
 	static cleanup() {
-		for (const [id, cleanup] of this.cleanupFunctions) {
+		for (const [id, cleanup] of MemoryManager.cleanupFunctions) {
 			cleanup();
 		}
-		this.instances.clear();
-		this.cleanupFunctions.clear();
+		MemoryManager.instances.clear();
+		MemoryManager.cleanupFunctions.clear();
 	}
 }
 
@@ -204,11 +204,11 @@ export class PerformanceMonitor {
 			const end = performance.now();
 			const duration = end - start;
 			
-			if (!this.metrics.has(label)) {
-				this.metrics.set(label, []);
+			if (!PerformanceMonitor.metrics.has(label)) {
+				PerformanceMonitor.metrics.set(label, []);
 			}
 			
-			const times = this.metrics.get(label)!;
+			const times = PerformanceMonitor.metrics.get(label)!;
 			times.push(duration);
 			
 			// Keep only last 100 measurements
@@ -219,7 +219,7 @@ export class PerformanceMonitor {
 	}
 
 	static getAverageTime(label: string): number {
-		const times = this.metrics.get(label);
+		const times = PerformanceMonitor.metrics.get(label);
 		if (!times || times.length === 0) return 0;
 		
 		return times.reduce((sum, time) => sum + time, 0) / times.length;
@@ -227,13 +227,13 @@ export class PerformanceMonitor {
 
 	static getMetrics(): Record<string, number> {
 		const result: Record<string, number> = {};
-		for (const [label, times] of this.metrics) {
-			result[label] = this.getAverageTime(label);
+		for (const [label, times] of PerformanceMonitor.metrics) {
+			result[label] = PerformanceMonitor.getAverageTime(label);
 		}
 		return result;
 	}
 
 	static clearMetrics() {
-		this.metrics.clear();
+		PerformanceMonitor.metrics.clear();
 	}
 }

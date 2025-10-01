@@ -1,11 +1,11 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import AuthModal from '$lib/components/AuthModal.svelte';
-	import UserProfile from '$lib/components/UserProfile.svelte';
-	import ToastContainer from '$lib/components/ToastContainer.svelte';
 	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
 	import KeyboardShortcutsHelp from '$lib/components/KeyboardShortcutsHelp.svelte';
+	import ToastContainer from '$lib/components/ToastContainer.svelte';
 	import TutorialModal from '$lib/components/TutorialModal.svelte';
+	import UserProfile from '$lib/components/UserProfile.svelte';
 	import { userStore } from '$lib/stores/user.store';
 	import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
 	import { onMount } from 'svelte';
@@ -13,7 +13,7 @@
 	import '../styles/components.css';
 	import '../styles/design-system.css';
 
-	let { children } = $props();
+	const { children } = $props();
 
 	// Authentication state
 	let showAuthModal = $state(false);
@@ -23,7 +23,7 @@
 	let showTutorial = $state(false);
 
 	// Reactive state from store
-	let authState = $derived($userStore);
+	const authState = $derived($userStore);
 
 	// Initialize user on mount
 	onMount(() => {

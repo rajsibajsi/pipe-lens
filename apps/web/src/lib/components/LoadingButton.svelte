@@ -11,7 +11,7 @@
 		children: any;
 	}
 
-	let { 
+	const { 
 		loading = false,
 		disabled = false,
 		onclick,

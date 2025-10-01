@@ -7,7 +7,7 @@
 		onClose: () => void;
 	}
 
-	let { isOpen, onClose }: Props = $props();
+	const { isOpen, onClose }: Props = $props();
 
 	let shortcuts = $state<KeyboardShortcut[]>([]);
 

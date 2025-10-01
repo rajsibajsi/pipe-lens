@@ -7,7 +7,7 @@
 		onComplete?: () => void;
 	}
 
-	let { isOpen, onClose, onComplete }: Props = $props();
+	const { isOpen, onClose, onComplete }: Props = $props();
 
 	let currentStep = $state(0);
 	let isCompleted = $state(false);

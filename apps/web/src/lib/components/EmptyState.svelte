@@ -10,7 +10,7 @@
 		className?: string;
 	}
 
-	let { 
+	const { 
 		icon = '📄',
 		title,
 		description,

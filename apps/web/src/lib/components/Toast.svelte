@@ -6,7 +6,7 @@
 		toast: Toast;
 	}
 
-	let { toast }: Props = $props();
+	const { toast }: Props = $props();
 
 	let element: HTMLDivElement;
 	let isVisible = $state(false);

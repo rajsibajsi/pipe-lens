@@ -7,7 +7,7 @@
 		onClose: () => void;
 	}
 
-	let { isOpen, onClose }: Props = $props();
+	const { isOpen, onClose }: Props = $props();
 
 	let activeTab = $state<'profile' | 'password' | 'preferences'>('profile');
 	let isLoading = $state(false);
@@ -31,7 +31,7 @@
 	let pipelineNotifications = $state(true);
 
 	// Reactive state from store
-	let authState = $derived($userStore);
+	const authState = $derived($userStore);
 
 	// Initialize form data when modal opens
 	$effect(() => {

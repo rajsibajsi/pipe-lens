@@ -20,7 +20,7 @@
 		height?: string;
 	}
 
-	let { 
+	const { 
 		data, 
 		title = 'Data Visualization',
 		showControls = true,

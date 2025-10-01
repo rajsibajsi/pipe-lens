@@ -2,7 +2,7 @@
 	import { toastStore } from '$lib/stores/toast.store';
 	import Toast from './Toast.svelte';
 
-	let toasts = $derived($toastStore.toasts);
+	const toasts = $derived($toastStore.toasts);
 </script>
 
 <div class="toast-container" aria-live="polite" aria-label="Notifications">

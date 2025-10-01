@@ -15,11 +15,11 @@ export class FocusManager {
 	].join(', ');
 
 	static getFocusableElements(container: HTMLElement): HTMLElement[] {
-		return Array.from(container.querySelectorAll(this.focusableSelectors));
+		return Array.from(container.querySelectorAll(FocusManager.focusableSelectors));
 	}
 
 	static trapFocus(container: HTMLElement) {
-		const focusableElements = this.getFocusableElements(container);
+		const focusableElements = FocusManager.getFocusableElements(container);
 		const firstElement = focusableElements[0];
 		const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -98,19 +98,19 @@ export class ColorContrast {
 	static getLuminance(r: number, g: number, b: number): number {
 		const [rs, gs, bs] = [r, g, b].map(c => {
 			c = c / 255;
-			return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+			return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 		});
 		return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 	}
 
 	static getContrastRatio(color1: string, color2: string): number {
-		const rgb1 = this.hexToRgb(color1);
-		const rgb2 = this.hexToRgb(color2);
+		const rgb1 = ColorContrast.hexToRgb(color1);
+		const rgb2 = ColorContrast.hexToRgb(color2);
 		
 		if (!rgb1 || !rgb2) return 0;
 
-		const lum1 = this.getLuminance(rgb1.r, rgb1.g, rgb1.b);
-		const lum2 = this.getLuminance(rgb2.r, rgb2.g, rgb2.b);
+		const lum1 = ColorContrast.getLuminance(rgb1.r, rgb1.g, rgb1.b);
+		const lum2 = ColorContrast.getLuminance(rgb2.r, rgb2.g, rgb2.b);
 		
 		const brightest = Math.max(lum1, lum2);
 		const darkest = Math.min(lum1, lum2);

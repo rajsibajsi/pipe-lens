@@ -8,7 +8,7 @@
 		animated?: boolean;
 	}
 
-	let { 
+	const { 
 		width = '100%', 
 		height = '1rem', 
 		rounded = true, 

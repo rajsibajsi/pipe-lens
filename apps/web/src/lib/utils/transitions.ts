@@ -43,7 +43,7 @@ export const slideDown = {
 export const bounceIn = {
 	duration: 400,
 	css: (t: number) => {
-		const bounce = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+		const bounce = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
 		return `
 			opacity: ${t};
 			transform: scale(${bounce});

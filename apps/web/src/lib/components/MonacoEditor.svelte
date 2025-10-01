@@ -9,7 +9,7 @@
 		onChange?: (value: string) => void;
 	}
 
-	let { value = '', language = 'json', theme = 'vs-dark', onChange }: Props = $props();
+	const { value = '', language = 'json', theme = 'vs-dark', onChange }: Props = $props();
 
 	let editorContainer: HTMLDivElement;
 	let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
