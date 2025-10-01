@@ -100,7 +100,6 @@ class MongoDBService {
 		const result = await collection.aggregate(pipeline).toArray();
 		return result;
 	}
-
 	async executePipelineWithStages(
 		connectionId: string,
 		dbName: string,

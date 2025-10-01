@@ -109,7 +109,6 @@ class ApiClient {
 		});
 		return response.json();
 	}
-
 	async executePipelineWithStages(
 		connectionId: string,
 		database: string,
