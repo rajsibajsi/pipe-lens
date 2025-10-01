@@ -55,25 +55,26 @@ Object.defineProperty(global, 'crypto', {
 
 // Mock KeyboardEvent
 class MockKeyboardEvent {
-	key: string;
-	ctrlKey: boolean;
-	shiftKey: boolean;
-	altKey: boolean;
-	metaKey: boolean;
-	target: any;
-	preventDefault: any;
-	stopPropagation: any;
+    key: string;
+    ctrlKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+    metaKey: boolean;
+    target: unknown;
+    preventDefault: () => void;
+    stopPropagation: () => void;
 
-	constructor(type: string, init: any = {}) {
-		this.key = init.key || '';
-		this.ctrlKey = init.ctrlKey || false;
-		this.shiftKey = init.shiftKey || false;
-		this.altKey = init.altKey || false;
-		this.metaKey = init.metaKey || false;
-		this.target = init.target || null;
-		this.preventDefault = vi.fn();
-		this.stopPropagation = vi.fn();
-	}
+    constructor(_type: string, init: Partial<KeyboardEvent> = {}) {
+        this.key = init.key || '';
+        this.ctrlKey = init.ctrlKey || false;
+        this.shiftKey = init.shiftKey || false;
+        this.altKey = init.altKey || false;
+        this.metaKey = init.metaKey || false;
+        // @ts-expect-error property exists in real KeyboardEvent, mocked here
+        this.target = init.target || null;
+        this.preventDefault = vi.fn();
+        this.stopPropagation = vi.fn();
+    }
 }
 
 // Mock KeyboardEvent globally

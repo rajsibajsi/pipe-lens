@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { authenticate, rateLimit } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
 
@@ -180,7 +181,7 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/logout-all', authenticate, async (req: Request, res: Response) => {
 	try {
-		await authService.logoutAll(req.user!._id);
+    await authService.logoutAll(req.user?._id);
 
 		res.json({
 			success: true,
@@ -202,7 +203,7 @@ router.post('/logout-all', authenticate, async (req: Request, res: Response) => 
  */
 router.get('/me', authenticate, async (req: Request, res: Response) => {
 	try {
-		const user = await authService.getUserById(req.user!._id);
+    const user = await authService.getUserById(req.user?._id);
 		
 		if (!user) {
 			return res.status(404).json({
@@ -232,7 +233,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
 router.put('/profile', authenticate, async (req: Request, res: Response) => {
 	try {
 		const { name, avatar, preferences } = req.body;
-		const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
 		if (name !== undefined) {
 			if (name.trim().length < 2) {
@@ -252,7 +253,7 @@ router.put('/profile', authenticate, async (req: Request, res: Response) => {
 			updateData.preferences = preferences;
 		}
 
-		const user = await authService.updateProfile(req.user!._id, updateData);
+    const user = await authService.updateProfile(req.user?._id as string, updateData);
 
 		res.json({
 			success: true,
@@ -291,7 +292,7 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
 			});
 		}
 
-		await authService.changePassword(req.user!._id, currentPassword, newPassword);
+    await authService.changePassword(req.user?._id as string, currentPassword, newPassword);
 
 		res.json({
 			success: true,
@@ -313,7 +314,7 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
  */
 router.delete('/account', authenticate, async (req: Request, res: Response) => {
 	try {
-		await authService.deleteAccount(req.user!._id);
+    await authService.deleteAccount(req.user?._id as string);
 
 		res.json({
 			success: true,

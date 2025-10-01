@@ -8,30 +8,30 @@
 		onConfigChange: (config: Partial<ChartConfig>) => void;
 	}
 
-	const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
+const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
 
-	const chartTypes = [
+const chartTypes = [
 		{ type: 'bar' as ChartType, label: 'Bar Chart', icon: '📊', description: 'Compare values across categories' },
 		{ type: 'pie' as ChartType, label: 'Pie Chart', icon: '🥧', description: 'Show parts of a whole' },
 		{ type: 'line' as ChartType, label: 'Line Chart', icon: '📈', description: 'Show trends over time' },
 		{ type: 'table' as ChartType, label: 'Data Table', icon: '📋', description: 'View raw data in table format' }
 	];
 
-	let showAdvanced = $state(false);
+let showAdvanced = $state(false);
 
-	function handleTypeChange(type: ChartType) {
+function handleTypeChange(type: ChartType) {
 		onTypeChange(type);
 	}
 
-	function handleConfigChange(key: keyof ChartConfig, value: unknown) {
+function handleConfigChange(key: keyof ChartConfig, value: unknown) {
 		onConfigChange({ [key]: value });
 	}
 
-	function toggleAdvanced() {
+function toggleAdvanced() {
 		showAdvanced = !showAdvanced;
 	}
 
-	const colorPresets = [
+const colorPresets = [
 		['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
 		['#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#ec4899'],
 		['#6b7280', '#374151', '#1f2937', '#111827', '#000000'],

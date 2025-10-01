@@ -7,15 +7,15 @@
 		onClose: () => void;
 	}
 
-	const { isOpen, onClose }: Props = $props();
+const { isOpen, onClose }: Props = $props();
 
-	let shortcuts = $state<KeyboardShortcut[]>([]);
+let shortcuts = $state<KeyboardShortcut[]>([]);
 
 	onMount(() => {
 		shortcuts = keyboardShortcuts.getAllShortcuts();
 	});
 
-	function getKeyDisplay(shortcut: KeyboardShortcut): string {
+function getKeyDisplay(shortcut: KeyboardShortcut): string {
 		const parts = [];
 		if (shortcut.ctrlKey) parts.push('Ctrl');
 		if (shortcut.shiftKey) parts.push('Shift');
@@ -25,7 +25,7 @@
 		return parts.join(' + ');
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
+function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
 			onClose();
 		}

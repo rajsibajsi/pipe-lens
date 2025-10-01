@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { IUser } from '../models/User';
+import type { NextFunction, Request, Response } from 'express';
+import type { IUser } from '../models/User';
 import { AuthService } from '../services/auth.service';
 
 // Extend Express Request interface to include user
@@ -46,18 +46,18 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
  * Optional authentication middleware
  * Adds user to request if token is valid, but doesn't require it
  */
-export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction) => {
 	try {
 		const authHeader = req.headers.authorization;
 		
-		if (authHeader && authHeader.startsWith('Bearer ')) {
+		if (authHeader?.startsWith('Bearer ')) {
 			const token = authHeader.substring(7);
 			const user = await authService.verifyToken(token);
 			req.user = user;
 		}
 		
 		next();
-	} catch (error) {
+	} catch (_error) {
 		// Continue without user if token is invalid
 		next();
 	}
@@ -86,7 +86,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 		}
 
 		next();
-	} catch (error) {
+	} catch (_error) {
 		return res.status(500).json({
 			success: false,
 			message: 'Authentication error'

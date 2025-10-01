@@ -1,4 +1,4 @@
-import { Document, Schema, model } from 'mongoose';
+import { Schema, model, type Document } from 'mongoose';
 
 export interface IPipeline extends Document {
 	_id: string;
@@ -53,9 +53,7 @@ const pipelineSchema = new Schema<IPipeline>({
 		type: [Schema.Types.Mixed],
 		required: true,
 		validate: {
-			validator: function(pipeline: object[]) {
-				return Array.isArray(pipeline) && pipeline.length > 0;
-			},
+			validator: (pipeline: object[]) => Array.isArray(pipeline) && pipeline.length > 0,
 			message: 'Pipeline must be a non-empty array of aggregation stages'
 		}
 	},
@@ -152,9 +150,10 @@ pipelineSchema.pre('save', function(next) {
 // Virtual for pipeline complexity calculation
 pipelineSchema.virtual('calculatedComplexity').get(function() {
 	const stageCount = this.pipeline.length;
-	const hasComplexStages = this.pipeline.some((stage: any) => 
-		stage.$lookup || stage.$facet || stage.$graphLookup || stage.$unionWith
-	);
+	const hasComplexStages = this.pipeline.some((stage: unknown) => {
+		const s = stage as Record<string, unknown>;
+		return Boolean(s.$lookup || s.$facet || s.$graphLookup || s.$unionWith);
+	});
 	
 	if (stageCount <= 3 && !hasComplexStages) return 'simple';
 	if (stageCount <= 6 && !hasComplexStages) return 'medium';
