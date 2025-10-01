@@ -32,6 +32,8 @@ let stageResults = $derived($pipelineStore.stageResults);
 let viewMode = $derived($pipelineStore.viewMode);
 let isExecuting = $derived($pipelineStore.isExecuting);
 let error = $derived($pipelineStore.error);
+let sampleSize = $derived($pipelineStore.sampleSize);
+let maxSampleSize = $derived($pipelineStore.maxSampleSize);
 
 async function handleSelectDatabase(database: string) {
 	if (!connection) return;
@@ -58,6 +60,20 @@ async function handleRunPipeline() {
 	try {
 		const pipeline = JSON.parse(editorContent);
 
+		// Check cache first
+		const cached = pipelineStore.getCachedResult(
+			pipeline,
+			sampleSize,
+			connection.id,
+			connection.selectedDatabase,
+			connection.selectedCollection
+		);
+
+		if (cached) {
+			pipelineStore.setResults(cached.results);
+			return;
+		}
+
 		// Validate pipeline
 		const validation = await api.validatePipeline(pipeline);
 		if (!validation.valid) {
@@ -77,6 +93,16 @@ async function handleRunPipeline() {
 
 		if (result.success) {
 			pipelineStore.setResults(result.results);
+			// Cache the result
+			pipelineStore.setCachedResult(
+				pipeline,
+				sampleSize,
+				connection.id,
+				connection.selectedDatabase,
+				connection.selectedCollection,
+				result.results,
+				[]
+			);
 		} else {
 			pipelineStore.setError(result.message || 'Pipeline execution failed');
 		}
@@ -96,6 +122,20 @@ async function handleRunWithPreview() {
 	try {
 		const pipeline = JSON.parse(editorContent);
 
+		// Check cache first
+		const cached = pipelineStore.getCachedResult(
+			pipeline,
+			sampleSize,
+			connection.id,
+			connection.selectedDatabase,
+			connection.selectedCollection
+		);
+
+		if (cached) {
+			pipelineStore.setStageResults(cached.stageResults);
+			return;
+		}
+
 		// Validate pipeline
 		const validation = await api.validatePipeline(pipeline);
 		if (!validation.valid) {
@@ -111,10 +151,21 @@ async function handleRunWithPreview() {
 			connection.selectedDatabase,
 			connection.selectedCollection,
 			pipeline,
+			sampleSize,
 		);
 
 		if (result.success) {
 			pipelineStore.setStageResults(result.stages);
+			// Cache the result
+			pipelineStore.setCachedResult(
+				pipeline,
+				sampleSize,
+				connection.id,
+				connection.selectedDatabase,
+				connection.selectedCollection,
+				[],
+				result.stages
+			);
 		} else {
 			pipelineStore.setError(result.message || 'Pipeline execution failed');
 		}
@@ -146,9 +197,35 @@ function handleEditorChange(value: string | undefined) {
 					{/if}
 				</p>
 			</div>
-			<div style="display: flex; gap: var(--space-md);">
+			<div style="display: flex; gap: var(--space-md); align-items: center;">
+				<!-- Sample Size Control -->
+				<div style="display: flex; align-items: center; gap: var(--space-sm);">
+					<label style="font-size: var(--text-xs); color: var(--color-text-secondary);">
+						Sample Size:
+					</label>
+					<input
+						type="number"
+						min="1"
+						max={maxSampleSize}
+						value={sampleSize}
+						oninput={(e) => pipelineStore.setSampleSize(parseInt(e.target.value) || 10)}
+						style="width: 4rem; padding: var(--space-xs); font-size: var(--text-xs); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--color-bg-secondary); color: var(--color-text-primary);"
+					/>
+					<span style="font-size: var(--text-xs); color: var(--color-text-tertiary);">
+						/ {maxSampleSize}
+					</span>
+				</div>
+
 				<button class="btn btn-secondary">
 					Save
+				</button>
+				<button
+					onclick={() => pipelineStore.clearCache()}
+					class="btn btn-ghost"
+					style="font-size: var(--text-xs);"
+					title="Clear cache"
+				>
+					🗑️ Clear Cache
 				</button>
 				<button
 					onclick={handleRunWithPreview}

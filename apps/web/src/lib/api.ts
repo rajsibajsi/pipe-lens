@@ -114,11 +114,12 @@ class ApiClient {
 		database: string,
 		collection: string,
 		pipeline: unknown[],
+		sampleSize: number = 10,
 	): Promise<PipelineStagesResponse> {
 		const response = await fetch(`${API_BASE_URL}/pipelines/execute-stages`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ connectionId, database, collection, pipeline }),
+			body: JSON.stringify({ connectionId, database, collection, pipeline, sampleSize }),
 		});
 		return response.json();
 	}

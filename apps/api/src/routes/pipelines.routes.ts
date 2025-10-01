@@ -39,7 +39,7 @@ router.post('/execute', async (req: Request, res: Response) => {
 // Execute pipeline with stage-by-stage results
 router.post('/execute-stages', async (req: Request, res: Response) => {
 	try {
-		const { connectionId, database, collection, pipeline } = req.body;
+		const { connectionId, database, collection, pipeline, sampleSize = 10 } = req.body;
 
 		if (!connectionId || !database || !collection || !pipeline) {
 			res.status(400).json({
@@ -58,6 +58,7 @@ router.post('/execute-stages', async (req: Request, res: Response) => {
 			database,
 			collection,
 			pipeline,
+			sampleSize,
 		);
 
 		res.json({

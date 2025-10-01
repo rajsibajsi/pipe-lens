@@ -105,6 +105,7 @@ class MongoDBService {
 		dbName: string,
 		collectionName: string,
 		pipeline: object[],
+		sampleSize: number = 10,
 	): Promise<
 		{
 			stageIndex: number;
@@ -135,7 +136,7 @@ class MongoDBService {
 
 			// Execute with preview limit
 			const preview = await collection
-				.aggregate([...currentPipeline, { $limit: 10 }])
+				.aggregate([...currentPipeline, { $limit: sampleSize }])
 				.toArray();
 
 			// Get actual count
