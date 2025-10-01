@@ -15,8 +15,8 @@ let isConnecting = $state(false);
 let error = $state('');
 
 async function handleConnect() {
-	isConnecting = true;
-	error = '';
+    isConnecting = true;
+    error = '';
 
 	try {
 		// Test connection first

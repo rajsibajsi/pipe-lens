@@ -16,7 +16,7 @@
 	let name = $state('');
 	let confirmPassword = $state('');
 	let isLoading = $state(false);
-	let error = $state('');
+let error = $state('');
 
 	// Reactive state from store
 	const authState = $derived($userStore);
@@ -49,7 +49,7 @@
 		isLoading = false;
 	}
 
-	function switchMode() {
+function switchMode() {
 		currentMode = currentMode === 'login' ? 'register' : 'login';
 		resetForm();
 	}
@@ -81,8 +81,8 @@
 		isLoading = true;
 		error = '';
 
-		try {
-			let result;
+        try {
+            let result: { success: boolean; error?: string };
 			if (currentMode === 'login') {
 				result = await userStore.login(email, password);
 			} else {

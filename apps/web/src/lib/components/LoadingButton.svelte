@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LoadingSpinner from './LoadingSpinner.svelte';
 
-	interface Props {
+interface Props {
 		loading?: boolean;
 		disabled?: boolean;
 		onclick?: () => void;
@@ -9,7 +9,7 @@
 		style?: string;
 		variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
-		children: any;
+		children: string | number | HTMLElement | null;
 	}
 
 	const { 
