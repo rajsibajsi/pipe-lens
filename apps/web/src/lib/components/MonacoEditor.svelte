@@ -1,21 +1,8 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+    import { onMount, onDestroy } from 'svelte';
+    import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-	interface Props {
-		value?: string;
-		language?: string;
-		theme?: string;
-		onChange?: (value: string) => void;
-	}
-
-	const { value = '', language = 'json', theme = 'vs-dark', onChange }: Props = $props();
-
-	let editorContainer: HTMLDivElement;
-	let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
-	let monaco: typeof Monaco;
-
-	onMount(async () => {
+    onMount(async () => {
 		// Import Monaco with worker setup
 		const monacoModule = await import('$lib/monaco-setup');
 		monaco = monacoModule.monaco;
@@ -36,11 +23,11 @@
 			});
 
 			// Listen for content changes
-			editor.onDidChangeModelContent(() => {
-				if (editor && onChange) {
-					onChange(editor.getValue());
-				}
-			});
+            editor.onDidChangeModelContent(() => {
+                if (editor && onChange) {
+                    onChange(editor.getValue());
+                }
+            });
 		}
 	});
 
@@ -48,12 +35,12 @@
 		editor?.dispose();
 	});
 
-	// Update editor value when prop changes
-	$effect(() => {
-		if (editor && value !== editor.getValue()) {
-			editor.setValue(value);
-		}
-	});
+    // Update editor value when prop changes
+    $effect(() => {
+        if (editor && value !== editor.getValue()) {
+            editor.setValue(value);
+        }
+    });
 
 	// Update editor theme when prop changes
 	$effect(() => {
