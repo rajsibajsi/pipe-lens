@@ -1,7 +1,7 @@
 <script lang="ts">
-	import BaseChart from './BaseChart.svelte';
-	import DataTable from './DataTable.svelte';
-	import ChartSelector from './ChartSelector.svelte';
+import BaseChart from './BaseChart.svelte';
+import DataTable from './DataTable.svelte';
+import ChartSelector from './ChartSelector.svelte';
 	import { 
 		detectChartType, 
 		transformToChartData, 
@@ -30,7 +30,8 @@
 
 	let selectedChartType = $state<ChartType>('table');
 	let chartConfig = $state<ChartConfig>(getChartConfig(data, 'table', title));
-	let chartData = $state<ChartData | TableData | null>(null);
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+let chartData = $state<ChartData | TableData | null>(null);
 
 	// Auto-detect chart type when data changes
 	$effect(() => {
@@ -58,18 +59,21 @@
 		chartData = transformToChartData(data, selectedChartType, chartConfig);
 	}
 
-	function handleTypeChange(type: ChartType) {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleTypeChange(type: ChartType) {
 		selectedChartType = type;
 		chartConfig = getChartConfig(data, type, title);
 		updateChartData();
 	}
 
-	function handleConfigChange(newConfig: Partial<ChartConfig>) {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleConfigChange(newConfig: Partial<ChartConfig>) {
 		chartConfig = { ...chartConfig, ...newConfig };
 		updateChartData();
 	}
 
-	function resetToAutoDetected() {
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function resetToAutoDetected() {
 		if (data && data.length > 0) {
 			const detectedType = detectChartType(data);
 			selectedChartType = detectedType;

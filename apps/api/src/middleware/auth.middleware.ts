@@ -34,7 +34,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 		req.user = user;
 		
 		next();
-	} catch (error) {
+	} catch (_error) {
 		return res.status(401).json({
 			success: false,
 			message: 'Invalid or expired token'

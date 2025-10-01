@@ -16,6 +16,7 @@
 	let name = $state('');
 	let confirmPassword = $state('');
 	let isLoading = $state(false);
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 let error = $state('');
 
 	// Reactive state from store
@@ -49,6 +50,7 @@ let error = $state('');
 		isLoading = false;
 	}
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function switchMode() {
 		currentMode = currentMode === 'login' ? 'register' : 'login';
 		resetForm();

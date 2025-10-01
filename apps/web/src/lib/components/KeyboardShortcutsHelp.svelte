@@ -9,12 +9,14 @@
 
 const { isOpen, onClose }: Props = $props();
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 let shortcuts = $state<KeyboardShortcut[]>([]);
 
 	onMount(() => {
 		shortcuts = keyboardShortcuts.getAllShortcuts();
 	});
 
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 function getKeyDisplay(shortcut: KeyboardShortcut): string {
 		const parts = [];
 		if (shortcut.ctrlKey) parts.push('Ctrl');
@@ -25,6 +27,7 @@ function getKeyDisplay(shortcut: KeyboardShortcut): string {
 		return parts.join(' + ');
 	}
 
+// biome-ignore lint/correctness/noUnusedVariables: used as event handler
 function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
 			onClose();

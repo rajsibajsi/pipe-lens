@@ -10,13 +10,14 @@
 		className?: string;
 	}
 
-	const { 
-		icon = '📄',
-		title,
-		description,
-		action,
-		className = ''
-	}: Props = $props();
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const { 
+    icon = '📄',
+    title,
+    description,
+    action,
+    className = ''
+}: Props = $props();
 </script>
 
 <div class="empty-state {className}">

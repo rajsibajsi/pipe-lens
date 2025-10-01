@@ -6,14 +6,16 @@
 		text?: string;
 	}
 
-	const { 
-		size = 'md', 
-		color = 'var(--color-primary)', 
-		className = '',
-		text = ''
-	}: Props = $props();
+    // biome-ignore lint/correctness/noUnusedVariables: used in template styles/attrs
+    const { 
+        size = 'md', 
+        color = 'var(--color-primary)', 
+        className = '', 
+        text = ''
+    }: Props = $props();
 
-	const sizeClasses = {
+    // biome-ignore lint/correctness/noUnusedVariables: used in template
+    const sizeClasses = {
 		sm: 'w-4 h-4',
 		md: 'w-6 h-6',
 		lg: 'w-8 h-8'
