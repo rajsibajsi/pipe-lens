@@ -100,7 +100,7 @@ test.describe('DocumentViewer Component', () => {
 
 		// Look for expandable fields (objects/arrays should have + buttons)
 		const expandButtons = page.locator('button').filter({ hasText: '+' });
-		if (await expandButtons.count() > 0) {
+		if ((await expandButtons.count()) > 0) {
 			await expandButtons.first().click();
 			await expect(page.locator('button').filter({ hasText: '−' }).first()).toBeVisible();
 		}

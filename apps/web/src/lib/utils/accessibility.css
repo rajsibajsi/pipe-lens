@@ -52,10 +52,10 @@
 	*,
 	*::before,
 	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-		scroll-behavior: auto !important;
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+		transition-duration: 0.01ms;
+		scroll-behavior: auto;
 	}
 }
 
@@ -86,8 +86,8 @@
 
 /* Error states */
 .error {
-	border-color: #dc2626 !important;
-	box-shadow: 0 0 0 1px #dc2626 !important;
+	border-color: #dc2626;
+	box-shadow: 0 0 0 1px #dc2626;
 }
 
 .error-message {
@@ -98,14 +98,14 @@
 
 /* Success states */
 .success {
-	border-color: #16a34a !important;
-	box-shadow: 0 0 0 1px #16a34a !important;
+	border-color: #16a34a;
+	box-shadow: 0 0 0 1px #16a34a;
 }
 
 /* Warning states */
 .warning {
-	border-color: #d97706 !important;
-	box-shadow: 0 0 0 1px #d97706 !important;
+	border-color: #d97706;
+	box-shadow: 0 0 0 1px #d97706;
 }
 
 /* Form accessibility */
@@ -163,7 +163,8 @@ td {
 }
 
 /* List accessibility */
-ul, ol {
+ul,
+ol {
 	margin: 0;
 	padding-left: 1.5rem;
 }
@@ -173,7 +174,12 @@ li {
 }
 
 /* Heading hierarchy */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
 	margin-top: 0;
 	margin-bottom: 0.5rem;
 	font-weight: 600;
@@ -190,13 +196,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Interactive element sizing */
-button, input, select, textarea, a {
+button,
+input,
+select,
+textarea,
+a {
 	min-height: 44px;
 	min-width: 44px;
 }
 
 /* Small interactive elements with proper spacing */
-button.small, input.small, select.small, textarea.small, a.small {
+button.small,
+input.small,
+select.small,
+textarea.small,
+a.small {
 	min-height: 32px;
 	min-width: 32px;
 	padding: 0.5rem;
@@ -266,7 +280,11 @@ button.small, input.small, select.small, textarea.small, a.small {
 
 /* Touch target sizing for mobile */
 @media (max-width: 768px) {
-	button, input, select, textarea, a {
+	button,
+	input,
+	select,
+	textarea,
+	a {
 		min-height: 48px;
 		min-width: 48px;
 	}
@@ -277,11 +295,11 @@ button.small, input.small, select.small, textarea.small, a.small {
 	.skip-to-content,
 	.modal-backdrop,
 	.toast {
-		display: none !important;
+		display: none;
 	}
-	
+
 	* {
-		background: white !important;
-		color: black !important;
+		background: white;
+		color: black;
 	}
 }

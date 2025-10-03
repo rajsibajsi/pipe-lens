@@ -40,11 +40,11 @@ test.describe('Phase 2: UI Features (No Database Required)', () => {
 
 	test('should update sample size when changed', async ({ page }) => {
 		const sampleSizeInput = page.getByRole('spinbutton');
-		
+
 		// Change sample size to 25
 		await sampleSizeInput.fill('25');
 		await expect(sampleSizeInput).toHaveValue('25');
-		
+
 		// Change sample size to 100
 		await sampleSizeInput.fill('100');
 		await expect(sampleSizeInput).toHaveValue('100');
@@ -52,16 +52,16 @@ test.describe('Phase 2: UI Features (No Database Required)', () => {
 
 	test('should enforce maximum sample size limit', async ({ page }) => {
 		const sampleSizeInput = page.getByRole('spinbutton');
-		
+
 		// Try to set sample size above limit
 		await sampleSizeInput.fill('600');
-		
+
 		// Wait a bit for the reactive update
 		await page.waitForTimeout(100);
-		
+
 		// Should be capped at 500
 		const value = await sampleSizeInput.inputValue();
-		expect(parseInt(value)).toBeLessThanOrEqual(500);
+		expect(parseInt(value, 10)).toBeLessThanOrEqual(500);
 	});
 
 	test('should have connect button', async ({ page }) => {
@@ -75,6 +75,8 @@ test.describe('Phase 2: UI Features (No Database Required)', () => {
 	});
 
 	test('should display results section', async ({ page }) => {
-		await expect(page.getByText('Connect to MongoDB and run your pipeline to see results here.')).toBeVisible();
+		await expect(
+			page.getByText('Connect to MongoDB and run your pipeline to see results here.'),
+		).toBeVisible();
 	});
 });

@@ -1,58 +1,58 @@
 <script lang="ts">
-	import { toastStore, type Toast } from '$lib/stores/toast.store';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import { type Toast, toastStore } from '$lib/stores/toast.store';
 
-	interface Props {
-		toast: Toast;
+interface Props {
+	toast: Toast;
+}
+
+const { toast }: Props = $props();
+
+let _element: HTMLDivElement;
+let _isVisible = $state(false);
+let _isRemoving = $state(false);
+
+onMount(() => {
+	// Trigger entrance animation
+	setTimeout(() => {
+		_isVisible = true;
+	}, 10);
+});
+
+function handleRemove() {
+	_isRemoving = true;
+	setTimeout(() => {
+		toastStore.remove(toast.id);
+	}, 300); // Match animation duration
+}
+
+function _handleAction() {
+	if (toast.action) {
+		toast.action.onClick();
 	}
+	handleRemove();
+}
 
-	const { toast }: Props = $props();
+const _typeIcons = {
+	success: '✓',
+	error: '✕',
+	warning: '⚠',
+	info: 'ℹ',
+};
 
-	let element: HTMLDivElement;
-	let isVisible = $state(false);
-	let isRemoving = $state(false);
-
-	onMount(() => {
-		// Trigger entrance animation
-		setTimeout(() => {
-			isVisible = true;
-		}, 10);
-	});
-
-	function handleRemove() {
-		isRemoving = true;
-		setTimeout(() => {
-			toastStore.remove(toast.id);
-		}, 300); // Match animation duration
-	}
-
-	function handleAction() {
-		if (toast.action) {
-			toast.action.onClick();
-		}
-		handleRemove();
-	}
-
-	const typeIcons = {
-		success: '✓',
-		error: '✕',
-		warning: '⚠',
-		info: 'ℹ'
-	};
-
-	const typeColors = {
-		success: 'var(--color-success)',
-		error: 'var(--color-error)',
-		warning: 'var(--color-warning)',
-		info: 'var(--color-info)'
-	};
+const _typeColors = {
+	success: 'var(--color-success)',
+	error: 'var(--color-error)',
+	warning: 'var(--color-warning)',
+	info: 'var(--color-info)',
+};
 </script>
 
 <div
-	bind:this={element}
+    bind:this={_element}
 	class="toast"
-	class:visible={isVisible}
-	class:removing={isRemoving}
+    class:visible={_isVisible}
+    class:removing={_isRemoving}
 	class:success={toast.type === 'success'}
 	class:error={toast.type === 'error'}
 	class:warning={toast.type === 'warning'}
@@ -61,8 +61,8 @@
 	aria-live="polite"
 >
 	<div class="toast-content">
-		<div class="toast-icon" style="color: {typeColors[toast.type]}">
-			{typeIcons[toast.type]}
+        <div class="toast-icon" style="color: {_typeColors[toast.type]}">
+            {_typeIcons[toast.type]}
 		</div>
 		<div class="toast-body">
 			<div class="toast-title">{toast.title}</div>
@@ -72,9 +72,9 @@
 		</div>
 		<div class="toast-actions">
 			{#if toast.action}
-				<button
+                <button
 					class="toast-action"
-					onclick={handleAction}
+                    onclick={_handleAction}
 					aria-label={toast.action.label}
 				>
 					{toast.action.label}

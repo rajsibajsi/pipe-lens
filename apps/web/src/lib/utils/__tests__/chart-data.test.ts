@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    detectChartType,
-    getChartConfig,
-    transformToChartData,
-    type ChartType
-} from '../chart-data';
+import { detectChartType, getChartConfig, transformToChartData } from '../chart-data';
 
 describe('chart-data utilities', () => {
 	describe('detectChartType', () => {
@@ -21,7 +16,7 @@ describe('chart-data utilities', () => {
 		it('should detect bar chart for aggregation data', () => {
 			const data = [
 				{ _id: 'category1', count: 10 },
-				{ _id: 'category2', count: 20 }
+				{ _id: 'category2', count: 20 },
 			];
 			expect(detectChartType(data)).toBe('bar');
 		});
@@ -29,7 +24,7 @@ describe('chart-data utilities', () => {
 		it('should detect bar chart for categorical and numeric data', () => {
 			const data = [
 				{ category: 'A', value: 30 },
-				{ category: 'B', value: 70 }
+				{ category: 'B', value: 70 },
 			];
 			expect(detectChartType(data)).toBe('bar');
 		});
@@ -37,7 +32,7 @@ describe('chart-data utilities', () => {
 		it('should detect line chart for time series data', () => {
 			const data = [
 				{ date: '2023-01-01', value: 100 },
-				{ date: '2023-01-02', value: 150 }
+				{ date: '2023-01-02', value: 150 },
 			];
 			expect(detectChartType(data)).toBe('line');
 		});
@@ -45,7 +40,7 @@ describe('chart-data utilities', () => {
 		it('should detect bar chart for categorical and numeric data', () => {
 			const data = [
 				{ name: 'Product A', sales: 1000 },
-				{ name: 'Product B', sales: 1500 }
+				{ name: 'Product B', sales: 1500 },
 			];
 			expect(detectChartType(data)).toBe('bar');
 		});
@@ -55,108 +50,108 @@ describe('chart-data utilities', () => {
 		it('should transform data to bar chart format', () => {
 			const data = [
 				{ category: 'A', value: 10 },
-				{ category: 'B', value: 20 }
+				{ category: 'B', value: 20 },
 			];
 			const result = transformToChartData(data, 'bar');
-			
+
 			expect(result).toHaveProperty('labels');
-		expect(result).toHaveProperty('datasets');
-		if ('labels' in result) {
-			expect(result.labels).toEqual(['A', 'B']);
-		}
-		if ('datasets' in result) {
-			expect(result.datasets).toHaveLength(1);
-			expect(result.datasets[0].data).toEqual([10, 20]);
-		}
+			expect(result).toHaveProperty('datasets');
+			if ('labels' in result) {
+				expect(result.labels).toEqual(['A', 'B']);
+			}
+			if ('datasets' in result) {
+				expect(result.datasets).toHaveLength(1);
+				expect(result.datasets[0].data).toEqual([10, 20]);
+			}
 		});
 
 		it('should transform data to pie chart format', () => {
 			const data = [
 				{ category: 'A', value: 30 },
-				{ category: 'B', value: 70 }
+				{ category: 'B', value: 70 },
 			];
 			const result = transformToChartData(data, 'pie');
-			
+
 			expect(result).toHaveProperty('labels');
-		expect(result).toHaveProperty('datasets');
-		if ('labels' in result) {
-			expect(result.labels).toEqual(['A', 'B']);
-		}
-		if ('datasets' in result) {
-			expect(result.datasets[0].data).toEqual([30, 70]);
-		}
+			expect(result).toHaveProperty('datasets');
+			if ('labels' in result) {
+				expect(result.labels).toEqual(['A', 'B']);
+			}
+			if ('datasets' in result) {
+				expect(result.datasets[0].data).toEqual([30, 70]);
+			}
 		});
 
 		it('should transform data to line chart format', () => {
 			const data = [
 				{ date: '2023-01-01', value: 100 },
-				{ date: '2023-01-02', value: 150 }
+				{ date: '2023-01-02', value: 150 },
 			];
 			const result = transformToChartData(data, 'line');
-			
+
 			expect(result).toHaveProperty('labels');
-		expect(result).toHaveProperty('datasets');
-		if ('labels' in result) {
-			expect(result.labels).toEqual(['2023-01-01', '2023-01-02']);
-		}
-		if ('datasets' in result) {
-			expect(result.datasets[0].data).toEqual([100, 150]);
-		}
+			expect(result).toHaveProperty('datasets');
+			if ('labels' in result) {
+				expect(result.labels).toEqual(['2023-01-01', '2023-01-02']);
+			}
+			if ('datasets' in result) {
+				expect(result.datasets[0].data).toEqual([100, 150]);
+			}
 		});
 
 		it('should transform data to table format', () => {
 			const data = [
 				{ name: 'John', age: 30, city: 'New York' },
-				{ name: 'Jane', age: 25, city: 'Boston' }
+				{ name: 'Jane', age: 25, city: 'Boston' },
 			];
 			const result = transformToChartData(data, 'table');
-			
+
 			expect(result).toHaveProperty('columns');
-		expect(result).toHaveProperty('rows');
-		if ('columns' in result) {
-			expect(result.columns).toEqual(['name', 'age', 'city']);
-		}
-		if ('rows' in result) {
-			expect(result.rows).toHaveLength(2);
-			expect(result.rows[0]).toEqual(['John', '30', 'New York']);
-		}
+			expect(result).toHaveProperty('rows');
+			if ('columns' in result) {
+				expect(result.columns).toEqual(['name', 'age', 'city']);
+			}
+			if ('rows' in result) {
+				expect(result.rows).toHaveLength(2);
+				expect(result.rows[0]).toEqual(['John', '30', 'New York']);
+			}
 		});
 
 		it('should handle empty data gracefully', () => {
 			const result = transformToChartData([], 'bar');
-			
+
 			expect(result).toHaveProperty('labels');
-		expect(result).toHaveProperty('datasets');
-		if ('labels' in result) {
-			expect(result.labels).toEqual([]);
-		}
-		if ('datasets' in result) {
-			expect(result.datasets).toEqual([]);
-		}
+			expect(result).toHaveProperty('datasets');
+			if ('labels' in result) {
+				expect(result.labels).toEqual([]);
+			}
+			if ('datasets' in result) {
+				expect(result.datasets).toEqual([]);
+			}
 		});
 
 		it('should handle fallback scenarios for bar chart', () => {
 			const data = [
 				{ value1: 10, value2: 20 },
-				{ value1: 15, value2: 25 }
+				{ value1: 15, value2: 25 },
 			];
 			const result = transformToChartData(data, 'bar');
-			
+
 			expect(result).toHaveProperty('labels');
-		expect(result).toHaveProperty('datasets');
-		if ('labels' in result) {
-			expect(result.labels).toHaveLength(2);
-		}
-		if ('datasets' in result) {
-			expect(result.datasets).toHaveLength(1); // Fallback creates single dataset
-		}
+			expect(result).toHaveProperty('datasets');
+			if ('labels' in result) {
+				expect(result.labels).toHaveLength(2);
+			}
+			if ('datasets' in result) {
+				expect(result.datasets).toHaveLength(1); // Fallback creates single dataset
+			}
 		});
 	});
 
 	describe('getChartConfig', () => {
 		it('should return bar chart configuration', () => {
 			const config = getChartConfig([], 'bar', 'Test Chart');
-			
+
 			expect(config.type).toBe('bar');
 			expect(config.title).toBe('Test Chart');
 			expect(config.xAxisLabel).toBe('Category');
@@ -167,7 +162,7 @@ describe('chart-data utilities', () => {
 
 		it('should return pie chart configuration', () => {
 			const config = getChartConfig([], 'pie', 'Test Pie');
-			
+
 			expect(config.type).toBe('pie');
 			expect(config.title).toBe('Test Pie');
 			expect(config.showLegend).toBe(true);
@@ -176,7 +171,7 @@ describe('chart-data utilities', () => {
 
 		it('should return line chart configuration', () => {
 			const config = getChartConfig([], 'line', 'Test Line');
-			
+
 			expect(config.type).toBe('line');
 			expect(config.title).toBe('Test Line');
 			expect(config.xAxisLabel).toBe('Time');
@@ -187,7 +182,7 @@ describe('chart-data utilities', () => {
 
 		it('should return table configuration', () => {
 			const config = getChartConfig([], 'table', 'Test Table');
-			
+
 			expect(config.type).toBe('table');
 			expect(config.title).toBe('Test Table');
 			expect(config.showLegend).toBe(false);
@@ -196,16 +191,16 @@ describe('chart-data utilities', () => {
 
 		it('should use default title when not provided', () => {
 			const config = getChartConfig([], 'bar');
-			
+
 			expect(config.title).toBe('Bar Chart');
 		});
 
 		it('should include default colors', () => {
 			const config = getChartConfig([], 'bar');
-			
+
 			expect(config.colors).toBeDefined();
 			expect(Array.isArray(config.colors)).toBe(true);
-			expect(config.colors!.length).toBeGreaterThan(0);
+			expect(config.colors?.length).toBeGreaterThan(0);
 		});
 	});
 
@@ -213,7 +208,7 @@ describe('chart-data utilities', () => {
 		it('should handle data with aggregation fields', () => {
 			const data = [
 				{ _id: 'cat1', _sum: 100, _avg: 50 },
-				{ _id: 'cat2', _sum: 200, _avg: 75 }
+				{ _id: 'cat2', _sum: 200, _avg: 75 },
 			];
 			expect(detectChartType(data)).toBe('bar');
 		});
@@ -221,7 +216,7 @@ describe('chart-data utilities', () => {
 		it('should handle data with time fields', () => {
 			const data = [
 				{ timestamp: '2023-01-01', value: 100 },
-				{ timestamp: '2023-01-02', value: 150 }
+				{ timestamp: '2023-01-02', value: 150 },
 			];
 			expect(detectChartType(data)).toBe('line');
 		});
@@ -229,18 +224,18 @@ describe('chart-data utilities', () => {
 		it('should handle data with createdAt/updatedAt fields', () => {
 			const data = [
 				{ createdAt: '2023-01-01', count: 10 },
-				{ createdAt: '2023-01-02', count: 15 }
+				{ createdAt: '2023-01-02', count: 15 },
 			];
 			expect(detectChartType(data)).toBe('line');
 		});
 
 		it('should fallback to table for complex data', () => {
 			const data = [
-				{ 
-					complex: { nested: { value: 1 } }, 
+				{
+					complex: { nested: { value: 1 } },
 					array: [1, 2, 3],
-					boolean: true 
-				}
+					boolean: true,
+				},
 			];
 			expect(detectChartType(data)).toBe('table');
 		});

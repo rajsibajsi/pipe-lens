@@ -8,10 +8,10 @@ test.describe('Basic Functionality Tests', () => {
 
 	test('should load builder page without errors', async ({ page }) => {
 		await page.goto('/builder');
-		
+
 		// Wait for page to load completely
 		await page.waitForLoadState('networkidle');
-		
+
 		// Check for basic elements that should be present
 		await expect(page.locator('h1')).toBeVisible();
 		await expect(page.getByText('Pipeline Builder')).toBeVisible();
@@ -26,7 +26,7 @@ test.describe('Basic Functionality Tests', () => {
 	test('should display basic UI elements on builder page', async ({ page }) => {
 		await page.goto('/builder');
 		await page.waitForLoadState('networkidle');
-		
+
 		// Check for specific UI elements that should be present
 		await expect(page.getByRole('button', { name: 'Run with Preview' })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Run Pipeline' })).toBeVisible();

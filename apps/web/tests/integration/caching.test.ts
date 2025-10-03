@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Helper function to connect to MongoDB
-async function connectToMongoDB(page: any) {
+async function connectToMongoDB(page: unknown) {
 	await page.waitForLoadState('networkidle');
 	await page.getByTestId('connect-button').click();
 	await page.waitForTimeout(200);
@@ -11,7 +11,7 @@ async function connectToMongoDB(page: any) {
 }
 
 // Helper function to select database and collection
-async function selectDatabaseAndCollection(page: any) {
+async function selectDatabaseAndCollection(page: unknown) {
 	await page.getByText('testdb').click();
 	await page.waitForTimeout(500);
 	await page.getByText('orders').click();
@@ -19,7 +19,7 @@ async function selectDatabaseAndCollection(page: any) {
 }
 
 // Helper function to run pipeline and measure time
-async function runPipelineAndMeasureTime(page: any, pipeline: string) {
+async function runPipelineAndMeasureTime(page: unknown, pipeline: string) {
 	const startTime = Date.now();
 	await page.locator('.monaco-editor').click();
 	await page.keyboard.press('Control+A');
@@ -153,10 +153,10 @@ test.describe('Result Caching Integration Tests', () => {
 		// This test would require running many different pipelines to exceed cache limit
 		// For now, we'll test that the cache clear button works
 		await expect(page.getByRole('button', { name: '🗑️ Clear Cache' })).toBeVisible();
-		
+
 		// Test that cache can be cleared
 		await page.getByRole('button', { name: '🗑️ Clear Cache' }).click();
-		
+
 		// Run a pipeline after clearing
 		const pipeline = `[{ "$limit": 1 }]`;
 		await runPipelineAndMeasureTime(page, pipeline);

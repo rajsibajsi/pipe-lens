@@ -1,11 +1,11 @@
 <script lang="ts">
-	// biome-ignore lint/correctness/noUnusedImports: used in template
-	import { toastStore } from '$lib/stores/toast.store';
-	// biome-ignore lint/correctness/noUnusedImports: used in template
-	import Toast from './Toast.svelte';
+// biome-ignore lint/correctness/noUnusedImports: used in template
+import { toastStore } from '$lib/stores/toast.store';
+// biome-ignore lint/correctness/noUnusedImports: used in template
+import Toast from './Toast.svelte';
 
-	// biome-ignore lint/correctness/noUnusedVariables: used in template
-	const toasts = $derived($toastStore.toasts);
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const toasts = $derived($toastStore.toasts);
 </script>
 
 <div class="toast-container" aria-live="polite" aria-label="Notifications">

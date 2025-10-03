@@ -7,7 +7,7 @@ import { onMount } from 'svelte';
  */
 export function createLazyComponent<T>(
 	importFn: () => Promise<{ default: T }>,
-	fallback?: any
+	fallback?: unknown,
 ) {
 	let component: T | null = null;
 	let loading = true;
@@ -36,7 +36,7 @@ export function createLazyComponent<T>(
 		},
 		get fallback() {
 			return fallback;
-		}
+		},
 	};
 }
 
@@ -45,7 +45,7 @@ export function createLazyComponent<T>(
  */
 export function createIntersectionObserver(
 	callback: (entries: IntersectionObserverEntry[]) => void,
-	options: IntersectionObserverInit = {}
+	options: IntersectionObserverInit = {},
 ) {
 	if (typeof window === 'undefined') {
 		return null;
@@ -54,7 +54,7 @@ export function createIntersectionObserver(
 	const defaultOptions: IntersectionObserverInit = {
 		rootMargin: '50px',
 		threshold: 0.1,
-		...options
+		...options,
 	};
 
 	return new IntersectionObserver(callback, defaultOptions);
@@ -90,16 +90,16 @@ export function createLazyImage(src: string, placeholder?: string) {
 		get error() {
 			return error;
 		},
-		load: loadImage
+		load: loadImage,
 	};
 }
 
 /**
  * Debounce function for performance
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
 	func: T,
-	wait: number
+	wait: number,
 ): (...args: Parameters<T>) => void {
 	let timeout: NodeJS.Timeout;
 	return (...args: Parameters<T>) => {
@@ -111,16 +111,18 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function for performance
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
 	func: T,
-	limit: number
+	limit: number,
 ): (...args: Parameters<T>) => void {
 	let inThrottle: boolean;
 	return (...args: Parameters<T>) => {
 		if (!inThrottle) {
 			func(...args);
 			inThrottle = true;
-			setTimeout(() => (inThrottle = false), limit);
+			setTimeout(() => {
+				inThrottle = false;
+			}, limit);
 		}
 	};
 }
@@ -131,16 +133,13 @@ export function throttle<T extends (...args: any[]) => any>(
 export function createVirtualScroll(
 	itemHeight: number,
 	containerHeight: number,
-	totalItems: number
+	totalItems: number,
 ) {
 	let scrollTop = 0;
 
 	const getVisibleRange = () => {
 		const start = Math.floor(scrollTop / itemHeight);
-		const end = Math.min(
-			start + Math.ceil(containerHeight / itemHeight) + 1,
-			totalItems
-		);
+		const end = Math.min(start + Math.ceil(containerHeight / itemHeight) + 1, totalItems);
 		return { start, end };
 	};
 
@@ -156,18 +155,19 @@ export function createVirtualScroll(
 		getOffsetY,
 		get totalHeight() {
 			return totalItems * itemHeight;
-		}
+		},
 	};
 }
 
 /**
  * Memory management utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Intentional static utility
 export class MemoryManager {
-	private static instances = new Map<string, any>();
+	private static instances = new Map<string, unknown>();
 	private static cleanupFunctions = new Map<string, () => void>();
 
-	static register(id: string, instance: any, cleanup?: () => void) {
+	static register(id: string, instance: unknown, cleanup?: () => void) {
 		MemoryManager.instances.set(id, instance);
 		if (cleanup) {
 			MemoryManager.cleanupFunctions.set(id, cleanup);
@@ -184,7 +184,7 @@ export class MemoryManager {
 	}
 
 	static cleanup() {
-		for (const [id, cleanup] of MemoryManager.cleanupFunctions) {
+		for (const [_id, cleanup] of MemoryManager.cleanupFunctions) {
 			cleanup();
 		}
 		MemoryManager.instances.clear();
@@ -195,6 +195,7 @@ export class MemoryManager {
 /**
  * Performance monitoring
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Intentional static utility
 export class PerformanceMonitor {
 	private static metrics = new Map<string, number[]>();
 
@@ -203,14 +204,18 @@ export class PerformanceMonitor {
 		return () => {
 			const end = performance.now();
 			const duration = end - start;
-			
+
 			if (!PerformanceMonitor.metrics.has(label)) {
 				PerformanceMonitor.metrics.set(label, []);
 			}
-			
-			const times = PerformanceMonitor.metrics.get(label)!;
+
+			const existing = PerformanceMonitor.metrics.get(label);
+			const times = existing ?? [];
+			if (!existing) {
+				PerformanceMonitor.metrics.set(label, times);
+			}
 			times.push(duration);
-			
+
 			// Keep only last 100 measurements
 			if (times.length > 100) {
 				times.shift();
@@ -221,13 +226,13 @@ export class PerformanceMonitor {
 	static getAverageTime(label: string): number {
 		const times = PerformanceMonitor.metrics.get(label);
 		if (!times || times.length === 0) return 0;
-		
+
 		return times.reduce((sum, time) => sum + time, 0) / times.length;
 	}
 
 	static getMetrics(): Record<string, number> {
 		const result: Record<string, number> = {};
-		for (const [label, times] of PerformanceMonitor.metrics) {
+		for (const [label, _times] of PerformanceMonitor.metrics) {
 			result[label] = PerformanceMonitor.getAverageTime(label);
 		}
 		return result;

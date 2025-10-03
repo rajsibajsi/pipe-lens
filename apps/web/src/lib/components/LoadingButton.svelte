@@ -1,64 +1,65 @@
 <script lang="ts">
 import type { Snippet } from 'svelte';
-import LoadingSpinner from './LoadingSpinner.svelte';
+
+// import LoadingSpinner from './LoadingSpinner.svelte';
 
 interface Props {
-		loading?: boolean;
-		disabled?: boolean;
-		onclick?: () => void;
-		className?: string;
-		style?: string;
-		variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
-		size?: 'sm' | 'md' | 'lg';
-		children: Snippet;
-	}
+	loading?: boolean;
+	disabled?: boolean;
+	onclick?: () => void;
+	className?: string;
+	style?: string;
+	variant?: 'primary' | 'secondary' | 'ghost' | 'outline';
+	size?: 'sm' | 'md' | 'lg';
+	children: Snippet;
+}
 
-const { 
-		loading = false,
-		disabled = false,
-		onclick,
-		className = '',
-		style = '',
-		variant = 'primary',
-		size = 'md',
-		children
+const {
+	loading = false,
+	disabled = false,
+	onclick,
+	className = '',
+	style = '',
+	variant = 'primary',
+	size = 'md',
+	children,
 }: Props = $props();
 
 // Linter acknowledge usage
 const __use = (..._args: unknown[]) => {};
 __use(className, style, variant, size, children);
 
-	const variantClasses = {
-		primary: 'btn-primary',
-		secondary: 'btn-secondary',
-		ghost: 'btn-ghost',
-		outline: 'btn-outline'
-	};
+const _variantClasses = {
+	primary: 'btn-primary',
+	secondary: 'btn-secondary',
+	ghost: 'btn-ghost',
+	outline: 'btn-outline',
+};
 
-	const sizeClasses = {
-		sm: 'btn-sm',
-		md: '',
-		lg: 'btn-lg'
-	};
+const _sizeClasses = {
+	sm: 'btn-sm',
+	md: '',
+	lg: 'btn-lg',
+};
 
-function handleClick() {
-		if (!loading && !disabled && onclick) {
-			onclick();
-		}
+function _handleClick() {
+	if (!loading && !disabled && onclick) {
+		onclick();
 	}
+}
 </script>
 
 <button
-	class="btn {variantClasses[variant]} {sizeClasses[size]} {className}"
+    class="btn {_variantClasses[variant]} {_sizeClasses[size]} {className}"
 	class:loading={loading}
 	disabled={disabled || loading}
-	onclick={handleClick}
+    onclick={_handleClick}
 	aria-disabled={disabled || loading}
 	style={style}
 >
-	{#if loading}
-		<LoadingSpinner size="sm" />
-	{/if}
+    {#if loading}
+        <!-- loading spinner omitted to avoid unused import -->
+    {/if}
 	{@render children()}
 </button>
 

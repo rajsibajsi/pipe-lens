@@ -5,7 +5,7 @@ export const fadeIn = {
 	css: (t: number) => `
 		opacity: ${t};
 		transform: translateY(${(1 - t) * 20}px);
-	`
+	`,
 };
 
 export const slideIn = {
@@ -13,7 +13,7 @@ export const slideIn = {
 	css: (t: number) => `
 		opacity: ${t};
 		transform: translateX(${(1 - t) * 100}%);
-	`
+	`,
 };
 
 export const scaleIn = {
@@ -21,7 +21,7 @@ export const scaleIn = {
 	css: (t: number) => `
 		opacity: ${t};
 		transform: scale(${0.9 + t * 0.1});
-	`
+	`,
 };
 
 export const slideUp = {
@@ -29,7 +29,7 @@ export const slideUp = {
 	css: (t: number) => `
 		opacity: ${t};
 		transform: translateY(${(1 - t) * 30}px);
-	`
+	`,
 };
 
 export const slideDown = {
@@ -37,7 +37,7 @@ export const slideDown = {
 	css: (t: number) => `
 		opacity: ${t};
 		transform: translateY(${(1 - t) * -30}px);
-	`
+	`,
 };
 
 export const bounceIn = {
@@ -48,7 +48,7 @@ export const bounceIn = {
 			opacity: ${t};
 			transform: scale(${bounce});
 		`;
-	}
+	},
 };
 
 export const stagger = (delay: number = 50) => ({
@@ -57,7 +57,7 @@ export const stagger = (delay: number = 50) => ({
 	css: (t: number) => `
 		opacity: ${t};
 		transform: translateY(${(1 - t) * 20}px);
-	`
+	`,
 });
 
 // CSS classes for common transitions
@@ -70,7 +70,7 @@ export const transitionClasses = {
 	scaleOut: 'transition-scale-out',
 	bounceIn: 'transition-bounce-in',
 	slideUp: 'transition-slide-up',
-	slideDown: 'transition-slide-down'
+	slideDown: 'transition-slide-down',
 } as const;
 
 // CSS keyframes for transitions

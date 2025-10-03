@@ -22,6 +22,7 @@ export interface LocalPipeline {
 	};
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Intentional static utility container
 export class LocalStorageService {
 	private static readonly STORAGE_KEY = 'pipe-lens-local-pipelines';
 	private static readonly MAX_PIPELINES = 10; // Limit for guest users
@@ -44,20 +45,24 @@ export class LocalStorageService {
 	/**
 	 * Save a pipeline locally
 	 */
-	static savePipeline(pipelineData: Omit<LocalPipeline, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'>): LocalPipeline {
+	static savePipeline(
+		pipelineData: Omit<LocalPipeline, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'>,
+	): LocalPipeline {
 		if (!browser) throw new Error('Local storage not available');
 
 		const pipelines = LocalStorageService.getPipelines();
 
 		// Check if name already exists
-		const existingIndex = pipelines.findIndex(p => p.name === pipelineData.name);
+		const existingIndex = pipelines.findIndex((p) => p.name === pipelineData.name);
 		if (existingIndex !== -1) {
 			throw new Error('Pipeline with this name already exists');
 		}
 
 		// Check storage limit
 		if (pipelines.length >= LocalStorageService.MAX_PIPELINES) {
-			throw new Error(`Guest users are limited to ${LocalStorageService.MAX_PIPELINES} saved pipelines. Sign up to save more.`);
+			throw new Error(
+				`Guest users are limited to ${LocalStorageService.MAX_PIPELINES} saved pipelines. Sign up to save more.`,
+			);
 		}
 
 		const now = new Date().toISOString();
@@ -66,7 +71,7 @@ export class LocalStorageService {
 			id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 			createdAt: now,
 			updatedAt: now,
-			executionCount: 0
+			executionCount: 0,
 		};
 
 		pipelines.push(newPipeline);
@@ -82,7 +87,7 @@ export class LocalStorageService {
 		if (!browser) throw new Error('Local storage not available');
 
 		const pipelines = LocalStorageService.getPipelines();
-		const index = pipelines.findIndex(p => p.id === id);
+		const index = pipelines.findIndex((p) => p.id === id);
 
 		if (index === -1) {
 			throw new Error('Pipeline not found');
@@ -90,7 +95,7 @@ export class LocalStorageService {
 
 		// Check if new name conflicts with existing pipeline
 		if (updateData.name && updateData.name !== pipelines[index].name) {
-			const existingIndex = pipelines.findIndex(p => p.name === updateData.name && p.id !== id);
+			const existingIndex = pipelines.findIndex((p) => p.name === updateData.name && p.id !== id);
 			if (existingIndex !== -1) {
 				throw new Error('Pipeline with this name already exists');
 			}
@@ -99,7 +104,7 @@ export class LocalStorageService {
 		const updatedPipeline = {
 			...pipelines[index],
 			...updateData,
-			updatedAt: new Date().toISOString()
+			updatedAt: new Date().toISOString(),
 		};
 
 		pipelines[index] = updatedPipeline;
@@ -115,7 +120,7 @@ export class LocalStorageService {
 		if (!browser) throw new Error('Local storage not available');
 
 		const pipelines = LocalStorageService.getPipelines();
-		const filteredPipelines = pipelines.filter(p => p.id !== id);
+		const filteredPipelines = pipelines.filter((p) => p.id !== id);
 
 		if (filteredPipelines.length === pipelines.length) {
 			throw new Error('Pipeline not found');
@@ -131,17 +136,20 @@ export class LocalStorageService {
 		if (!browser) return null;
 
 		const pipelines = LocalStorageService.getPipelines();
-		return pipelines.find(p => p.id === id) || null;
+		return pipelines.find((p) => p.id === id) || null;
 	}
 
 	/**
 	 * Search pipelines
 	 */
-	static searchPipelines(query: string, filters: {
-		category?: string;
-		difficulty?: string;
-		tags?: string[];
-	} = {}): LocalPipeline[] {
+	static searchPipelines(
+		query: string,
+		filters: {
+			category?: string;
+			difficulty?: string;
+			tags?: string[];
+		} = {},
+	): LocalPipeline[] {
 		if (!browser) return [];
 
 		let pipelines = LocalStorageService.getPipelines();
@@ -149,28 +157,27 @@ export class LocalStorageService {
 		// Text search
 		if (query) {
 			const searchTerm = query.toLowerCase();
-			pipelines = pipelines.filter(p => 
-				p.name.toLowerCase().includes(searchTerm) ||
-				p.description?.toLowerCase().includes(searchTerm) ||
-				p.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+			pipelines = pipelines.filter(
+				(p) =>
+					p.name.toLowerCase().includes(searchTerm) ||
+					p.description?.toLowerCase().includes(searchTerm) ||
+					p.tags.some((tag) => tag.toLowerCase().includes(searchTerm)),
 			);
 		}
 
 		// Category filter
 		if (filters.category) {
-			pipelines = pipelines.filter(p => p.metadata.category === filters.category);
+			pipelines = pipelines.filter((p) => p.metadata.category === filters.category);
 		}
 
 		// Difficulty filter
 		if (filters.difficulty) {
-			pipelines = pipelines.filter(p => p.metadata.difficulty === filters.difficulty);
+			pipelines = pipelines.filter((p) => p.metadata.difficulty === filters.difficulty);
 		}
 
 		// Tags filter
 		if (filters.tags && filters.tags.length > 0) {
-			pipelines = pipelines.filter(p => 
-				filters.tags!.some(tag => p.tags.includes(tag))
-			);
+			pipelines = pipelines.filter((p) => filters.tags?.some((tag) => p.tags.includes(tag)));
 		}
 
 		return pipelines;
@@ -188,12 +195,15 @@ export class LocalStorageService {
 		}
 
 		// Check if new name already exists
-		const existingPipeline = LocalStorageService.getPipelines().find(p => p.name === newName);
+		const existingPipeline = LocalStorageService.getPipelines().find((p) => p.name === newName);
 		if (existingPipeline) {
 			throw new Error('Pipeline with this name already exists');
 		}
 
-		const duplicatedPipeline: Omit<LocalPipeline, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'> = {
+		const duplicatedPipeline: Omit<
+			LocalPipeline,
+			'id' | 'createdAt' | 'updatedAt' | 'executionCount'
+		> = {
 			name: newName,
 			description: originalPipeline.description,
 			tags: [...originalPipeline.tags],
@@ -203,7 +213,7 @@ export class LocalStorageService {
 			collection: originalPipeline.collection,
 			sampleSize: originalPipeline.sampleSize,
 			lastExecutedAt: originalPipeline.lastExecutedAt,
-			metadata: { ...originalPipeline.metadata }
+			metadata: { ...originalPipeline.metadata },
 		};
 
 		return LocalStorageService.savePipeline(duplicatedPipeline);
@@ -225,14 +235,14 @@ export class LocalStorageService {
 			pipeline: pipeline.pipeline,
 			metadata: pipeline.metadata,
 			exportedAt: new Date().toISOString(),
-			version: 1
+			version: 1,
 		};
 	}
 
 	/**
 	 * Import pipeline from JSON
 	 */
-	static importPipeline(importData: any, name: string): LocalPipeline {
+	static importPipeline(importData: unknown, name: string): LocalPipeline {
 		if (!browser) throw new Error('Local storage not available');
 
 		if (!importData.pipeline || !Array.isArray(importData.pipeline)) {
@@ -248,7 +258,7 @@ export class LocalStorageService {
 			database: '', // Will need to be set by user
 			collection: '', // Will need to be set by user
 			sampleSize: 10,
-			metadata: importData.metadata || {}
+			metadata: importData.metadata || {},
 		};
 
 		return LocalStorageService.savePipeline(pipelineData);
@@ -261,7 +271,7 @@ export class LocalStorageService {
 		if (!browser) return;
 
 		const pipelines = LocalStorageService.getPipelines();
-		const index = pipelines.findIndex(p => p.id === id);
+		const index = pipelines.findIndex((p) => p.id === id);
 
 		if (index !== -1) {
 			pipelines[index].executionCount += 1;
@@ -284,7 +294,7 @@ export class LocalStorageService {
 				totalPipelines: 0,
 				usedSpace: 0,
 				maxPipelines: LocalStorageService.MAX_PIPELINES,
-				canSaveMore: false
+				canSaveMore: false,
 			};
 		}
 
@@ -295,7 +305,7 @@ export class LocalStorageService {
 			totalPipelines: pipelines.length,
 			usedSpace,
 			maxPipelines: LocalStorageService.MAX_PIPELINES,
-			canSaveMore: pipelines.length < LocalStorageService.MAX_PIPELINES
+			canSaveMore: pipelines.length < LocalStorageService.MAX_PIPELINES,
 		};
 	}
 

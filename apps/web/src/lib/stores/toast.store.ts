@@ -17,7 +17,7 @@ interface ToastState {
 }
 
 const initialState: ToastState = {
-	toasts: []
+	toasts: [],
 };
 
 function createToastStore() {
@@ -31,12 +31,12 @@ function createToastStore() {
 			const newToast: Toast = {
 				id,
 				duration: 5000,
-				...toast
+				...toast,
 			};
 
-			update(state => ({
+			update((state) => ({
 				...state,
-				toasts: [...state.toasts, newToast]
+				toasts: [...state.toasts, newToast],
 			}));
 
 			// Auto remove after duration
@@ -50,16 +50,16 @@ function createToastStore() {
 		},
 
 		remove: (id: string) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				toasts: state.toasts.filter(toast => toast.id !== id)
+				toasts: state.toasts.filter((toast) => toast.id !== id),
 			}));
 		},
 
 		clear: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				toasts: []
+				toasts: [],
 			}));
 		},
 
@@ -68,7 +68,7 @@ function createToastStore() {
 				type: 'success',
 				title,
 				message,
-				...options
+				...options,
 			});
 		},
 
@@ -78,7 +78,7 @@ function createToastStore() {
 				title,
 				message,
 				duration: 8000, // Errors stay longer
-				...options
+				...options,
 			});
 		},
 
@@ -87,7 +87,7 @@ function createToastStore() {
 				type: 'warning',
 				title,
 				message,
-				...options
+				...options,
 			});
 		},
 
@@ -96,9 +96,9 @@ function createToastStore() {
 				type: 'info',
 				title,
 				message,
-				...options
+				...options,
 			});
-		}
+		},
 	};
 }
 

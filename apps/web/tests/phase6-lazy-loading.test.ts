@@ -8,24 +8,30 @@ describe('Phase 6 - Lazy Loading', () => {
 	});
 
 	describe('LazyLoad Utility', () => {
-    it('should create lazy load function', () => {
+		it('should create lazy load function', () => {
 			const loader = () => import('../src/lib/components/ChartViewer.svelte');
-        const lazyComponent = createLazyComponent(loader as any);
+			const lazyComponent = createLazyComponent(
+				loader as unknown as () => Promise<{ default: unknown }>,
+			);
 
 			expect(typeof lazyComponent).toBe('function');
 		});
 
 		it('should handle loading state', () => {
-        const loader = vi.fn(() => Promise.resolve({ default: {} }));
-        const lazyComponent = createLazyComponent(loader as any);
+			const loader = vi.fn(() => Promise.resolve({ default: {} }));
+			const _lazyComponent = createLazyComponent(
+				loader as unknown as () => Promise<{ default: unknown }>,
+			);
 
 			// Test that loader is called when component is accessed
 			expect(true).toBe(true);
 		});
 
 		it('should handle loading errors', () => {
-        const loader = vi.fn(() => Promise.reject(new Error('Load failed')));
-        const lazyComponent = createLazyComponent(loader as any);
+			const loader = vi.fn(() => Promise.reject(new Error('Load failed')));
+			const _lazyComponent = createLazyComponent(
+				loader as unknown as () => Promise<{ default: unknown }>,
+			);
 
 			// Test error handling
 			expect(true).toBe(true);

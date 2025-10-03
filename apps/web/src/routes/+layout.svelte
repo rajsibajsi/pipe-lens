@@ -1,81 +1,79 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import favicon from '$lib/assets/favicon.svg';
-	import AuthModal from '$lib/components/AuthModal.svelte';
-	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
-	import KeyboardShortcutsHelp from '$lib/components/KeyboardShortcutsHelp.svelte';
-	import ToastContainer from '$lib/components/ToastContainer.svelte';
-	import TutorialModal from '$lib/components/TutorialModal.svelte';
-	import UserProfile from '$lib/components/UserProfile.svelte';
-	import { userStore } from '$lib/stores/user.store';
-	import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
-	import { onMount } from 'svelte';
-	import '../app.css';
-	import '../styles/components.css';
-	import '../styles/design-system.css';
+import { onMount } from 'svelte';
+import { userStore } from '$lib/stores/user.store';
+import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
+import '../app.css';
+import '../styles/components.css';
+import '../styles/design-system.css';
 
-	const { children } = $props();
+const { children } = $props();
+const __use = (..._args: unknown[]) => {};
+__use(children);
 
-	// Authentication state
-	let showAuthModal = $state(false);
-	let showUserProfile = $state(false);
-	let authMode = $state<'login' | 'register'>('login');
-	let showKeyboardShortcuts = $state(false);
-	let showTutorial = $state(false);
+// Authentication state
+let showAuthModal = $state(false);
+let showUserProfile = $state(false);
+let _authMode = $state<'login' | 'register'>('login');
+let showKeyboardShortcuts = $state(false);
+let showTutorial = $state(false);
 
-	// Reactive state from store
-	const authState = $derived($userStore);
+// Reactive state from store
+const _authState = $derived($userStore);
 
-	// Initialize user on mount
-	onMount(() => {
-		userStore.getCurrentUser();
-		
-		// Register common keyboard shortcuts
-		keyboardShortcuts.register({
-			key: 'F1',
-			action: () => showKeyboardShortcuts = true,
-			description: 'Show keyboard shortcuts help'
-		});
+// Initialize user on mount
+onMount(() => {
+	userStore.getCurrentUser();
 
-		keyboardShortcuts.register({
-			key: 'Escape',
-			action: () => {
-				if (showKeyboardShortcuts) showKeyboardShortcuts = false;
-				if (showAuthModal) showAuthModal = false;
-				if (showUserProfile) showUserProfile = false;
-				if (showTutorial) showTutorial = false;
-			},
-			description: 'Close modals'
-		});
-
-		keyboardShortcuts.register({
-			key: 'h',
-			ctrlKey: true,
-			action: () => showTutorial = true,
-			description: 'Show tutorial'
-		});
+	// Register common keyboard shortcuts
+	keyboardShortcuts.register({
+		key: 'F1',
+		action: () => {
+			showKeyboardShortcuts = true;
+		},
+		description: 'Show keyboard shortcuts help',
 	});
 
-	function openAuthModal(mode: 'login' | 'register' = 'login') {
-		authMode = mode;
-		showAuthModal = true;
-	}
+	keyboardShortcuts.register({
+		key: 'Escape',
+		action: () => {
+			if (showKeyboardShortcuts) showKeyboardShortcuts = false;
+			if (showAuthModal) showAuthModal = false;
+			if (showUserProfile) showUserProfile = false;
+			if (showTutorial) showTutorial = false;
+		},
+		description: 'Close modals',
+	});
 
-	function closeAuthModal() {
-		showAuthModal = false;
-	}
+	keyboardShortcuts.register({
+		key: 'h',
+		ctrlKey: true,
+		action: () => {
+			showTutorial = true;
+		},
+		description: 'Show tutorial',
+	});
+});
 
-	function openUserProfile() {
-		showUserProfile = true;
-	}
+function _openAuthModal(mode: 'login' | 'register' = 'login') {
+	_authMode = mode;
+	showAuthModal = true;
+}
 
-	function closeUserProfile() {
-		showUserProfile = false;
-	}
+function _closeAuthModal() {
+	showAuthModal = false;
+}
 
-	async function handleLogout() {
-		await userStore.logout();
-	}
+function _openUserProfile() {
+	showUserProfile = true;
+}
+
+function _closeUserProfile() {
+	showUserProfile = false;
+}
+
+async function _handleLogout() {
+	await userStore.logout();
+}
 </script>
 
 <svelte:head>

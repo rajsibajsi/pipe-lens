@@ -33,9 +33,9 @@ describe('Phase 5 - Authentication', () => {
 					data: {
 						user: { name: 'Test User', email: 'test@example.com' },
 						accessToken: 'mock-token',
-						refreshToken: 'mock-refresh-token'
-					}
-				})
+						refreshToken: 'mock-refresh-token',
+					},
+				}),
 			} as Response);
 
 			await userStore.login('test@example.com', 'password123');
@@ -44,7 +44,7 @@ describe('Phase 5 - Authentication', () => {
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'Test User',
-				email: 'test@example.com'
+				email: 'test@example.com',
 			});
 		});
 
@@ -54,8 +54,8 @@ describe('Phase 5 - Authentication', () => {
 				ok: false,
 				json: async () => ({
 					success: false,
-					message: 'Invalid credentials'
-				})
+					message: 'Invalid credentials',
+				}),
 			} as Response);
 
 			await userStore.login('test@example.com', 'wrongpassword');
@@ -74,9 +74,9 @@ describe('Phase 5 - Authentication', () => {
 					data: {
 						user: { name: 'New User', email: 'new@example.com' },
 						accessToken: 'mock-token',
-						refreshToken: 'mock-refresh-token'
-					}
-				})
+						refreshToken: 'mock-refresh-token',
+					},
+				}),
 			} as Response);
 
 			await userStore.register('New User', 'new@example.com', 'password123');
@@ -85,7 +85,7 @@ describe('Phase 5 - Authentication', () => {
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'New User',
-				email: 'new@example.com'
+				email: 'new@example.com',
 			});
 		});
 
@@ -95,8 +95,8 @@ describe('Phase 5 - Authentication', () => {
 				ok: false,
 				json: async () => ({
 					success: false,
-					message: 'Email already exists'
-				})
+					message: 'Email already exists',
+				}),
 			} as Response);
 
 			await userStore.register('New User', 'existing@example.com', 'password123');
@@ -116,9 +116,9 @@ describe('Phase 5 - Authentication', () => {
 					data: {
 						user: { name: 'Test User', email: 'test@example.com' },
 						accessToken: 'mock-token',
-						refreshToken: 'mock-refresh-token'
-					}
-				})
+						refreshToken: 'mock-refresh-token',
+					},
+				}),
 			} as Response);
 
 			await userStore.login('test@example.com', 'password123');
@@ -126,7 +126,7 @@ describe('Phase 5 - Authentication', () => {
 			// Then logout
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: async () => ({ success: true })
+				json: async () => ({ success: true }),
 			} as Response);
 
 			await userStore.logout();
@@ -143,23 +143,27 @@ describe('Phase 5 - Authentication', () => {
 				json: async () => ({
 					success: true,
 					data: {
-						accessToken: 'new-access-token'
-					}
-				})
+						accessToken: 'new-access-token',
+					},
+				}),
 			} as Response);
 
-            (global as any).localStorage.getItem.mockReturnValue('mock-refresh-token');
+			(
+				global as unknown as {
+					localStorage: { getItem: { mockReturnValue: (v: unknown) => void } };
+				}
+			).localStorage.getItem.mockReturnValue('mock-refresh-token');
 
 			await userStore.refreshToken();
 
 			expect(mockFetch).toHaveBeenCalledWith('/api/auth/refresh', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					refreshToken: 'mock-refresh-token'
-				})
+					refreshToken: 'mock-refresh-token',
+				}),
 			});
 		});
 
@@ -170,12 +174,16 @@ describe('Phase 5 - Authentication', () => {
 				json: async () => ({
 					success: true,
 					data: {
-						user: { name: 'Test User', email: 'test@example.com' }
-					}
-				})
+						user: { name: 'Test User', email: 'test@example.com' },
+					},
+				}),
 			} as Response);
 
-            (global as any).localStorage.getItem.mockReturnValue('mock-token');
+			(
+				global as unknown as {
+					localStorage: { getItem: { mockReturnValue: (v: unknown) => void } };
+				}
+			).localStorage.getItem.mockReturnValue('mock-token');
 
 			await userStore.getCurrentUser();
 
@@ -183,7 +191,7 @@ describe('Phase 5 - Authentication', () => {
 			expect(state.isAuthenticated).toBe(true);
 			expect(state.user).toEqual({
 				name: 'Test User',
-				email: 'test@example.com'
+				email: 'test@example.com',
 			});
 		});
 
@@ -193,11 +201,15 @@ describe('Phase 5 - Authentication', () => {
 				ok: false,
 				json: async () => ({
 					success: false,
-					message: 'Invalid token'
-				})
+					message: 'Invalid token',
+				}),
 			} as Response);
 
-            (global as any).localStorage.getItem.mockReturnValue('invalid-token');
+			(
+				global as unknown as {
+					localStorage: { getItem: { mockReturnValue: (v: unknown) => void } };
+				}
+			).localStorage.getItem.mockReturnValue('invalid-token');
 
 			await userStore.getCurrentUser();
 
@@ -207,7 +219,11 @@ describe('Phase 5 - Authentication', () => {
 		});
 
 		it('should handle getCurrentUser with no token', async () => {
-            (global as any).localStorage.getItem.mockReturnValue(null);
+			(
+				global as unknown as {
+					localStorage: { getItem: { mockReturnValue: (v: unknown) => void } };
+				}
+			).localStorage.getItem.mockReturnValue(null);
 
 			await userStore.getCurrentUser();
 

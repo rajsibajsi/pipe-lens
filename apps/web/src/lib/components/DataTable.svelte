@@ -1,135 +1,128 @@
 <script lang="ts">
-	import type { TableData } from '$lib/utils/chart-data';
+import type { TableData } from '$lib/utils/chart-data';
 
-	interface Props {
-		data: TableData;
-		title?: string;
-		maxHeight?: string;
-		showExport?: boolean;
+interface Props {
+	data: TableData;
+	title?: string;
+	maxHeight?: string;
+	showExport?: boolean;
+}
+
+const { data, title = 'Data Table', maxHeight = '400px', showExport = true }: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(maxHeight, showExport);
+
+let sortColumn = $state<string | null>(null);
+let sortDirection = $state<'asc' | 'desc'>('asc');
+const searchTerm = $state('');
+let currentPage = $state(1);
+const pageSize = $state(50);
+
+// Computed properties
+let filteredData = $state<(string | number)[][]>([]);
+let sortedData = $state<(string | number)[][]>([]);
+let _paginatedData = $state<(string | number)[][]>([]);
+let _totalPages = $state(0);
+
+$effect(() => {
+	if (!searchTerm) {
+		filteredData = data.rows;
+	} else {
+		filteredData = data.rows.filter((row) =>
+			row.some((cell) => String(cell).toLowerCase().includes(searchTerm.toLowerCase())),
+		);
 	}
+});
 
-	const { 
-		data, 
-		title = 'Data Table',
-		maxHeight = '400px',
-		showExport = true
-	}: Props = $props();
-
-	let sortColumn = $state<string | null>(null);
-	let sortDirection = $state<'asc' | 'desc'>('asc');
-	let searchTerm = $state('');
-	let currentPage = $state(1);
-	let pageSize = $state(50);
-
-	// Computed properties
-	let filteredData = $state<(string | number)[][]>([]);
-	let sortedData = $state<(string | number)[][]>([]);
-	let paginatedData = $state<(string | number)[][]>([]);
-	let totalPages = $state(0);
-
-	$effect(() => {
-		if (!searchTerm) {
-			filteredData = data.rows;
-		} else {
-			filteredData = data.rows.filter(row => 
-				row.some(cell => 
-					String(cell).toLowerCase().includes(searchTerm.toLowerCase())
-				)
-			);
-		}
-	});
-
-	$effect(() => {
-		if (!sortColumn) {
+$effect(() => {
+	if (!sortColumn) {
+		sortedData = filteredData;
+	} else {
+		const columnIndex = data.columns.indexOf(sortColumn);
+		if (columnIndex === -1) {
 			sortedData = filteredData;
 		} else {
-			const columnIndex = data.columns.indexOf(sortColumn);
-			if (columnIndex === -1) {
-				sortedData = filteredData;
-			} else {
-				sortedData = [...filteredData].sort((a, b) => {
-					const aVal = a[columnIndex];
-					const bVal = b[columnIndex];
-					
-					// Try to parse as numbers
-					const aNum = parseFloat(String(aVal));
-					const bNum = parseFloat(String(bVal));
-					
-					if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
-						return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
-					}
-					
-					// String comparison
-					const aStr = String(aVal).toLowerCase();
-					const bStr = String(bVal).toLowerCase();
-					
-					if (sortDirection === 'asc') {
-						return aStr.localeCompare(bStr);
-					} else {
-						return bStr.localeCompare(aStr);
-					}
-				});
-			}
-		}
-	});
+			sortedData = [...filteredData].sort((a, b) => {
+				const aVal = a[columnIndex];
+				const bVal = b[columnIndex];
 
-	$effect(() => {
-		const start = (currentPage - 1) * pageSize;
-		const end = start + pageSize;
-		paginatedData = sortedData.slice(start, end);
-		totalPages = Math.ceil(sortedData.length / pageSize);
-	});
+				// Try to parse as numbers
+				const aNum = parseFloat(String(aVal));
+				const bNum = parseFloat(String(bVal));
 
-	function sort(column: string) {
-		if (sortColumn === column) {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-		} else {
-			sortColumn = column;
-			sortDirection = 'asc';
-		}
-		currentPage = 1; // Reset to first page when sorting
-	}
+				if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+					return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+				}
 
-	function exportToCSV() {
-		const csvContent = [
-			data.columns.join(','),
-			...data.rows.map(row => 
-				row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-			)
-		].join('\n');
+				// String comparison
+				const aStr = String(aVal).toLowerCase();
+				const bStr = String(bVal).toLowerCase();
 
-		const blob = new Blob([csvContent], { type: 'text/csv' });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = `${title || 'data'}.csv`;
-		link.click();
-		URL.revokeObjectURL(url);
-	}
-
-	function exportToJSON() {
-		const jsonData = data.rows.map(row => {
-			const obj: Record<string, unknown> = {};
-			data.columns.forEach((column, index) => {
-				obj[column] = row[index];
+				if (sortDirection === 'asc') {
+					return aStr.localeCompare(bStr);
+				} else {
+					return bStr.localeCompare(aStr);
+				}
 			});
-			return obj;
+		}
+	}
+});
+
+$effect(() => {
+	const start = (currentPage - 1) * pageSize;
+	const end = start + pageSize;
+	_paginatedData = sortedData.slice(start, end);
+	_totalPages = Math.ceil(sortedData.length / pageSize);
+});
+
+function _sort(column: string) {
+	if (sortColumn === column) {
+		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+	} else {
+		sortColumn = column;
+		sortDirection = 'asc';
+	}
+	currentPage = 1; // Reset to first page when sorting
+}
+
+function _exportToCSV() {
+	const csvContent = [
+		data.columns.join(','),
+		...data.rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+	].join('\n');
+
+	const blob = new Blob([csvContent], { type: 'text/csv' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = `${title || 'data'}.csv`;
+	link.click();
+	URL.revokeObjectURL(url);
+}
+
+function _exportToJSON() {
+	const jsonData = data.rows.map((row) => {
+		const obj: Record<string, unknown> = {};
+		data.columns.forEach((column, index) => {
+			obj[column] = row[index];
 		});
+		return obj;
+	});
 
-		const jsonContent = JSON.stringify(jsonData, null, 2);
-		const blob = new Blob([jsonContent], { type: 'application/json' });
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = `${title || 'data'}.json`;
-		link.click();
-		URL.revokeObjectURL(url);
-	}
+	const jsonContent = JSON.stringify(jsonData, null, 2);
+	const blob = new Blob([jsonContent], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = `${title || 'data'}.json`;
+	link.click();
+	URL.revokeObjectURL(url);
+}
 
-	function getSortIcon(column: string): string {
-		if (sortColumn !== column) return '↕️';
-		return sortDirection === 'asc' ? '↑' : '↓';
-	}
+function _getSortIcon(column: string): string {
+	if (sortColumn !== column) return '↕️';
+	return sortDirection === 'asc' ? '↑' : '↓';
+}
 </script>
 
 <div class="data-table-container">
@@ -144,18 +137,18 @@
 					class="search-input"
 				/>
 			</div>
-			{#if showExport}
+            {#if showExport}
 				<div class="export-buttons">
 					<button 
 						class="btn btn-ghost btn-sm"
-						onclick={exportToCSV}
+                        onclick={_exportToCSV}
 						title="Export as CSV"
 					>
 						📄 CSV
 					</button>
 					<button 
 						class="btn btn-ghost btn-sm"
-						onclick={exportToJSON}
+                        onclick={_exportToJSON}
 						title="Export as JSON"
 					>
 						📋 JSON
@@ -165,7 +158,7 @@
 		</div>
 	</div>
 
-	<div class="table-content" style="max-height: {maxHeight};">
+            <div class="table-content" style="max-height: {maxHeight};">
 		{#if data.columns.length === 0}
 			<div class="empty-state">
 				<p>No data to display</p>
@@ -177,19 +170,19 @@
 						{#each data.columns as column, index}
 							<th 
 								class="sortable-header"
-								onclick={() => sort(column)}
+                                onclick={() => _sort(column)}
 								role="button"
 								tabindex="0"
-								onkeydown={(e) => e.key === 'Enter' && sort(column)}
+                                onkeydown={(e) => e.key === 'Enter' && _sort(column)}
 							>
 								<span class="column-name">{column}</span>
-								<span class="sort-icon">{getSortIcon(column)}</span>
+                                <span class="sort-icon">{_getSortIcon(column)}</span>
 							</th>
 						{/each}
 					</tr>
 				</thead>
 				<tbody>
-					{#each paginatedData as row, rowIndex}
+                    {#each _paginatedData as row, rowIndex}
 						<tr class="data-row">
 							{#each row as cell, cellIndex}
 								<td class="data-cell">
@@ -203,7 +196,7 @@
 		{/if}
 	</div>
 
-	{#if data.columns.length > 0 && totalPages > 1}
+    {#if data.columns.length > 0 && _totalPages > 1}
 		<div class="table-footer">
 			<div class="pagination-info">
 				Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} entries
@@ -216,13 +209,13 @@
 				>
 					← Previous
 				</button>
-				<span class="page-info">
-					Page {currentPage} of {totalPages}
-				</span>
+                <span class="page-info">
+                    Page {currentPage} of {_totalPages}
+                </span>
 				<button 
 					class="btn btn-ghost btn-sm"
-					onclick={() => currentPage = Math.min(totalPages, currentPage + 1)}
-					disabled={currentPage === totalPages}
+                    onclick={() => currentPage = Math.min(_totalPages, currentPage + 1)}
+                    disabled={currentPage === _totalPages}
 				>
 					Next →
 				</button>

@@ -1,5 +1,4 @@
 <script lang="ts">
-
 interface Props {
 	isOpen: boolean;
 	onClose: () => void;
@@ -8,15 +7,14 @@ interface Props {
 
 const { isOpen, onClose, onConnect }: Props = $props();
 
-let connectionName = $state('Local MongoDB');
-let connectionUri = $state('mongodb://admin:password@localhost:27017');
-let isConnecting = $state(false);
-let error = $state('');
+const connectionName = $state('Local MongoDB');
+const connectionUri = $state('mongodb://admin:password@localhost:27017');
+const isConnecting = $state(false);
+const error = $state('');
 
 // Mark as used for linter
 const __use = (..._args: unknown[]) => {};
 __use(isOpen, connectionName, connectionUri, isConnecting, error, onClose, onConnect);
-
 </script>
 
 {#if isOpen}

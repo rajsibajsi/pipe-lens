@@ -1,58 +1,55 @@
 <script lang="ts">
-	import { createLazyComponent } from '$lib/utils/lazy-loading';
-	import { onMount } from 'svelte';
-	import LoadingSpinner from './LoadingSpinner.svelte';
+import { onMount } from 'svelte';
+import { createLazyComponent } from '$lib/utils/lazy-loading';
+import LoadingSpinner from './LoadingSpinner.svelte';
 
-    interface Props {
-        data: unknown[];
-		title?: string;
-		showControls?: boolean;
-		width?: string;
-		height?: string;
-	}
+interface Props {
+	data: unknown[];
+	title?: string;
+	showControls?: boolean;
+	width?: string;
+	height?: string;
+}
 
-    const { 
-        data,
-        title = 'Chart',
-        showControls = true,
-        width = '100%',
-        height = '100%'
-    }: Props = $props();
-    const __use = (..._args: unknown[]) => {};
-    __use(data, title, showControls, width, height);
+const {
+	data,
+	title = 'Chart',
+	showControls = true,
+	width = '100%',
+	height = '100%',
+}: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(data, title, showControls, width, height);
 
-	// Lazy load ChartViewer component
-    const chartLoader = createLazyComponent(
-		() => import('./ChartViewer.svelte'),
-		LoadingSpinner
+// Lazy load ChartViewer component
+const _chartLoader = createLazyComponent(() => import('./ChartViewer.svelte'), LoadingSpinner);
+
+let isVisible = $state(false);
+let observer: IntersectionObserver | null = null;
+let containerElement: HTMLDivElement;
+
+onMount(() => {
+	// Only load when component becomes visible
+	observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting && !isVisible) {
+					isVisible = true;
+					observer?.disconnect();
+				}
+			});
+		},
+		{ rootMargin: '100px' },
 	);
 
-	let isVisible = $state(false);
-	let observer: IntersectionObserver | null = null;
-	let containerElement: HTMLDivElement;
+	if (containerElement) {
+		observer.observe(containerElement);
+	}
 
-	onMount(() => {
-		// Only load when component becomes visible
-		observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting && !isVisible) {
-						isVisible = true;
-						observer?.disconnect();
-					}
-				});
-			},
-			{ rootMargin: '100px' }
-		);
-
-		if (containerElement) {
-			observer.observe(containerElement);
-		}
-
-		return () => {
-			observer?.disconnect();
-		};
-	});
+	return () => {
+		observer?.disconnect();
+	};
+});
 </script>
 
 <div bind:this={containerElement} style="width: {width}; height: {height};">
@@ -60,17 +57,17 @@
 		<div class="lazy-placeholder">
 			<LoadingSpinner size="lg" text="Loading chart..." />
 		</div>
-	{:else if chartLoader.loading}
+    {:else if _chartLoader.loading}
 		<div class="lazy-placeholder">
 			<LoadingSpinner size="lg" text="Loading chart..." />
 		</div>
-	{:else if chartLoader.error}
+    {:else if _chartLoader.error}
 		<div class="lazy-error">
 			<h3>Failed to load chart</h3>
-			<p>{chartLoader.error.message}</p>
+            <p>{_chartLoader.error.message}</p>
 		</div>
-	{:else if chartLoader.component}
-		{@const ChartComponent = chartLoader.component}
+    {:else if _chartLoader.component}
+        {@const ChartComponent = _chartLoader.component}
 		<ChartComponent
 			{data}
 			{title}

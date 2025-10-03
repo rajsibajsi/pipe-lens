@@ -1,22 +1,16 @@
 <script lang="ts">
-	interface Props {
-		icon?: string;
-		title: string;
-		description?: string;
-		action?: {
-			label: string;
-			onClick: () => void;
-		};
-		className?: string;
-	}
+interface Props {
+	icon?: string;
+	title: string;
+	description?: string;
+	action?: {
+		label: string;
+		onClick: () => void;
+	};
+	className?: string;
+}
 
-const { 
-    icon = '📄',
-    title,
-    description,
-    action,
-    className = ''
-}: Props = $props();
+const { icon = '📄', title, description, action, className = '' }: Props = $props();
 
 // Mark props as used for the linter (they are used in the template)
 const __use = (..._args: unknown[]) => {};

@@ -1,195 +1,199 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
 
-	interface DocumentItem {
-		key: string;
-		value: unknown;
-		type: string;
-		path: string;
-		depth: number;
-		isExpanded: boolean;
-		hasChanged: boolean;
+interface DocumentItem {
+	key: string;
+	value: unknown;
+	type: string;
+	path: string;
+	depth: number;
+	isExpanded: boolean;
+	hasChanged: boolean;
+}
+
+interface Props {
+	documents: unknown[];
+	title?: string;
+	showFieldTypes?: boolean;
+	highlightChanges?: boolean;
+	previousDocuments?: unknown[];
+	maxHeight?: string;
+}
+
+const {
+	documents = [],
+	title = 'Document Viewer',
+	showFieldTypes = true,
+	highlightChanges = false,
+	previousDocuments = [],
+	maxHeight = '400px',
+}: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(title, showFieldTypes, maxHeight);
+
+let selectedDocument = $state(0);
+let expandedFields = $state(new Set<string>());
+
+// Derived state for document items
+const _documentItems = $derived(
+	documents.length > 0 ? renderObject(documents[selectedDocument] as Record<string, unknown>) : [],
+);
+
+onMount(() => {
+	// Reset state when documents change
+	selectedDocument = 0;
+	expandedFields = new Set();
+});
+
+function getType(value: unknown): string {
+	if (value === null) return 'null';
+	if (Array.isArray(value)) return 'array';
+	return typeof value;
+}
+
+function _getFieldIcon(type: string): string {
+	const icons: Record<string, string> = {
+		string: '📝',
+		number: '🔢',
+		boolean: '✅',
+		object: '📦',
+		array: '📋',
+		null: '❌',
+		undefined: '❓',
+	};
+	return icons[type] || '❓';
+}
+
+function _toggleField(path: string) {
+	if (expandedFields.has(path)) {
+		expandedFields.delete(path);
+	} else {
+		expandedFields.add(path);
 	}
+	expandedFields = new Set(expandedFields); // Trigger reactivity
+}
 
-	interface Props {
-		documents: unknown[];
-		title?: string;
-		showFieldTypes?: boolean;
-		highlightChanges?: boolean;
-		previousDocuments?: unknown[];
-		maxHeight?: string;
-	}
+function _isExpanded(path: string): boolean {
+	return expandedFields.has(path);
+}
 
-	const {
-		documents = [],
-		title = 'Document Viewer',
-		showFieldTypes = true,
-		highlightChanges = false,
-		previousDocuments = [],
-		maxHeight = '400px'
-	}: Props = $props();
+function hasChanged(path: string, _value: unknown): boolean {
+	if (!highlightChanges || !previousDocuments.length) return false;
 
-	let selectedDocument = $state(0);
-	let expandedFields = $state(new Set<string>());
+	const currentDoc = documents[selectedDocument] as Record<string, unknown>;
+	const prevDoc = previousDocuments[selectedDocument] as Record<string, unknown>;
 
-	// Derived state for document items
-	const documentItems = $derived(
-		documents.length > 0 ? renderObject(documents[selectedDocument] as Record<string, unknown>) : []
-	);
+	if (!prevDoc) return false;
 
-	onMount(() => {
-		// Reset state when documents change
-		selectedDocument = 0;
-		expandedFields = new Set();
-	});
+	const pathParts = path.split('.');
+	let currentValue: unknown = currentDoc;
+	let prevValue: unknown = prevDoc;
 
-	function getType(value: unknown): string {
-		if (value === null) return 'null';
-		if (Array.isArray(value)) return 'array';
-		return typeof value;
-	}
-
-	function getFieldIcon(type: string): string {
-		const icons: Record<string, string> = {
-			string: '📝',
-			number: '🔢',
-			boolean: '✅',
-			object: '📦',
-			array: '📋',
-			null: '❌',
-			undefined: '❓'
-		};
-		return icons[type] || '❓';
-	}
-
-	function toggleField(path: string) {
-		if (expandedFields.has(path)) {
-			expandedFields.delete(path);
+	for (const part of pathParts) {
+		if (currentValue && typeof currentValue === 'object' && part in currentValue) {
+			currentValue = (currentValue as Record<string, unknown>)[part];
 		} else {
-			expandedFields.add(path);
+			currentValue = undefined;
 		}
-		expandedFields = new Set(expandedFields); // Trigger reactivity
-	}
 
-	function isExpanded(path: string): boolean {
-		return expandedFields.has(path);
-	}
-
-	function hasChanged(path: string, value: unknown): boolean {
-		if (!highlightChanges || !previousDocuments.length) return false;
-		
-		const currentDoc = documents[selectedDocument] as Record<string, unknown>;
-		const prevDoc = previousDocuments[selectedDocument] as Record<string, unknown>;
-		
-		if (!prevDoc) return false;
-		
-		const pathParts = path.split('.');
-		let currentValue: unknown = currentDoc;
-		let prevValue: unknown = prevDoc;
-		
-		for (const part of pathParts) {
-			if (currentValue && typeof currentValue === 'object' && part in currentValue) {
-				currentValue = (currentValue as Record<string, unknown>)[part];
-			} else {
-				currentValue = undefined;
-			}
-			
-			if (prevValue && typeof prevValue === 'object' && part in prevValue) {
-				prevValue = (prevValue as Record<string, unknown>)[part];
-			} else {
-				prevValue = undefined;
-			}
+		if (prevValue && typeof prevValue === 'object' && part in prevValue) {
+			prevValue = (prevValue as Record<string, unknown>)[part];
+		} else {
+			prevValue = undefined;
 		}
-		
-		return JSON.stringify(currentValue) !== JSON.stringify(prevValue);
 	}
 
-	function formatValue(value: unknown): string {
-		if (value === null) return 'null';
-		if (value === undefined) return 'undefined';
-		if (typeof value === 'string') return `"${value}"`;
-		if (typeof value === 'object') {
-			return Array.isArray(value) ? `[${value.length} items]` : `{${Object.keys(value).length} fields}`;
-		}
-		return String(value);
-	}
+	return JSON.stringify(currentValue) !== JSON.stringify(prevValue);
+}
 
-	function renderObject(obj: Record<string, unknown>, path = '', depth = 0): DocumentItem[] {
-		const items: DocumentItem[] = [];
-		
-		for (const [key, value] of Object.entries(obj)) {
-			const currentPath = path ? `${path}.${key}` : key;
-			const type = getType(value);
-			const isExpanded = expandedFields.has(currentPath);
-			const hasValueChanged = hasChanged(currentPath, value);
-			
-			items.push({
-				key,
-				value,
-				type,
-				path: currentPath,
-				depth,
-				isExpanded,
-				hasChanged: hasValueChanged
-			});
-			
-			// Add children if expanded and is object/array
-			if (isExpanded && (type === 'object' || type === 'array')) {
-				if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
-					items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
-				} else if (type === 'array' && Array.isArray(value)) {
-					items.push(...renderArray(value, currentPath, depth + 1));
-				}
+function _formatValue(value: unknown): string {
+	if (value === null) return 'null';
+	if (value === undefined) return 'undefined';
+	if (typeof value === 'string') return `"${value}"`;
+	if (typeof value === 'object') {
+		return Array.isArray(value)
+			? `[${value.length} items]`
+			: `{${Object.keys(value).length} fields}`;
+	}
+	return String(value);
+}
+
+function renderObject(obj: Record<string, unknown>, path = '', depth = 0): DocumentItem[] {
+	const items: DocumentItem[] = [];
+
+	for (const [key, value] of Object.entries(obj)) {
+		const currentPath = path ? `${path}.${key}` : key;
+		const type = getType(value);
+		const isExpanded = expandedFields.has(currentPath);
+		const hasValueChanged = hasChanged(currentPath, value);
+
+		items.push({
+			key,
+			value,
+			type,
+			path: currentPath,
+			depth,
+			isExpanded,
+			hasChanged: hasValueChanged,
+		});
+
+		// Add children if expanded and is object/array
+		if (isExpanded && (type === 'object' || type === 'array')) {
+			if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
+				items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
+			} else if (type === 'array' && Array.isArray(value)) {
+				items.push(...renderArray(value, currentPath, depth + 1));
 			}
 		}
-		
-		return items;
 	}
 
-	function renderArray(arr: unknown[], path: string, depth: number): DocumentItem[] {
-		const items: DocumentItem[] = [];
-		
-		for (let i = 0; i < arr.length; i++) {
-			const value = arr[i];
-			const currentPath = `${path}[${i}]`;
-			const type = getType(value);
-			const isExpanded = expandedFields.has(currentPath);
-			const hasValueChanged = hasChanged(currentPath, value);
-			
-			items.push({
-				key: `[${i}]`,
-				value,
-				type,
-				path: currentPath,
-				depth,
-				isExpanded,
-				hasChanged: hasValueChanged
-			});
-			
-			// Add children if expanded and is object/array
-			if (isExpanded && (type === 'object' || type === 'array')) {
-				if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
-					items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
-				} else if (type === 'array' && Array.isArray(value)) {
-					items.push(...renderArray(value, currentPath, depth + 1));
-				}
+	return items;
+}
+
+function renderArray(arr: unknown[], path: string, depth: number): DocumentItem[] {
+	const items: DocumentItem[] = [];
+
+	for (let i = 0; i < arr.length; i++) {
+		const value = arr[i];
+		const currentPath = `${path}[${i}]`;
+		const type = getType(value);
+		const isExpanded = expandedFields.has(currentPath);
+		const hasValueChanged = hasChanged(currentPath, value);
+
+		items.push({
+			key: `[${i}]`,
+			value,
+			type,
+			path: currentPath,
+			depth,
+			isExpanded,
+			hasChanged: hasValueChanged,
+		});
+
+		// Add children if expanded and is object/array
+		if (isExpanded && (type === 'object' || type === 'array')) {
+			if (type === 'object' && value && typeof value === 'object' && !Array.isArray(value)) {
+				items.push(...renderObject(value as Record<string, unknown>, currentPath, depth + 1));
+			} else if (type === 'array' && Array.isArray(value)) {
+				items.push(...renderArray(value, currentPath, depth + 1));
 			}
 		}
-		
-		return items;
 	}
 
-	function nextDocument() {
-		if (selectedDocument < documents.length - 1) {
-			selectedDocument++;
-		}
-	}
+	return items;
+}
 
-	function prevDocument() {
-		if (selectedDocument > 0) {
-			selectedDocument--;
-		}
+function _nextDocument() {
+	if (selectedDocument < documents.length - 1) {
+		selectedDocument++;
 	}
+}
+
+function _prevDocument() {
+	if (selectedDocument > 0) {
+		selectedDocument--;
+	}
+}
 </script>
 
 <div style="display: flex; flex-direction: column; height: 100%;">
@@ -223,7 +227,7 @@
 		</div>
 		<div style="display: flex; align-items: center; gap: var(--space-sm);">
 			<span style="font-size: var(--text-xs); color: var(--color-text-tertiary);">
-				{documentItems.length} fields
+                        {_documentItems.length} fields
 			</span>
 		</div>
 	</div>
@@ -236,7 +240,7 @@
 			</div>
 		{:else}
 			<div style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: var(--text-xs); line-height: 1.5;">
-				{#each documentItems as item (item.path)}
+                {#each _documentItems as item (item.path)}
 					<div
 						style="display: flex; align-items: flex-start; gap: var(--space-xs); padding: 2px 0; margin-left: {item.depth * 1}rem;"
 					>

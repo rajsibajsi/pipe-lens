@@ -1,140 +1,172 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Chart Direct Test', () => {
-  test('should not cause effect_update_depth_exceeded when viewing chart with mock data', async ({ page }) => {
-    // Listen for console errors and logs
-    const consoleLogs: string[] = [];
-    const errors: string[] = [];
-    
-    page.on('console', msg => {
-      consoleLogs.push(msg.text());
-    });
+	test('should not cause effect_update_depth_exceeded when viewing chart with mock data', async ({
+		page,
+	}) => {
+		// Listen for console errors and logs
+		const consoleLogs: string[] = [];
+		const errors: string[] = [];
 
-    page.on('pageerror', error => {
-      errors.push(`Page error: ${error.message}`);
-    });
+		page.on('console', (msg) => {
+			consoleLogs.push(msg.text());
+		});
 
-    // Navigate to the builder page
-    await page.goto('http://localhost:5173/builder');
-    await page.waitForLoadState('networkidle');
+		page.on('pageerror', (error) => {
+			errors.push(`Page error: ${error.message}`);
+		});
 
-    // Simulate having pipeline results by directly setting them in the store
-    await page.evaluate(() => {
-      // Mock some pipeline results
-      const mockResults = [
-        { _id: '507f1f77bcf86cd799439011', name: 'Alice', age: 30, city: 'New York', salary: 75000 },
-        { _id: '507f1f77bcf86cd799439012', name: 'Bob', age: 25, city: 'San Francisco', salary: 85000 },
-        { _id: '507f1f77bcf86cd799439013', name: 'Charlie', age: 35, city: 'Chicago', salary: 70000 },
-        { _id: '507f1f77bcf86cd799439014', name: 'Diana', age: 28, city: 'Boston', salary: 80000 },
-        { _id: '507f1f77bcf86cd799439015', name: 'Eve', age: 32, city: 'Seattle', salary: 90000 }
-      ];
+		// Navigate to the builder page
+		await page.goto('http://localhost:5173/builder');
+		await page.waitForLoadState('networkidle');
 
-      // Try to access the pipeline store and set results
-      if ((window as any).pipelineStore) {
-        (window as any).pipelineStore.setResults(mockResults);
-      } else {
-        // If store is not available, try to trigger the chart view directly
-        window.dispatchEvent(new CustomEvent('setResults', { detail: mockResults }));
-      }
-    });
+		// Simulate having pipeline results by directly setting them in the store
+		await page.evaluate(() => {
+			// Mock some pipeline results
+			const mockResults = [
+				{
+					_id: '507f1f77bcf86cd799439011',
+					name: 'Alice',
+					age: 30,
+					city: 'New York',
+					salary: 75000,
+				},
+				{
+					_id: '507f1f77bcf86cd799439012',
+					name: 'Bob',
+					age: 25,
+					city: 'San Francisco',
+					salary: 85000,
+				},
+				{
+					_id: '507f1f77bcf86cd799439013',
+					name: 'Charlie',
+					age: 35,
+					city: 'Chicago',
+					salary: 70000,
+				},
+				{ _id: '507f1f77bcf86cd799439014', name: 'Diana', age: 28, city: 'Boston', salary: 80000 },
+				{ _id: '507f1f77bcf86cd799439015', name: 'Eve', age: 32, city: 'Seattle', salary: 90000 },
+			];
 
-    // Wait a bit for the data to be processed
-    await page.waitForTimeout(1000);
+			// Try to access the pipeline store and set results
+			if (
+				(window as unknown as { pipelineStore?: { setResults: (r: unknown) => void } })
+					.pipelineStore
+			) {
+				(
+					window as unknown as { pipelineStore: { setResults: (r: unknown) => void } }
+				).pipelineStore.setResults(mockResults);
+			} else {
+				// If store is not available, try to trigger the chart view directly
+				window.dispatchEvent(new CustomEvent('setResults', { detail: mockResults }));
+			}
+		});
 
-    // Try to click on Chart view
-    const chartButton = page.getByRole('button', { name: 'Chart' });
-    if (await chartButton.isVisible()) {
-      await chartButton.click();
-      console.log('Clicked Chart button');
-    } else {
-      console.log('Chart button not visible, trying alternative approach');
-      
-      // Try to find any button that might trigger chart view
-      const buttons = await page.locator('button').all();
-      for (const button of buttons) {
-        const text = await button.textContent();
-        if (text && text.toLowerCase().includes('chart')) {
-          await button.click();
-          console.log(`Clicked button with text: ${text}`);
-          break;
-        }
-      }
-    }
+		// Wait a bit for the data to be processed
+		await page.waitForTimeout(1000);
 
-    // Wait for chart to load and any effects to run
-    await page.waitForTimeout(2000);
+		// Try to click on Chart view
+		const chartButton = page.getByRole('button', { name: 'Chart' });
+		if (await chartButton.isVisible()) {
+			await chartButton.click();
+			console.log('Clicked Chart button');
+		} else {
+			console.log('Chart button not visible, trying alternative approach');
 
-    // Check for the specific error
-    const hasEffectError = errors.some(error => 
-      error.includes('effect_update_depth_exceeded') || 
-      error.includes('Maximum update depth exceeded')
-    );
+			// Try to find any button that might trigger chart view
+			const buttons = await page.locator('button').all();
+			for (const button of buttons) {
+				const text = await button.textContent();
+				if (text?.toLowerCase().includes('chart')) {
+					await button.click();
+					console.log(`Clicked button with text: ${text}`);
+					break;
+				}
+			}
+		}
 
-    // Log all errors and console messages for debugging
-    console.log('=== ERRORS CAPTURED ===');
-    errors.forEach((error, index) => {
-      console.log(`${index + 1}. ${error}`);
-    });
+		// Wait for chart to load and any effects to run
+		await page.waitForTimeout(2000);
 
-    console.log('=== CONSOLE LOGS ===');
-    consoleLogs.forEach((log, index) => {
-      console.log(`${index + 1}. ${log}`);
-    });
+		// Check for the specific error
+		const hasEffectError = errors.some(
+			(error) =>
+				error.includes('effect_update_depth_exceeded') ||
+				error.includes('Maximum update depth exceeded'),
+		);
 
-    // Check if chart view is actually displayed
-    const chartViewer = page.locator('.chart-viewer');
-    const isChartVisible = await chartViewer.isVisible();
-    console.log('Chart viewer visible:', isChartVisible);
+		// Log all errors and console messages for debugging
+		console.log('=== ERRORS CAPTURED ===');
+		errors.forEach((error, index) => {
+			console.log(`${index + 1}. ${error}`);
+		});
 
-    // The test should pass if no infinite loop error occurs
-    expect(hasEffectError).toBe(false);
-  });
+		console.log('=== CONSOLE LOGS ===');
+		consoleLogs.forEach((log, index) => {
+			console.log(`${index + 1}. ${log}`);
+		});
 
-  test('should handle rapid chart view switching without infinite loops', async ({ page }) => {
-    const errors: string[] = [];
-    
-    page.on('pageerror', error => {
-      errors.push(`Page error: ${error.message}`);
-    });
+		// Check if chart view is actually displayed
+		const chartViewer = page.locator('.chart-viewer');
+		const isChartVisible = await chartViewer.isVisible();
+		console.log('Chart viewer visible:', isChartVisible);
 
-    await page.goto('http://localhost:5173/builder');
-    await page.waitForLoadState('networkidle');
+		// The test should pass if no infinite loop error occurs
+		expect(hasEffectError).toBe(false);
+	});
 
-    // Set up mock data
-    await page.evaluate(() => {
-      const mockResults = [
-        { _id: '1', name: 'Test', value: 100 },
-        { _id: '2', name: 'Test2', value: 200 }
-      ];
-      
-      if ((window as any).pipelineStore) {
-        (window as any).pipelineStore.setResults(mockResults);
-      }
-    });
+	test('should handle rapid chart view switching without infinite loops', async ({ page }) => {
+		const errors: string[] = [];
 
-    await page.waitForTimeout(1000);
+		page.on('pageerror', (error) => {
+			errors.push(`Page error: ${error.message}`);
+		});
 
-    // Try rapid switching between different views
-    const viewButtons = ['Results', 'Stages', 'Chart'];
-    
-    for (let i = 0; i < 3; i++) {
-      for (const view of viewButtons) {
-        const button = page.getByRole('button', { name: view });
-        if (await button.isVisible()) {
-          await button.click();
-          console.log(`Switched to ${view} view`);
-          await page.waitForTimeout(200);
-        }
-      }
-    }
+		await page.goto('http://localhost:5173/builder');
+		await page.waitForLoadState('networkidle');
 
-    // Check for infinite loop errors
-    const hasEffectError = errors.some(error => 
-      error.includes('effect_update_depth_exceeded') || 
-      error.includes('Maximum update depth exceeded')
-    );
+		// Set up mock data
+		await page.evaluate(() => {
+			const mockResults = [
+				{ _id: '1', name: 'Test', value: 100 },
+				{ _id: '2', name: 'Test2', value: 200 },
+			];
 
-    console.log('Errors after rapid switching:', errors);
-    expect(hasEffectError).toBe(false);
-  });
+			if (
+				(window as unknown as { pipelineStore?: { setResults: (r: unknown) => void } })
+					.pipelineStore
+			) {
+				(
+					window as unknown as { pipelineStore: { setResults: (r: unknown) => void } }
+				).pipelineStore.setResults(mockResults);
+			}
+		});
+
+		await page.waitForTimeout(1000);
+
+		// Try rapid switching between different views
+		const viewButtons = ['Results', 'Stages', 'Chart'];
+
+		for (let i = 0; i < 3; i++) {
+			for (const view of viewButtons) {
+				const button = page.getByRole('button', { name: view });
+				if (await button.isVisible()) {
+					await button.click();
+					console.log(`Switched to ${view} view`);
+					await page.waitForTimeout(200);
+				}
+			}
+		}
+
+		// Check for infinite loop errors
+		const hasEffectError = errors.some(
+			(error) =>
+				error.includes('effect_update_depth_exceeded') ||
+				error.includes('Maximum update depth exceeded'),
+		);
+
+		console.log('Errors after rapid switching:', errors);
+		expect(hasEffectError).toBe(false);
+	});
 });

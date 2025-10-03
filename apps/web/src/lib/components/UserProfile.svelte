@@ -1,197 +1,201 @@
 <script lang="ts">
-	import { userStore } from '$lib/stores/user.store';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import { userStore } from '$lib/stores/user.store';
 
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+}
+
+const { isOpen, onClose }: Props = $props();
+
+let _activeTab = $state<'profile' | 'password' | 'preferences'>('profile');
+let isLoading = $state(false);
+let _error = $state('');
+let _success = $state('');
+
+// Profile form
+let name = $state('');
+let _email = $state('');
+let avatar = $state('');
+
+// Password form
+let currentPassword = $state('');
+let newPassword = $state('');
+let confirmPassword = $state('');
+
+// Preferences form
+let theme = $state<'light' | 'dark' | 'auto'>('auto');
+let language = $state('en');
+let emailNotifications = $state(true);
+let pipelineNotifications = $state(true);
+
+// Reactive state from store
+const authState = $derived($userStore);
+
+// Initialize form data when modal opens
+$effect(() => {
+	if (isOpen && authState.user) {
+		initializeForm();
+	}
+});
+
+function initializeForm() {
+	if (!authState.user) return;
+
+	const user = authState.user;
+	name = user.name;
+	_email = user.email;
+	avatar = user.avatar || '';
+	theme = user.preferences.theme;
+	language = user.preferences.language;
+	emailNotifications = user.preferences.notifications.email;
+	pipelineNotifications = user.preferences.notifications.pipelineUpdates;
+}
+
+function _resetForms() {
+	name = '';
+	_email = '';
+	avatar = '';
+	currentPassword = '';
+	newPassword = '';
+	confirmPassword = '';
+	theme = 'auto';
+	language = 'en';
+	emailNotifications = true;
+	pipelineNotifications = true;
+	_error = '';
+	_success = '';
+}
+
+function _switchTab(tab: 'profile' | 'password' | 'preferences') {
+	_activeTab = tab;
+	_error = '';
+	_success = '';
+}
+
+async function _updateProfile() {
+	if (isLoading) return;
+
+	isLoading = true;
+	_error = '';
+	_success = '';
+
+	try {
+		const result = await userStore.updateProfile({
+			name: name.trim(),
+			avatar: avatar.trim() || undefined,
+			preferences: {
+				theme,
+				language,
+				notifications: {
+					email: emailNotifications,
+					pipelineUpdates: pipelineNotifications,
+				},
+			},
+		});
+
+		if (result.success) {
+			_success = 'Profile updated successfully';
+		} else {
+			_error = result.error || 'Profile update failed';
+		}
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Profile update failed';
+	} finally {
+		isLoading = false;
+	}
+}
+
+async function _changePassword() {
+	if (isLoading) return;
+
+	if (!currentPassword || !newPassword) {
+		_error = 'Current password and new password are required';
+		return;
 	}
 
-	const { isOpen, onClose }: Props = $props();
-
-	let activeTab = $state<'profile' | 'password' | 'preferences'>('profile');
-	let isLoading = $state(false);
-	let error = $state('');
-	let success = $state('');
-
-	// Profile form
-	let name = $state('');
-	let email = $state('');
-	let avatar = $state('');
-
-	// Password form
-	let currentPassword = $state('');
-	let newPassword = $state('');
-	let confirmPassword = $state('');
-
-	// Preferences form
-	let theme = $state<'light' | 'dark' | 'auto'>('auto');
-	let language = $state('en');
-	let emailNotifications = $state(true);
-	let pipelineNotifications = $state(true);
-
-	// Reactive state from store
-	const authState = $derived($userStore);
-
-	// Initialize form data when modal opens
-	$effect(() => {
-		if (isOpen && authState.user) {
-			initializeForm();
-		}
-	});
-
-	function initializeForm() {
-		if (!authState.user) return;
-
-		const user = authState.user;
-		name = user.name;
-		email = user.email;
-		avatar = user.avatar || '';
-		theme = user.preferences.theme;
-		language = user.preferences.language;
-		emailNotifications = user.preferences.notifications.email;
-		pipelineNotifications = user.preferences.notifications.pipelineUpdates;
+	if (newPassword.length < 8) {
+		_error = 'New password must be at least 8 characters long';
+		return;
 	}
 
-	function resetForms() {
-		name = '';
-		email = '';
-		avatar = '';
-		currentPassword = '';
-		newPassword = '';
-		confirmPassword = '';
-		theme = 'auto';
-		language = 'en';
-		emailNotifications = true;
-		pipelineNotifications = true;
-		error = '';
-		success = '';
+	if (newPassword !== confirmPassword) {
+		_error = 'New passwords do not match';
+		return;
 	}
 
-	function switchTab(tab: 'profile' | 'password' | 'preferences') {
-		activeTab = tab;
-		error = '';
-		success = '';
+	isLoading = true;
+	_error = '';
+	_success = '';
+
+	try {
+		const result = await userStore.changePassword(currentPassword, newPassword);
+
+		if (result.success) {
+			_success = 'Password changed successfully';
+			currentPassword = '';
+			newPassword = '';
+			confirmPassword = '';
+		} else {
+			_error = result.error || 'Password change failed';
+		}
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Password change failed';
+	} finally {
+		isLoading = false;
+	}
+}
+
+async function _deleteAccount() {
+	if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+		return;
 	}
 
-	async function updateProfile() {
-		if (isLoading) return;
-
-		isLoading = true;
-		error = '';
-		success = '';
-
-		try {
-			const result = await userStore.updateProfile({
-				name: name.trim(),
-				avatar: avatar.trim() || undefined,
-				preferences: {
-					theme,
-					language,
-					notifications: {
-						email: emailNotifications,
-						pipelineUpdates: pipelineNotifications
-					}
-				}
-			});
-
-			if (result.success) {
-				success = 'Profile updated successfully';
-			} else {
-				error = result.error || 'Profile update failed';
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Profile update failed';
-		} finally {
-			isLoading = false;
-		}
+	if (
+		!confirm(
+			'This will permanently delete your account and all your data. Are you absolutely sure?',
+		)
+	) {
+		return;
 	}
 
-	async function changePassword() {
-		if (isLoading) return;
+	isLoading = true;
+	_error = '';
 
-		if (!currentPassword || !newPassword) {
-			error = 'Current password and new password are required';
-			return;
-		}
+	try {
+		const response = await fetch('/api/auth/account', {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+				'Content-Type': 'application/json',
+			},
+		});
 
-		if (newPassword.length < 8) {
-			error = 'New password must be at least 8 characters long';
-			return;
-		}
-
-		if (newPassword !== confirmPassword) {
-			error = 'New passwords do not match';
-			return;
-		}
-
-		isLoading = true;
-		error = '';
-		success = '';
-
-		try {
-			const result = await userStore.changePassword(currentPassword, newPassword);
-
-			if (result.success) {
-				success = 'Password changed successfully';
-				currentPassword = '';
-				newPassword = '';
-				confirmPassword = '';
-			} else {
-				error = result.error || 'Password change failed';
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Password change failed';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	async function deleteAccount() {
-		if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-			return;
-		}
-
-		if (!confirm('This will permanently delete your account and all your data. Are you absolutely sure?')) {
-			return;
-		}
-
-		isLoading = true;
-		error = '';
-
-		try {
-			const response = await fetch('/api/auth/account', {
-				method: 'DELETE',
-				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (response.ok) {
-				await userStore.logout();
-				onClose();
-			} else {
-				const data = await response.json();
-				error = data.message || 'Account deletion failed';
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Account deletion failed';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
+		if (response.ok) {
+			await userStore.logout();
 			onClose();
+		} else {
+			const data = await response.json();
+			_error = data.message || 'Account deletion failed';
 		}
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Account deletion failed';
+	} finally {
+		isLoading = false;
 	}
+}
 
-	onMount(() => {
-		document.addEventListener('keydown', handleKeydown);
-		return () => document.removeEventListener('keydown', handleKeydown);
-	});
+function handleKeydown(event: KeyboardEvent) {
+	if (event.key === 'Escape') {
+		onClose();
+	}
+}
+
+onMount(() => {
+	document.addEventListener('keydown', handleKeydown);
+	return () => document.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 {#if isOpen}

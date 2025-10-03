@@ -1,18 +1,9 @@
 <script lang="ts">
+import { onMount } from 'svelte';
 import { api } from '$lib/api';
-import ConnectionModal from '$lib/components/ConnectionModal.svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
-import LazyChartViewer from '$lib/components/LazyChartViewer.svelte';
-import LoadingButton from '$lib/components/LoadingButton.svelte';
-import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-import PipelineLoadingState from '$lib/components/PipelineLoadingState.svelte';
-import PipelineManager from '$lib/components/PipelineManager.svelte';
-import StagePreview from '$lib/components/StagePreview.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 import { toastStore } from '$lib/stores/toast.store';
-import { userStore } from '$lib/stores/user.store';
 import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
-import { onMount } from 'svelte';
 
 const defaultPipeline = `[
   {
@@ -29,11 +20,11 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = $state(defaultPipeline);
-let monacoEditor: any = null;
-  let showConnectionModal = $state(false);
-let showDatabaseSelector = $state(false);
-let showCollectionSelector = $state(false);
-let showPipelineManager = $state(false);
+const monacoEditor: unknown = null;
+const _showConnectionModal = $state(false);
+let _showDatabaseSelector = $state(false);
+let _showCollectionSelector = $state(false);
+let _showPipelineManager = $state(false);
 
 // Initialize keyboard shortcuts
 onMount(() => {
@@ -41,7 +32,7 @@ onMount(() => {
 		key: 'Enter',
 		ctrlKey: true,
 		action: handleRunWithPreview,
-		description: 'Run pipeline with preview'
+		description: 'Run pipeline with preview',
 	});
 
 	keyboardShortcuts.register({
@@ -49,12 +40,12 @@ onMount(() => {
 		ctrlKey: true,
 		action: () => {
 			if (authState.isAuthenticated) {
-				showPipelineManager = true;
+				_showPipelineManager = true;
 			} else {
 				toastStore.warning('Sign in required', 'Please sign in to save pipelines');
 			}
 		},
-		description: 'Save pipeline'
+		description: 'Save pipeline',
 	});
 
 	keyboardShortcuts.register({
@@ -62,96 +53,98 @@ onMount(() => {
 		ctrlKey: true,
 		action: () => {
 			if (authState.isAuthenticated) {
-				showPipelineManager = true;
+				_showPipelineManager = true;
 			} else {
 				toastStore.warning('Sign in required', 'Please sign in to load pipelines');
 			}
 		},
-		description: 'Open pipeline manager'
+		description: 'Open pipeline manager',
 	});
 });
 
 const connection = $derived($pipelineStore.connection);
-const databases = $derived($pipelineStore.databases);
-const collections = $derived($pipelineStore.collections);
-const results = $derived($pipelineStore.results);
-const stageResults = $derived($pipelineStore.stageResults);
-const viewMode = $derived($pipelineStore.viewMode);
-const isExecuting = $derived($pipelineStore.isExecuting);
-const error = $derived($pipelineStore.error);
+const _databases = $derived($pipelineStore.databases);
+const _collections = $derived($pipelineStore.collections);
+const _results = $derived($pipelineStore.results);
+const _stageResults = $derived($pipelineStore.stageResults);
+const _viewMode = $derived($pipelineStore.viewMode);
+const _isExecuting = $derived($pipelineStore.isExecuting);
+const _error = $derived($pipelineStore.error);
 const sampleSize = $derived($pipelineStore.sampleSize);
-const maxSampleSize = $derived($pipelineStore.maxSampleSize);
-const diff = $derived($pipelineStore.diff);
+const _maxSampleSize = $derived($pipelineStore.maxSampleSize);
+const _diff = $derived($pipelineStore.diff);
 const authState = $derived($userStore);
 
 // Pre-built templates for common stages
 const stageTemplates: Record<string, object> = {
-    '$match': { $match: { field: 'value' } },
-    '$project': { $project: { field: 1 } },
-    '$group': { $group: { _id: '$field', count: { $sum: 1 } } },
-    '$sort': { $sort: { field: 1 } },
-    '$limit': { $limit: 10 },
-    '$skip': { $skip: 10 },
-    '$lookup': { $lookup: { from: 'otherCollection', localField: 'field', foreignField: 'field', as: 'joined' } },
-    '$unwind': { $unwind: '$arrayField' },
-    '$addFields': { $addFields: { newField: 'value' } },
-    '$replaceRoot': { $replaceRoot: { newRoot: '$doc' } }
+	$match: { $match: { field: 'value' } },
+	$project: { $project: { field: 1 } },
+	$group: { $group: { _id: '$field', count: { $sum: 1 } } },
+	$sort: { $sort: { field: 1 } },
+	$limit: { $limit: 10 },
+	$skip: { $skip: 10 },
+	$lookup: {
+		$lookup: { from: 'otherCollection', localField: 'field', foreignField: 'field', as: 'joined' },
+	},
+	$unwind: { $unwind: '$arrayField' },
+	$addFields: { $addFields: { newField: 'value' } },
+	$replaceRoot: { $replaceRoot: { newRoot: '$doc' } },
 };
 
-function insertStage(stageOperator: string) {
-    try {
-        const parsed = JSON.parse(editorContent);
-        const pipelineArray: any[] = Array.isArray(parsed) ? (parsed as any[]) : [];
-        const template = stageTemplates[stageOperator];
-        if (!template) return;
-        pipelineArray.push(template);
-        const newContent = JSON.stringify(pipelineArray, null, 2);
-        editorContent = newContent;
-        // Update the Monaco editor directly
-        if (monacoEditor) {
-            monacoEditor.updateValue(newContent);
-        }
-        pipelineStore.setPipeline(pipelineArray);
-        toastStore.success('Stage added', `${stageOperator} inserted into pipeline`);
-    } catch {
-        // If editor content is not valid JSON, initialize a new pipeline with the stage
-        const template = stageTemplates[stageOperator];
-        if (!template) return;
-        const pipelineArray: any[] = [template];
-        const newContent = JSON.stringify(pipelineArray, null, 2);
-        editorContent = newContent;
-        // Update the Monaco editor directly
-        if (monacoEditor) {
-            monacoEditor.updateValue(newContent);
-        }
-        pipelineStore.setPipeline(pipelineArray);
-        toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);
-    }
+function _insertStage(stageOperator: string) {
+	try {
+		const parsed = JSON.parse(editorContent);
+		const pipelineArray: unknown[] = Array.isArray(parsed) ? (parsed as unknown[]) : [];
+		const template = stageTemplates[stageOperator];
+		if (!template) return;
+		pipelineArray.push(template);
+		const newContent = JSON.stringify(pipelineArray, null, 2);
+		editorContent = newContent;
+		// Update the Monaco editor directly
+		if (monacoEditor) {
+			monacoEditor.updateValue(newContent);
+		}
+		pipelineStore.setPipeline(pipelineArray);
+		toastStore.success('Stage added', `${stageOperator} inserted into pipeline`);
+	} catch {
+		// If editor content is not valid JSON, initialize a new pipeline with the stage
+		const template = stageTemplates[stageOperator];
+		if (!template) return;
+		const pipelineArray: unknown[] = [template];
+		const newContent = JSON.stringify(pipelineArray, null, 2);
+		editorContent = newContent;
+		// Update the Monaco editor directly
+		if (monacoEditor) {
+			monacoEditor.updateValue(newContent);
+		}
+		pipelineStore.setPipeline(pipelineArray);
+		toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);
+	}
 }
 
-async function handleSelectDatabase(database: string) {
+async function _handleSelectDatabase(database: string) {
 	if (!connection) return;
 
 	pipelineStore.selectDatabase(database);
-	showDatabaseSelector = false;
+	_showDatabaseSelector = false;
 
 	// Load collections
 	const { collections: cols } = await api.listCollections(connection.id, database);
 	pipelineStore.setCollections(cols);
 }
 
-function handleSelectCollection(collection: string) {
+function _handleSelectCollection(collection: string) {
 	pipelineStore.selectCollection(collection);
-	showCollectionSelector = false;
+	_showCollectionSelector = false;
 }
 
-function handleLoadPipeline(pipeline: any) {
+function _handleLoadPipeline(pipeline: unknown) {
 	// Load pipeline data into the editor
-	editorContent = JSON.stringify(pipeline.pipeline, null, 2);
-	
+	editorContent = JSON.stringify(pipeline, null, 2);
+
 	// Update pipeline store
-	pipelineStore.setPipeline(pipeline.pipeline);
-	
+	pipelineStore.setPipeline(pipeline);
+
 	// Set connection if available
 	if (pipeline.connectionId && pipeline.database && pipeline.collection) {
 		// Note: In a real app, you'd need to ensure the connection exists
@@ -159,22 +152,22 @@ function handleLoadPipeline(pipeline: any) {
 		pipelineStore.selectDatabase(pipeline.database);
 		pipelineStore.selectCollection(pipeline.collection);
 	}
-	
+
 	// Set sample size if available
 	if (pipeline.sampleSize) {
 		pipelineStore.setSampleSize(pipeline.sampleSize);
 	}
 }
 
-function openPipelineManager() {
-	showPipelineManager = true;
+function _openPipelineManager() {
+	_showPipelineManager = true;
 }
 
-function closePipelineManager() {
-	showPipelineManager = false;
+function _closePipelineManager() {
+	_showPipelineManager = false;
 }
 
-async function handleRunPipeline() {
+async function _handleRunPipeline() {
 	if (!connection?.selectedDatabase || !connection?.selectedCollection) {
 		pipelineStore.setError('Please select a database and collection');
 		toastStore.error('Configuration required', 'Please select a database and collection first');
@@ -190,7 +183,7 @@ async function handleRunPipeline() {
 			sampleSize,
 			connection.id,
 			connection.selectedDatabase,
-			connection.selectedCollection
+			connection.selectedCollection,
 		);
 
 		if (cached) {
@@ -227,7 +220,7 @@ async function handleRunPipeline() {
 				connection.selectedDatabase,
 				connection.selectedCollection,
 				result.results,
-				[]
+				[],
 			);
 			toastStore.success('Pipeline executed', `Found ${result.results.length} documents`);
 		} else {
@@ -258,7 +251,7 @@ async function handleRunWithPreview() {
 			sampleSize,
 			connection.id,
 			connection.selectedDatabase,
-			connection.selectedCollection
+			connection.selectedCollection,
 		);
 
 		if (cached) {
@@ -294,7 +287,7 @@ async function handleRunWithPreview() {
 				connection.selectedDatabase,
 				connection.selectedCollection,
 				[],
-				result.stages
+				result.stages,
 			);
 		} else {
 			pipelineStore.setError(result.message || 'Pipeline execution failed');
@@ -306,7 +299,7 @@ async function handleRunWithPreview() {
 	}
 }
 
-function handleEditorChange(value: string | undefined) {
+function _handleEditorChange(value: string | undefined) {
 	if (value !== undefined) {
 		editorContent = value;
 	}

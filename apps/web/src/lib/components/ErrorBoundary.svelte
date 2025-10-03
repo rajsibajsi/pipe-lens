@@ -1,71 +1,71 @@
 <script lang="ts">
-    import type { Snippet } from 'svelte';
-    import { onMount } from 'svelte';
+import type { Snippet } from 'svelte';
+import { onMount } from 'svelte';
 
 interface Props {
-        children: Snippet;
-        fallback?: Snippet;
-        onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
-    }
+	children: Snippet;
+	fallback?: Snippet;
+	onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
+}
 
 const { children, fallback, onError }: Props = $props();
 const __use = (..._args: unknown[]) => {};
 __use(children, fallback, onError);
 
-let hasError = $state(false);
-	let error = $state<Error | null>(null);
+let _hasError = $state(false);
+let error = $state<Error | null>(null);
 let errorInfo = $state<Record<string, unknown> | null>(null);
 
-	onMount(() => {
-		// Listen for unhandled errors
-		const handleError = (event: ErrorEvent) => {
-			hasError = true;
-			error = new Error(event.message);
-			errorInfo = {
-				filename: event.filename,
-				lineno: event.lineno,
-				colno: event.colno
-			};
-			
-			if (onError) {
-				onError(error, errorInfo);
-			}
+onMount(() => {
+	// Listen for unhandled errors
+	const handleError = (event: ErrorEvent) => {
+		_hasError = true;
+		error = new Error(event.message);
+		errorInfo = {
+			filename: event.filename,
+			lineno: event.lineno,
+			colno: event.colno,
 		};
 
-		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-			hasError = true;
-			error = new Error(event.reason?.message || 'Unhandled promise rejection');
-			errorInfo = {
-				reason: event.reason,
-				promise: event.promise
-			};
-			
-			if (onError) {
-				onError(error, errorInfo);
-			}
-		};
-
-		window.addEventListener('error', handleError);
-		window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-		return () => {
-			window.removeEventListener('error', handleError);
-			window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-		};
-	});
-
-	function resetError() {
-		hasError = false;
-		error = null;
-		errorInfo = null;
-	}
-
-	function reportError() {
-		if (error) {
-			// In a real app, you would send this to an error reporting service
-			console.error('Error reported:', error, errorInfo);
+		if (onError) {
+			onError(error, errorInfo);
 		}
+	};
+
+	const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+		_hasError = true;
+		error = new Error(event.reason?.message || 'Unhandled promise rejection');
+		errorInfo = {
+			reason: event.reason,
+			promise: event.promise,
+		};
+
+		if (onError) {
+			onError(error, errorInfo);
+		}
+	};
+
+	window.addEventListener('error', handleError);
+	window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+	return () => {
+		window.removeEventListener('error', handleError);
+		window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+	};
+});
+
+function _resetError() {
+	_hasError = false;
+	error = null;
+	errorInfo = null;
+}
+
+function _reportError() {
+	if (error) {
+		// In a real app, you would send this to an error reporting service
+		console.error('Error reported:', error, errorInfo);
 	}
+}
 </script>
 
 {#if hasError}

@@ -1,123 +1,126 @@
 <script lang="ts">
-	import type { DiffChange, DiffResult } from '$lib/utils/diff';
-	import {
-	  filterChangesByType,
-	  formatPath,
-	  getChangeTypeColor,
-	  getChangeTypeIcon,
-	  hasNestedChanges
-	} from '$lib/utils/diff';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import type { DiffChange, DiffResult } from '$lib/utils/diff';
+import {
+	filterChangesByType,
+	formatPath,
+	getChangeTypeColor,
+	getChangeTypeIcon,
+} from '$lib/utils/diff';
 
-	interface Props {
-		diffResult: DiffResult;
-		showUnchanged?: boolean;
-		filterType?: DiffChange['type'] | 'all';
-		maxDepth?: number;
-		highlightChanges?: boolean;
+interface Props {
+	diffResult: DiffResult;
+	showUnchanged?: boolean;
+	filterType?: DiffChange['type'] | 'all';
+	maxDepth?: number;
+	highlightChanges?: boolean;
+}
+
+const {
+	diffResult,
+	showUnchanged: initialShowUnchanged = false,
+	filterType: initialFilterType = 'all',
+	maxDepth = 10,
+	highlightChanges = true,
+}: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(highlightChanges);
+
+let expandedPaths = $state(new Set<string>());
+let _selectedChange = $state<DiffChange | null>(null);
+const showUnchanged = $state(initialShowUnchanged);
+const filterType = $state(initialFilterType);
+
+// Reactive state for filtered changes
+let _filteredChanges: DiffChange[] = $state([]);
+
+$effect(() => {
+	let changes = diffResult.changes;
+
+	// Filter by type
+	if (filterType !== 'all') {
+		changes = filterChangesByType(changes, filterType);
 	}
 
-	const {
-		diffResult,
-		showUnchanged: initialShowUnchanged = false,
-		filterType: initialFilterType = 'all',
-		maxDepth = 10,
-		highlightChanges = true
-	}: Props = $props();
+	// Filter out unchanged if not showing them
+	if (!showUnchanged) {
+		changes = changes.filter((change) => change.type !== 'unchanged');
+	}
 
-	let expandedPaths = $state(new Set<string>());
-	let selectedChange = $state<DiffChange | null>(null);
-	let showUnchanged = $state(initialShowUnchanged);
-	let filterType = $state(initialFilterType);
-
-	// Reactive state for filtered changes
-	let filteredChanges: DiffChange[] = $state([]);
-	
-	$effect(() => {
-		let changes = diffResult.changes;
-		
-		// Filter by type
-		if (filterType !== 'all') {
-			changes = filterChangesByType(changes, filterType);
-		}
-		
-		// Filter out unchanged if not showing them
-		if (!showUnchanged) {
-			changes = changes.filter(change => change.type !== 'unchanged');
-		}
-		
-		// Filter by depth
-		changes = changes.filter(change => {
-			const depth = change.path.split('.').length - 1;
-			return depth <= maxDepth;
-		});
-		
-		filteredChanges = changes;
+	// Filter by depth
+	changes = changes.filter((change) => {
+		const depth = change.path.split('.').length - 1;
+		return depth <= maxDepth;
 	});
 
-	onMount(() => {
-		// Reset state when diff result changes
-		expandedPaths = new Set();
-		selectedChange = null;
-	});
+	_filteredChanges = changes;
+});
 
-	function togglePath(path: string) {
-		if (expandedPaths.has(path)) {
-			expandedPaths.delete(path);
-		} else {
-			expandedPaths.add(path);
-		}
-		expandedPaths = new Set(expandedPaths); // Trigger reactivity
+onMount(() => {
+	// Reset state when diff result changes
+	expandedPaths = new Set();
+	_selectedChange = null;
+});
+
+function _togglePath(path: string) {
+	if (expandedPaths.has(path)) {
+		expandedPaths.delete(path);
+	} else {
+		expandedPaths.add(path);
+	}
+	expandedPaths = new Set(expandedPaths); // Trigger reactivity
+}
+
+function _isExpanded(path: string): boolean {
+	return expandedPaths.has(path);
+}
+
+function _selectChange(change: DiffChange) {
+	_selectedChange = change;
+}
+
+function formatValue(value: unknown): string {
+	if (value === null) return 'null';
+	if (value === undefined) return 'undefined';
+	if (typeof value === 'string') return `"${value}"`;
+	if (typeof value === 'object') {
+		return Array.isArray(value)
+			? `[${value.length} items]`
+			: `{${Object.keys(value).length} fields}`;
+	}
+	return String(value);
+}
+
+function _renderChange(change: DiffChange, depth = 0): string {
+	const indent = '  '.repeat(depth);
+	const icon = getChangeTypeIcon(change.type);
+	const _color = getChangeTypeColor(change.type);
+	const path = formatPath(change.path);
+
+	let result = `${indent}${icon} ${path}`;
+
+	if (change.type === 'added') {
+		result += `: ${formatValue(change.newValue)}`;
+	} else if (change.type === 'removed') {
+		result += `: ${formatValue(change.oldValue)}`;
+	} else if (change.type === 'modified') {
+		result += `: ${formatValue(change.oldValue)} → ${formatValue(change.newValue)}`;
+	} else if (change.type === 'unchanged') {
+		result += `: ${formatValue(change.oldValue)}`;
 	}
 
-	function isExpanded(path: string): boolean {
-		return expandedPaths.has(path);
-	}
+	return result;
+}
 
-	function selectChange(change: DiffChange) {
-		selectedChange = change;
-	}
-
-	function formatValue(value: unknown): string {
-		if (value === null) return 'null';
-		if (value === undefined) return 'undefined';
-		if (typeof value === 'string') return `"${value}"`;
-		if (typeof value === 'object') {
-			return Array.isArray(value) ? `[${value.length} items]` : `{${Object.keys(value).length} fields}`;
-		}
-		return String(value);
-	}
-
-	function renderChange(change: DiffChange, depth = 0): string {
-		const indent = '  '.repeat(depth);
-		const icon = getChangeTypeIcon(change.type);
-		const color = getChangeTypeColor(change.type);
-		const path = formatPath(change.path);
-		
-		let result = `${indent}${icon} ${path}`;
-		
-		if (change.type === 'added') {
-			result += `: ${formatValue(change.newValue)}`;
-		} else if (change.type === 'removed') {
-			result += `: ${formatValue(change.oldValue)}`;
-		} else if (change.type === 'modified') {
-			result += `: ${formatValue(change.oldValue)} → ${formatValue(change.newValue)}`;
-		} else if (change.type === 'unchanged') {
-			result += `: ${formatValue(change.oldValue)}`;
-		}
-		
-		return result;
-	}
-
-	function getChangeCounts() {
-		return {
-			added: diffResult.summary.added,
-			removed: diffResult.summary.removed,
-			modified: diffResult.summary.modified,
-			unchanged: diffResult.summary.unchanged,
-			total: diffResult.summary.total
-		};
-	}
+function _getChangeCounts() {
+	return {
+		added: diffResult.summary.added,
+		removed: diffResult.summary.removed,
+		modified: diffResult.summary.modified,
+		unchanged: diffResult.summary.unchanged,
+		total: diffResult.summary.total,
+	};
+}
 </script>
 
 <div class="diff-viewer">

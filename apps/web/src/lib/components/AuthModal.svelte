@@ -1,119 +1,119 @@
 <script lang="ts">
-	import { userStore } from '$lib/stores/user.store';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import { userStore } from '$lib/stores/user.store';
 
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
-		mode?: 'login' | 'register';
-	}
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+	mode?: 'login' | 'register';
+}
 
-	const { isOpen, onClose, mode = 'login' }: Props = $props();
+const { isOpen, onClose, mode = 'login' }: Props = $props();
 
-	let currentMode = $state(mode);
-	let email = $state('');
-	let password = $state('');
-	let name = $state('');
-	let confirmPassword = $state('');
-	let isLoading = $state(false);
+let currentMode = $state(mode);
+let email = $state('');
+let password = $state('');
+let name = $state('');
+let confirmPassword = $state('');
+let isLoading = $state(false);
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 let error = $state('');
 
-	// Reactive state from store
-	const authState = $derived($userStore);
+// Reactive state from store
+const authState = $derived($userStore);
 
-	// Reset form when modal opens/closes
-	$effect(() => {
-		if (isOpen) {
-			resetForm();
-		}
-	});
-
-	// Update current mode when prop changes
-	$effect(() => {
-		currentMode = mode;
-	});
-
-	// Watch for auth state changes
-	$effect(() => {
-		if (authState.isAuthenticated && isOpen) {
-			onClose();
-		}
-	});
-
-	function resetForm() {
-		email = '';
-		password = '';
-		name = '';
-		confirmPassword = '';
-		error = '';
-		isLoading = false;
+// Reset form when modal opens/closes
+$effect(() => {
+	if (isOpen) {
+		resetForm();
 	}
+});
+
+// Update current mode when prop changes
+$effect(() => {
+	currentMode = mode;
+});
+
+// Watch for auth state changes
+$effect(() => {
+	if (authState.isAuthenticated && isOpen) {
+		onClose();
+	}
+});
+
+function resetForm() {
+	email = '';
+	password = '';
+	name = '';
+	confirmPassword = '';
+	error = '';
+	isLoading = false;
+}
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 function switchMode() {
-		currentMode = currentMode === 'login' ? 'register' : 'login';
-		resetForm();
-	}
+	currentMode = currentMode === 'login' ? 'register' : 'login';
+	resetForm();
+}
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 async function handleSubmit() {
-		if (isLoading) return;
+	if (isLoading) return;
 
-		// Validation
-		if (!email || !password) {
-			error = 'Email and password are required';
+	// Validation
+	if (!email || !password) {
+		error = 'Email and password are required';
+		return;
+	}
+
+	if (currentMode === 'register') {
+		if (!name) {
+			error = 'Name is required';
 			return;
 		}
-
-		if (currentMode === 'register') {
-			if (!name) {
-				error = 'Name is required';
-				return;
-			}
-			if (password !== confirmPassword) {
-				error = 'Passwords do not match';
-				return;
-			}
-			if (password.length < 8) {
-				error = 'Password must be at least 8 characters long';
-				return;
-			}
+		if (password !== confirmPassword) {
+			error = 'Passwords do not match';
+			return;
 		}
-
-		isLoading = true;
-		error = '';
-
-        try {
-            let result: { success: boolean; error?: string };
-			if (currentMode === 'login') {
-				result = await userStore.login(email, password);
-			} else {
-				result = await userStore.register(email, password, name);
-			}
-
-			if (result.success) {
-				onClose();
-			} else {
-				error = result.error || 'Authentication failed';
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Authentication failed';
-		} finally {
-			isLoading = false;
+		if (password.length < 8) {
+			error = 'Password must be at least 8 characters long';
+			return;
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
+	isLoading = true;
+	error = '';
+
+	try {
+		let result: { success: boolean; error?: string };
+		if (currentMode === 'login') {
+			result = await userStore.login(email, password);
+		} else {
+			result = await userStore.register(email, password, name);
+		}
+
+		if (result.success) {
 			onClose();
+		} else {
+			error = result.error || 'Authentication failed';
 		}
+	} catch (err) {
+		error = err instanceof Error ? err.message : 'Authentication failed';
+	} finally {
+		isLoading = false;
 	}
+}
 
-	onMount(() => {
-		document.addEventListener('keydown', handleKeydown);
-		return () => document.removeEventListener('keydown', handleKeydown);
-	});
+function handleKeydown(event: KeyboardEvent) {
+	if (event.key === 'Escape') {
+		onClose();
+	}
+}
+
+onMount(() => {
+	document.addEventListener('keydown', handleKeydown);
+	return () => document.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 {#if isOpen}
