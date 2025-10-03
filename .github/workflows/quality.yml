@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "22.12.0"
   PNPM_VERSION: "9"
 
 jobs:
@@ -74,28 +74,26 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: cd apps/web && pnpm exec playwright install --with-deps
 
       - name: Build applications
         run: pnpm run build
 
-      - name: Start services
+      - name: Start services and run performance tests
         run: |
           # Start API
-          cd apps/api
-          pnpm run dev &
+          (cd apps/api && pnpm run dev &) 
           API_PID=$!
 
           # Start web
-          cd ../web
-          pnpm run preview &
+          (cd apps/web && pnpm run preview &)
           WEB_PID=$!
 
           # Wait for services to start
           sleep 10
 
-          # Run performance tests
-          cd apps/web && pnpm run test:e2e -- --grep "performance"
+          # Run performance tests from repo root, targeting web app
+          pnpm --filter "./apps/web" run test:e2e -- --grep "performance"
 
           # Cleanup
           kill $API_PID $WEB_PID
@@ -122,28 +120,26 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: cd apps/web && pnpm exec playwright install --with-deps
 
       - name: Build applications
         run: pnpm run build
 
-      - name: Start services
+      - name: Start services and run accessibility tests
         run: |
           # Start API
-          cd apps/api
-          pnpm run dev &
+          (cd apps/api && pnpm run dev &) 
           API_PID=$!
 
           # Start web
-          cd ../web
-          pnpm run preview &
+          (cd apps/web && pnpm run preview &)
           WEB_PID=$!
 
           # Wait for services to start
           sleep 10
 
           # Run accessibility tests
-          cd apps/web && pnpm run test:e2e -- --grep "accessibility"
+          pnpm --filter "./apps/web" run test:e2e -- --grep "accessibility"
 
           # Cleanup
           kill $API_PID $WEB_PID
