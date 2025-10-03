@@ -10,20 +10,22 @@
 
 	const { 
 		data, 
-		title = 'Data Table'
+		title = 'Data Table',
+		maxHeight = '400px',
+		showExport = true
 	}: Props = $props();
 
 	let sortColumn = $state<string | null>(null);
 	let sortDirection = $state<'asc' | 'desc'>('asc');
-	const searchTerm = $state('');
+	let searchTerm = $state('');
 	let currentPage = $state(1);
-	const pageSize = $state(50);
+	let pageSize = $state(50);
 
 	// Computed properties
 	let filteredData = $state<(string | number)[][]>([]);
 	let sortedData = $state<(string | number)[][]>([]);
-	let _paginatedData = $state<(string | number)[][]>([]);
-	let _totalPages = $state(0);
+	let paginatedData = $state<(string | number)[][]>([]);
+	let totalPages = $state(0);
 
 	$effect(() => {
 		if (!searchTerm) {
@@ -74,11 +76,11 @@
 	$effect(() => {
 		const start = (currentPage - 1) * pageSize;
 		const end = start + pageSize;
-		_paginatedData = sortedData.slice(start, end);
-		_totalPages = Math.ceil(sortedData.length / pageSize);
+		paginatedData = sortedData.slice(start, end);
+		totalPages = Math.ceil(sortedData.length / pageSize);
 	});
 
-	function _sort(column: string) {
+	function sort(column: string) {
 		if (sortColumn === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -88,7 +90,7 @@
 		currentPage = 1; // Reset to first page when sorting
 	}
 
-	function _exportToCSV() {
+	function exportToCSV() {
 		const csvContent = [
 			data.columns.join(','),
 			...data.rows.map(row => 
@@ -105,7 +107,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	function _exportToJSON() {
+	function exportToJSON() {
 		const jsonData = data.rows.map(row => {
 			const obj: Record<string, unknown> = {};
 			data.columns.forEach((column, index) => {
@@ -124,7 +126,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	function _getSortIcon(column: string): string {
+	function getSortIcon(column: string): string {
 		if (sortColumn !== column) return '↕️';
 		return sortDirection === 'asc' ? '↑' : '↓';
 	}

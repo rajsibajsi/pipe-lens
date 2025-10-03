@@ -10,11 +10,11 @@
 		height?: string;
 	}
 
-	const { data, config }: Props = $props();
+	const { data, config, width = '100%', height = '400px' }: Props = $props();
 
 	let chartContainer: HTMLDivElement;
-	let chartInstance: unknown;
-	let echarts: unknown;
+	let chartInstance: any;
+	let echarts: any;
 
 	onMount(async () => {
 		// Dynamically import ECharts
@@ -45,6 +45,21 @@
 
 		const option = generateEChartsOption(data, config);
 		chartInstance.setOption(option, true);
+	}
+
+	function exportChart() {
+		if (chartInstance) {
+			const dataURL = chartInstance.getDataURL({
+				type: 'png',
+				pixelRatio: 2,
+				backgroundColor: '#fff'
+			});
+			
+			const link = document.createElement('a');
+			link.download = 'chart.png';
+			link.href = dataURL;
+			link.click();
+		}
 	}
 
 	function generateEChartsOption(data: ChartData, config: ChartConfig): EChartsOption {

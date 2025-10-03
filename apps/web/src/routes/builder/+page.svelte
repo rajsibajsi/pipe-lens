@@ -629,6 +629,7 @@ function handleEditorChange(value: string | undefined) {
 <ConnectionModal
 	isOpen={showConnectionModal}
 	onClose={() => (showConnectionModal = false)}
+	onConnect={() => (showConnectionModal = false)}
 />
 
 <PipelineManager

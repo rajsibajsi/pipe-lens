@@ -1,4 +1,7 @@
 <script lang="ts">
+import BaseChart from './BaseChart.svelte';
+import ChartSelector from './ChartSelector.svelte';
+import DataTable from './DataTable.svelte';
 import {
   detectChartType,
   getChartConfig,
