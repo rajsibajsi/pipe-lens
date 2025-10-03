@@ -10,11 +10,11 @@
 		height?: string;
 	}
 
-	const { data, config, width = '100%', height = '400px' }: Props = $props();
+	const { data, config }: Props = $props();
 
 	let chartContainer: HTMLDivElement;
-	let chartInstance: any;
-	let echarts: any;
+	let chartInstance: unknown;
+	let echarts: unknown;
 
 	onMount(async () => {
 		// Dynamically import ECharts
@@ -159,7 +159,7 @@
 					value: data.datasets[0]?.data[index] || 0
 				})),
 				itemStyle: {
-					color: (params: any) => {
+					color: (params: { dataIndex: number }) => {
 						const colors = data.datasets[0]?.backgroundColor as string[];
 						return colors?.[params.dataIndex] || getDefaultColor(params.dataIndex);
 					}

@@ -1,60 +1,21 @@
 <script lang="ts">
-import { api } from '$lib/api';
-import { pipelineStore } from '$lib/stores/pipeline.store';
 
 interface Props {
 	isOpen: boolean;
 	onClose: () => void;
 }
 
-const { isOpen, onClose }: Props = $props();
+const { isOpen }: Props = $props();
 
-let connectionName = $state('Local MongoDB');
-let connectionUri = $state('mongodb://admin:password@localhost:27017');
-let isConnecting = $state(false);
-let error = $state('');
+const connectionName = $state('Local MongoDB');
+const connectionUri = $state('mongodb://admin:password@localhost:27017');
+const isConnecting = $state(false);
+const error = $state('');
 
 // Mark as used for linter
 const __use = (..._args: unknown[]) => {};
 __use(isOpen, connectionName, connectionUri, isConnecting, error);
 
-async function handleConnect() {
-    isConnecting = true;
-    error = '';
-
-	try {
-		// Test connection first
-		const testResult = await api.testConnection(connectionUri);
-		if (!testResult.success) {
-			error = 'Failed to connect to MongoDB. Please check your connection string.';
-			return;
-		}
-
-		// Create connection ID
-		const connectionId = `conn_${Date.now()}`;
-
-		// Connect
-		await api.connect(connectionId, connectionUri);
-
-		// Update store
-		pipelineStore.setConnection({
-			id: connectionId,
-			name: connectionName,
-			uri: connectionUri,
-			isConnected: true,
-		});
-
-		// Load databases
-		const { databases } = await api.listDatabases(connectionId);
-		pipelineStore.setDatabases(databases);
-
-		onClose();
-	} catch (err) {
-		error = err instanceof Error ? err.message : 'Failed to connect';
-	} finally {
-		isConnecting = false;
-	}
-}
 </script>
 
 {#if isOpen}

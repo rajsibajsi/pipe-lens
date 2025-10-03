@@ -11,14 +11,14 @@ const { children, fallback, onError }: Props = $props();
 const __use = (..._args: unknown[]) => {};
 __use(children, fallback, onError);
 
-let hasError = $state(false);
+let _hasError = $state(false);
 	let error = $state<Error | null>(null);
 let errorInfo = $state<Record<string, unknown> | null>(null);
 
 	onMount(() => {
 		// Listen for unhandled errors
 		const handleError = (event: ErrorEvent) => {
-			hasError = true;
+			_hasError = true;
 			error = new Error(event.message);
 			errorInfo = {
 				filename: event.filename,
@@ -32,7 +32,7 @@ let errorInfo = $state<Record<string, unknown> | null>(null);
 		};
 
 		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-			hasError = true;
+			_hasError = true;
 			error = new Error(event.reason?.message || 'Unhandled promise rejection');
 			errorInfo = {
 				reason: event.reason,
@@ -53,13 +53,13 @@ let errorInfo = $state<Record<string, unknown> | null>(null);
 		};
 	});
 
-	function resetError() {
-		hasError = false;
+	function _resetError() {
+		_hasError = false;
 		error = null;
 		errorInfo = null;
 	}
 
-	function reportError() {
+	function _reportError() {
 		if (error) {
 			// In a real app, you would send this to an error reporting service
 			console.error('Error reported:', error, errorInfo);

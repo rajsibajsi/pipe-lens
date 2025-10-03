@@ -1,5 +1,4 @@
 <script lang="ts">
-import LoadingSpinner from './LoadingSpinner.svelte';
 
 interface Props {
 		loading?: boolean;
@@ -27,20 +26,20 @@ const {
 const __use = (..._args: unknown[]) => {};
 __use(className, style, variant, size, children);
 
-	const variantClasses = {
+	const _variantClasses = {
 		primary: 'btn-primary',
 		secondary: 'btn-secondary',
 		ghost: 'btn-ghost',
 		outline: 'btn-outline'
 	};
 
-	const sizeClasses = {
+	const _sizeClasses = {
 		sm: 'btn-sm',
 		md: '',
 		lg: 'btn-lg'
 	};
 
-function handleClick() {
+function _handleClick() {
 		if (!loading && !disabled && onclick) {
 			onclick();
 		}
