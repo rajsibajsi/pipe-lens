@@ -33,7 +33,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 		const user = await authService.verifyToken(token);
 		req.user = user;
 		
-		next();
+		return next();
 	} catch (_error) {
 		return res.status(401).json({
 			success: false,
@@ -85,7 +85,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 			});
 		}
 
-		next();
+		return next();
 	} catch (_error) {
 		return res.status(500).json({
 			success: false,
@@ -102,7 +102,7 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 	const requests = new Map<string, { count: number; resetTime: number }>();
 
 	return (req: Request, res: Response, next: NextFunction) => {
-		const userId = req.user?._id || req.ip;
+		const userId = req.user?._id?.toString() || req.ip;
 		const now = Date.now();
 		const windowStart = now - windowMs;
 
@@ -117,16 +117,14 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 		
 		if (!userRequests) {
 			requests.set(userId, { count: 1, resetTime: now });
-			next();
-			return;
+			return next();
 		}
 
 		if (userRequests.resetTime < windowStart) {
 			// Reset window
 			userRequests.count = 1;
 			userRequests.resetTime = now;
-			next();
-			return;
+			return next();
 		}
 
 		if (userRequests.count >= maxRequests) {
@@ -138,7 +136,7 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 		}
 
 		userRequests.count++;
-		next();
+		return next();
 	};
 };
 
@@ -168,6 +166,6 @@ export const requirePlan = (requiredPlan: 'free' | 'pro' | 'enterprise') => {
 			});
 		}
 
-		next();
+		return next();
 	};
 };

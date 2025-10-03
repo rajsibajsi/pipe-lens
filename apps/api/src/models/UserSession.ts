@@ -1,8 +1,8 @@
-import { Schema, model, type Document } from 'mongoose';
+import { Schema, model, type Document, type Types } from 'mongoose';
 
 export interface IUserSession extends Document {
-	_id: string;
-	userId: string;
+	_id: Types.ObjectId;
+	userId: Types.ObjectId;
 	token: string;
 	refreshToken: string;
 	expiresAt: Date;
@@ -11,6 +11,9 @@ export interface IUserSession extends Document {
 	userAgent?: string;
 	ipAddress?: string;
 	isActive: boolean;
+	isValid(): boolean;
+	refresh(): Promise<IUserSession>;
+	deactivate(): Promise<IUserSession>;
 }
 
 const userSessionSchema = new Schema<IUserSession>({

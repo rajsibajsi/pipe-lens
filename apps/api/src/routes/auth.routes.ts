@@ -57,7 +57,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 			name: name.trim()
 		});
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
 			message: 'User registered successfully',
 			data: {
@@ -68,7 +68,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error('Registration error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Registration failed'
 		});
@@ -97,7 +97,7 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
 			password
 		});
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Login successful',
 			data: {
@@ -108,7 +108,7 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error('Login error:', error);
-		res.status(401).json({
+		return res.status(401).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Login failed'
 		});
@@ -133,14 +133,14 @@ router.post('/refresh', async (req: Request, res: Response) => {
 
 		const tokens = await authService.refreshToken(refreshToken);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Token refreshed successfully',
 			data: tokens
 		});
 	} catch (error) {
 		console.error('Token refresh error:', error);
-		res.status(401).json({
+		return res.status(401).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Token refresh failed'
 		});
@@ -161,13 +161,13 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
 			await authService.logout(token);
 		}
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Logout successful'
 		});
 	} catch (error) {
 		console.error('Logout error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Logout failed'
 		});
@@ -181,15 +181,15 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/logout-all', authenticate, async (req: Request, res: Response) => {
 	try {
-    await authService.logoutAll(req.user?._id);
+    await authService.logoutAll(req.user?._id?.toString());
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Logged out from all devices'
 		});
 	} catch (error) {
 		console.error('Logout all error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Logout failed'
 		});
@@ -203,7 +203,7 @@ router.post('/logout-all', authenticate, async (req: Request, res: Response) => 
  */
 router.get('/me', authenticate, async (req: Request, res: Response) => {
 	try {
-    const user = await authService.getUserById(req.user?._id);
+    const user = await authService.getUserById(req.user?._id?.toString());
 		
 		if (!user) {
 			return res.status(404).json({
@@ -212,13 +212,13 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
 			});
 		}
 
-		res.json({
+		return res.json({
 			success: true,
 			data: { user }
 		});
 	} catch (error) {
 		console.error('Get profile error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Failed to get user profile'
 		});
@@ -253,16 +253,16 @@ router.put('/profile', authenticate, async (req: Request, res: Response) => {
 			updateData.preferences = preferences;
 		}
 
-    const user = await authService.updateProfile(req.user?._id as string, updateData);
+    const user = await authService.updateProfile(req.user?._id?.toString() || '', updateData);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Profile updated successfully',
 			data: { user }
 		});
 	} catch (error) {
 		console.error('Update profile error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Profile update failed'
 		});
@@ -292,15 +292,15 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
 			});
 		}
 
-    await authService.changePassword(req.user?._id as string, currentPassword, newPassword);
+    await authService.changePassword(req.user?._id?.toString() || '', currentPassword, newPassword);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Password changed successfully'
 		});
 	} catch (error) {
 		console.error('Change password error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Password change failed'
 		});
@@ -314,15 +314,15 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
  */
 router.delete('/account', authenticate, async (req: Request, res: Response) => {
 	try {
-    await authService.deleteAccount(req.user?._id as string);
+    await authService.deleteAccount(req.user?._id?.toString() || '');
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Account deleted successfully'
 		});
 	} catch (error) {
 		console.error('Delete account error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Account deletion failed'
 		});

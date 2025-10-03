@@ -1,15 +1,15 @@
-import { Schema, model, type Document } from 'mongoose';
+import { Schema, model, type Document, type Types } from 'mongoose';
 
 export interface IPipeline extends Document {
-	_id: string;
-	userId: string;
+	_id: Types.ObjectId;
+	userId: Types.ObjectId;
 	name: string;
 	description?: string;
 	tags: string[];
 	pipeline: object[];
 	connectionId: string;
 	database: string;
-	collection: string;
+	collectionName: string;
 	sampleSize: number;
 	isPublic: boolean;
 	isTemplate: boolean;
@@ -24,6 +24,8 @@ export interface IPipeline extends Document {
 		category?: string;
 		difficulty?: 'beginner' | 'intermediate' | 'advanced';
 	};
+	incrementExecution(): Promise<IPipeline>;
+	calculatedComplexity: string;
 }
 
 const pipelineSchema = new Schema<IPipeline>({
@@ -67,7 +69,7 @@ const pipelineSchema = new Schema<IPipeline>({
 		required: true,
 		trim: true
 	},
-	collection: {
+	collectionName: {
 		type: String,
 		required: true,
 		trim: true
