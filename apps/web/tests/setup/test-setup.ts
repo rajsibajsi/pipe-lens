@@ -1,3 +1,4 @@
+// biome-ignore lint/correctness/noUnusedImports: used in global setup
 import { test as base } from '@playwright/test';
 import { seedTestDatabase } from './seed-db.js';
 

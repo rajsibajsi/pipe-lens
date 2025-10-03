@@ -3,10 +3,8 @@
 	import {
 	  filterChangesByType,
 	  formatPath,
-	  getChangesAtLevel,
 	  getChangeTypeColor,
-	  getChangeTypeIcon,
-	  hasNestedChanges
+	  getChangeTypeIcon
 	} from '$lib/utils/diff';
 	import { onMount } from 'svelte';
 

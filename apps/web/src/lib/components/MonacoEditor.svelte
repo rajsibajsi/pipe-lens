@@ -19,7 +19,7 @@
 	}
 
 	// Locals
-	let editorContainer: HTMLDivElement | null = null;
+	const editorContainer: HTMLDivElement | null = null;
 	let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
 	let monaco: typeof Monaco | null = null;
 

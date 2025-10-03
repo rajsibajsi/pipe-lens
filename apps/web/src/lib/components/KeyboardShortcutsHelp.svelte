@@ -9,8 +9,8 @@
 
 const { isOpen, onClose }: Props = $props();
 
-// biome-ignore lint/correctness/noUnusedVariables: used in template
-// biome-ignore lint/correctness/noUnusedVariables: used in template
+// biome-ignore lint/correctness/noUnusedVariables: isOpen is used in template
+// biome-ignore lint/correctness/noUnusedVariables: shortcuts is used in template
 let shortcuts = $state<KeyboardShortcut[]>([]);
 
 	onMount(() => {

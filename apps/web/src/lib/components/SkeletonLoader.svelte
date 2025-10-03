@@ -10,21 +10,17 @@
 
 	const { 
 		width = '100%', 
-		height = '1rem', 
-		rounded = true, 
-		className = '',
-		lines = 1,
-		animated = true
+		height = '1rem'
 	}: Props = $props();
 
-	function getWidthStyle() {
+	function _getWidthStyle() {
 		if (typeof width === 'number') {
 			return `${width}px`;
 		}
 		return width;
 	}
 
-	function getHeightStyle() {
+	function _getHeightStyle() {
 		if (typeof height === 'number') {
 			return `${height}px`;
 		}

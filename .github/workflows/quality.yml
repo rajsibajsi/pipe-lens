@@ -2,14 +2,14 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main, develop, 'feat/*', 'fix/*' ]
+    branches: [main, develop, "feat/*", "fix/*"]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
 
 jobs:
   # Bundle size analysis
@@ -39,13 +39,13 @@ jobs:
       - name: Analyze bundle size
         run: |
           echo "📊 Analyzing bundle sizes..."
-          
+
           # Web app bundle size
           if [ -d "apps/web/build" ]; then
             echo "Web app bundle size:"
             du -sh apps/web/build/*
           fi
-          
+
           # API bundle size
           if [ -d "apps/api/dist" ]; then
             echo "API bundle size:"
@@ -85,18 +85,18 @@ jobs:
           cd apps/api
           pnpm run dev &
           API_PID=$!
-          
+
           # Start web
           cd ../web
           pnpm run preview &
           WEB_PID=$!
-          
+
           # Wait for services to start
           sleep 10
-          
+
           # Run performance tests
           cd apps/web && pnpm run test:e2e -- --grep "performance"
-          
+
           # Cleanup
           kill $API_PID $WEB_PID
 
@@ -133,18 +133,18 @@ jobs:
           cd apps/api
           pnpm run dev &
           API_PID=$!
-          
+
           # Start web
           cd ../web
           pnpm run preview &
           WEB_PID=$!
-          
+
           # Wait for services to start
           sleep 10
-          
+
           # Run accessibility tests
           cd apps/web && pnpm run test:e2e -- --grep "accessibility"
-          
+
           # Cleanup
           kill $API_PID $WEB_PID
 
@@ -172,16 +172,16 @@ jobs:
       - name: Analyze code complexity
         run: |
           echo "🔍 Analyzing code complexity..."
-          
+
           # Install complexity analysis tools
           npm install -g complexity-report
-          
+
           # Analyze web app
           if [ -d "apps/web/src" ]; then
             echo "Web app complexity:"
             cr --format table apps/web/src/**/*.{js,ts,svelte} || true
           fi
-          
+
           # Analyze API
           if [ -d "apps/api/src" ]; then
             echo "API complexity:"
@@ -215,10 +215,10 @@ jobs:
       - name: Detect dead code
         run: |
           echo "💀 Detecting dead code..."
-          
+
           # Install unimported
           npm install -g unimported
-          
+
           # Check for unused files
           unimported --init
           unimported || true

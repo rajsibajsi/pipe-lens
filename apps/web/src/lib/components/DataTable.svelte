@@ -10,22 +10,20 @@
 
 	const { 
 		data, 
-		title = 'Data Table', 
-		maxHeight = '400px',
-		showExport = true 
+		title = 'Data Table'
 	}: Props = $props();
 
 	let sortColumn = $state<string | null>(null);
 	let sortDirection = $state<'asc' | 'desc'>('asc');
-	let searchTerm = $state('');
+	const searchTerm = $state('');
 	let currentPage = $state(1);
-	let pageSize = $state(50);
+	const pageSize = $state(50);
 
 	// Computed properties
 	let filteredData = $state<(string | number)[][]>([]);
 	let sortedData = $state<(string | number)[][]>([]);
-	let paginatedData = $state<(string | number)[][]>([]);
-	let totalPages = $state(0);
+	let _paginatedData = $state<(string | number)[][]>([]);
+	let _totalPages = $state(0);
 
 	$effect(() => {
 		if (!searchTerm) {
@@ -55,7 +53,7 @@
 					const aNum = parseFloat(String(aVal));
 					const bNum = parseFloat(String(bVal));
 					
-					if (!isNaN(aNum) && !isNaN(bNum)) {
+					if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
 						return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
 					}
 					
@@ -76,11 +74,11 @@
 	$effect(() => {
 		const start = (currentPage - 1) * pageSize;
 		const end = start + pageSize;
-		paginatedData = sortedData.slice(start, end);
-		totalPages = Math.ceil(sortedData.length / pageSize);
+		_paginatedData = sortedData.slice(start, end);
+		_totalPages = Math.ceil(sortedData.length / pageSize);
 	});
 
-	function sort(column: string) {
+	function _sort(column: string) {
 		if (sortColumn === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -90,7 +88,7 @@
 		currentPage = 1; // Reset to first page when sorting
 	}
 
-	function exportToCSV() {
+	function _exportToCSV() {
 		const csvContent = [
 			data.columns.join(','),
 			...data.rows.map(row => 
@@ -107,7 +105,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	function exportToJSON() {
+	function _exportToJSON() {
 		const jsonData = data.rows.map(row => {
 			const obj: Record<string, unknown> = {};
 			data.columns.forEach((column, index) => {
@@ -126,7 +124,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	function getSortIcon(column: string): string {
+	function _getSortIcon(column: string): string {
 		if (sortColumn !== column) return '↕️';
 		return sortDirection === 'asc' ? '↑' : '↓';
 	}

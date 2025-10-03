@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import type { ChartConfig, ChartData } from '$lib/utils/chart-data';
 	import type { EChartsOption } from 'echarts';
-	import type { ChartData, ChartConfig } from '$lib/utils/chart-data';
+	import { onDestroy, onMount } from 'svelte';
 
 	interface Props {
 		data: ChartData;
@@ -148,7 +148,7 @@
 		};
 	}
 
-	function generatePieChartOption(data: ChartData, config: ChartConfig, baseOption: EChartsOption): EChartsOption {
+	function generatePieChartOption(data: ChartData, _config: ChartConfig, baseOption: EChartsOption): EChartsOption {
 		return {
 			...baseOption,
 			series: [{
@@ -247,7 +247,7 @@
 		return colors[index % colors.length];
 	}
 
-	function exportChart() {
+	function _exportChart() {
 		if (chartInstance) {
 			const dataURL = chartInstance.getDataURL({
 				type: 'png',
