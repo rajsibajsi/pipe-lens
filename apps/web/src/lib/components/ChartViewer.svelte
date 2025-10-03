@@ -1,16 +1,16 @@
 <script lang="ts">
+import {
+  detectChartType,
+  getChartConfig,
+  transformToChartData,
+  type ChartConfig,
+  type ChartData,
+  type ChartType,
+  type TableData
+} from '$lib/utils/chart-data';
 import BaseChart from './BaseChart.svelte';
-import DataTable from './DataTable.svelte';
 import ChartSelector from './ChartSelector.svelte';
-	import { 
-		detectChartType, 
-		transformToChartData, 
-		getChartConfig,
-		type ChartType, 
-		type ChartConfig,
-		type ChartData,
-		type TableData
-	} from '$lib/utils/chart-data';
+import DataTable from './DataTable.svelte';
 
 	interface Props {
 		data: unknown[];
@@ -37,43 +37,50 @@ __use(showControls, width, height);
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 let chartData = $state<ChartData | TableData | null>(null);
 
-	// Auto-detect chart type when data changes
+	// Single effect that only updates chartData, not the other state variables
 	$effect(() => {
 		if (data && data.length > 0) {
-			const detectedType = detectChartType(data);
-			selectedChartType = detectedType;
-			chartConfig = getChartConfig(data, detectedType, title);
-			updateChartData();
-		}
-	});
-
-	// Update chart data when type or config changes
-	$effect(() => {
-		if (data && data.length > 0) {
-			updateChartData();
-		}
-	});
-
-	function updateChartData() {
-		if (!data || data.length === 0) {
+			// Use the current values without modifying them in the effect
+			const currentType = selectedChartType;
+			const currentConfig = chartConfig;
+			
+			// Only update chartData, don't modify selectedChartType or chartConfig
+			chartData = transformToChartData(data, currentType, currentConfig);
+		} else {
 			chartData = null;
-			return;
 		}
+	});
 
-		chartData = transformToChartData(data, selectedChartType, chartConfig);
-	}
+	// Separate effect for auto-detection when data changes
+	$effect(() => {
+		if (data && data.length > 0) {
+			// Only auto-detect if we're still on the default table type
+			if (selectedChartType === 'table') {
+				const detectedType = detectChartType(data);
+				selectedChartType = detectedType;
+				chartConfig = getChartConfig(data, detectedType, title);
+			}
+		}
+	});
+
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleTypeChange(type: ChartType) {
 		selectedChartType = type;
 		chartConfig = getChartConfig(data, type, title);
-		updateChartData();
+		// Update chart data immediately
+		if (data && data.length > 0) {
+			chartData = transformToChartData(data, type, chartConfig);
+		}
 	}
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
 function handleConfigChange(newConfig: Partial<ChartConfig>) {
 		chartConfig = { ...chartConfig, ...newConfig };
-		updateChartData();
+		// Update chart data immediately
+		if (data && data.length > 0) {
+			chartData = transformToChartData(data, selectedChartType, chartConfig);
+		}
 	}
 
 // biome-ignore lint/correctness/noUnusedVariables: used in template
@@ -82,7 +89,8 @@ function resetToAutoDetected() {
 			const detectedType = detectChartType(data);
 			selectedChartType = detectedType;
 			chartConfig = getChartConfig(data, detectedType, title);
-			updateChartData();
+			// Update chart data immediately
+			chartData = transformToChartData(data, detectedType, chartConfig);
 		}
 	}
 </script>
