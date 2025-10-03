@@ -1,8 +1,8 @@
+import bcrypt from 'bcryptjs';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { app } from '../src/index.js';
+import app from '../src/index.js';
 import { User } from '../src/models/User.js';
-import bcrypt from 'bcryptjs';
 
 describe('Authentication API', () => {
 	beforeAll(async () => {

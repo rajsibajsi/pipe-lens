@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import jwt, { Secret } from 'jsonwebtoken';
-import { User, type IUser } from '../models/User';
+import jwt, { type Secret } from 'jsonwebtoken';
+import { type IUser, User } from '../models/User';
 import { UserSession } from '../models/UserSession';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key';

@@ -1,10 +1,10 @@
-import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { app } from '../src/index.js';
-import { User } from '../src/models/User.js';
-import { Pipeline } from '../src/models/Pipeline.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import app from '../src/index.js';
+import { Pipeline } from '../src/models/Pipeline.js';
+import { User } from '../src/models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 
