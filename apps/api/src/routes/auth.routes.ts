@@ -181,7 +181,7 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/logout-all', authenticate, async (req: Request, res: Response) => {
 	try {
-    await authService.logoutAll(req.user?._id?.toString());
+    await authService.logoutAll(req.user?._id?.toString() || '');
 
 		return res.json({
 			success: true,
@@ -203,7 +203,7 @@ router.post('/logout-all', authenticate, async (req: Request, res: Response) => 
  */
 router.get('/me', authenticate, async (req: Request, res: Response) => {
 	try {
-    const user = await authService.getUserById(req.user?._id?.toString());
+    const user = await authService.getUserById(req.user?._id?.toString() || '');
 		
 		if (!user) {
 			return res.status(404).json({

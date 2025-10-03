@@ -22,7 +22,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 			pipeline,
 			connectionId,
 			database,
-			collection,
+			collection: collectionName,
 			sampleSize,
 			isPublic,
 			isTemplate,
@@ -30,7 +30,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 		} = req.body;
 
 		// Validate required fields
-		if (!name || !pipeline || !connectionId || !database || !collection) {
+		if (!name || !pipeline || !connectionId || !database || !collectionName) {
 			return res.status(400).json({
 				success: false,
 				message: 'Name, pipeline, connectionId, database, and collection are required'
@@ -54,14 +54,14 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 		}
 
 		const pipelineData = {
-			userId: req.user!._id,
+			userId: req.user?._id?.toString() || '',
 			name: name.trim(),
 			description: description?.trim(),
 			tags: tags || [],
 			pipeline,
 			connectionId,
 			database,
-			collection,
+			collectionName,
 			sampleSize: sampleSize || 10,
 			isPublic: isPublic || false,
 			isTemplate: isTemplate || false,
@@ -70,14 +70,14 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 
 		const savedPipeline = await pipelineService.createPipeline(pipelineData);
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
 			message: 'Pipeline saved successfully',
 			data: { pipeline: savedPipeline }
 		});
 	} catch (error) {
 		console.error('Save pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to save pipeline'
 		});

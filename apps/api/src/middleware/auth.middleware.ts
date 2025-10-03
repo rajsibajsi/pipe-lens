@@ -102,7 +102,7 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 	const requests = new Map<string, { count: number; resetTime: number }>();
 
 	return (req: Request, res: Response, next: NextFunction) => {
-		const userId = req.user?._id?.toString() || req.ip;
+		const userId = req.user?._id?.toString() || req.ip || 'anonymous';
 		const now = Date.now();
 		const windowStart = now - windowMs;
 
