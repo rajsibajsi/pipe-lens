@@ -8,19 +8,23 @@
 		animated?: boolean;
 	}
 
-	const { 
+const { 
 		width = '100%', 
-		height = '1rem'
-	}: Props = $props();
+		height = '1rem',
+		rounded = false,
+		className = '',
+		lines = 3,
+		animated = false
+}: Props = $props();
 
-	function _getWidthStyle() {
+function getWidthStyle() {
 		if (typeof width === 'number') {
 			return `${width}px`;
 		}
 		return width;
 	}
 
-	function _getHeightStyle() {
+function getHeightStyle() {
 		if (typeof height === 'number') {
 			return `${height}px`;
 		}

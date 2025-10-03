@@ -1,7 +1,4 @@
 <script lang="ts">
-import BaseChart from './BaseChart.svelte';
-import ChartSelector from './ChartSelector.svelte';
-import DataTable from './DataTable.svelte';
 import {
   detectChartType,
   getChartConfig,
@@ -11,6 +8,9 @@ import {
   type ChartType,
   type TableData
 } from '$lib/utils/chart-data';
+import BaseChart from './BaseChart.svelte';
+import ChartSelector from './ChartSelector.svelte';
+import DataTable from './DataTable.svelte';
 
 	interface Props {
 		data: unknown[];

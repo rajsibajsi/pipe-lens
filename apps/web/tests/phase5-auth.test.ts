@@ -148,7 +148,7 @@ describe('Phase 5 - Authentication', () => {
 				})
 			} as Response);
 
-			localStorageMock.getItem.mockReturnValue('mock-refresh-token');
+            (global as any).localStorage.getItem.mockReturnValue('mock-refresh-token');
 
 			await userStore.refreshToken();
 
@@ -175,7 +175,7 @@ describe('Phase 5 - Authentication', () => {
 				})
 			} as Response);
 
-			localStorageMock.getItem.mockReturnValue('mock-token');
+            (global as any).localStorage.getItem.mockReturnValue('mock-token');
 
 			await userStore.getCurrentUser();
 
@@ -197,7 +197,7 @@ describe('Phase 5 - Authentication', () => {
 				})
 			} as Response);
 
-			localStorageMock.getItem.mockReturnValue('invalid-token');
+            (global as any).localStorage.getItem.mockReturnValue('invalid-token');
 
 			await userStore.getCurrentUser();
 
@@ -207,7 +207,7 @@ describe('Phase 5 - Authentication', () => {
 		});
 
 		it('should handle getCurrentUser with no token', async () => {
-			localStorageMock.getItem.mockReturnValue(null);
+            (global as any).localStorage.getItem.mockReturnValue(null);
 
 			await userStore.getCurrentUser();
 

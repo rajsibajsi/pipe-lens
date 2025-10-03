@@ -4,7 +4,8 @@
 	  filterChangesByType,
 	  formatPath,
 	  getChangeTypeColor,
-	  getChangeTypeIcon
+	  getChangeTypeIcon,
+	  hasNestedChanges
 	} from '$lib/utils/diff';
 	import { onMount } from 'svelte';
 

@@ -22,7 +22,7 @@
     __use(data, title, showControls, width, height);
 
 	// Lazy load ChartViewer component
-    const _chartLoader = createLazyComponent(
+    const chartLoader = createLazyComponent(
 		() => import('./ChartViewer.svelte'),
 		LoadingSpinner
 	);

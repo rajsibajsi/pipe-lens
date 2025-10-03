@@ -45,23 +45,12 @@ describe('Phase 5 - Integration Tests', () => {
 			} as Response);
 
 			// Start with unauthenticated state
-			userStore.setState({
-				isAuthenticated: false,
-				user: null,
-				isLoading: false
-			});
+            userStore.setUser(null);
 
 			// Set up pipeline state
-			pipelineStore.setState({
-				connection: {
-					id: 'test-conn',
-					name: 'Test Connection',
-					selectedDatabase: 'test-db',
-					selectedCollection: 'test-collection'
-				},
-				pipeline: [{ $match: { status: 'active' } }],
-				sampleSize: 10
-			});
+            pipelineStore.setConnection({ id: 'test-conn', name: 'Test Connection', uri: '', isConnected: true, selectedDatabase: 'test-db', selectedCollection: 'test-collection' });
+            pipelineStore.setPipeline([{ $match: { status: 'active' } }]);
+            pipelineStore.setSampleSize(10);
 
 			// User should be unauthenticated initially
 			expect(get(userStore).isAuthenticated).toBe(false);
@@ -83,29 +72,18 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle guest user pipeline saving to local storage', async () => {
 			// Mock guest state
-			userStore.setState({
-				isAuthenticated: false,
-				user: null,
-				isLoading: false
-			});
+            userStore.setUser(null);
 
 			// Set up pipeline state
-			pipelineStore.setState({
-				connection: {
-					id: 'test-conn',
-					name: 'Test Connection',
-					selectedDatabase: 'test-db',
-					selectedCollection: 'test-collection'
-				},
-				pipeline: [{ $match: { status: 'active' } }],
-				sampleSize: 10
-			});
+            pipelineStore.setConnection({ id: 'test-conn', name: 'Test Connection', uri: '', isConnected: true, selectedDatabase: 'test-db', selectedCollection: 'test-collection' });
+            pipelineStore.setPipeline([{ $match: { status: 'active' } }]);
+            pipelineStore.setSampleSize(10);
 
 			// Guest user should not be authenticated
 			expect(get(userStore).isAuthenticated).toBe(false);
 
 			// Save pipeline to local storage
-			LocalStorageService.savePipeline({
+            LocalStorageService.savePipeline({
 				name: 'Guest Pipeline',
 				description: 'A guest pipeline',
 				tags: ['guest'],
@@ -113,7 +91,8 @@ describe('Phase 5 - Integration Tests', () => {
 				connectionId: 'test-conn',
 				database: 'test-db',
 				collection: 'test-collection',
-				sampleSize: 10
+                sampleSize: 10,
+                metadata: {}
 			});
 
 			// Verify pipeline was saved
@@ -124,11 +103,7 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle pipeline loading and execution workflow', async () => {
 			// Mock authenticated state
-			userStore.setState({
-				isAuthenticated: true,
-				user: { name: 'Test User', email: 'test@example.com' },
-				isLoading: false
-			});
+            userStore.setUser({ _id: '1', email: 'test@example.com', name: 'Test User', plan: 'free', createdAt: '', updatedAt: '', isActive: true, preferences: { theme: 'light', language: 'en', notifications: { email: false, pipelineUpdates: false } } } as any);
 
 			// Mock pipeline loading
 			const mockFetch = vi.mocked(fetch);
@@ -170,7 +145,7 @@ describe('Phase 5 - Integration Tests', () => {
 				})
 			} as Response);
 
-			localStorageMock.getItem.mockReturnValue('mock-token');
+            (global as any).localStorage.getItem.mockReturnValue('mock-token');
 
 			// User should be authenticated
 			expect(get(userStore).isAuthenticated).toBe(true);
@@ -186,12 +161,7 @@ describe('Phase 5 - Integration Tests', () => {
 			// Load pipeline into store
 			const pipeline = data.data.pipelines[0];
 			pipelineStore.setPipeline(pipeline.pipeline);
-			pipelineStore.setConnection({
-				id: pipeline.connectionId,
-				name: 'Test Connection',
-				selectedDatabase: pipeline.database,
-				selectedCollection: pipeline.collection
-			});
+            pipelineStore.setConnection({ id: pipeline.connectionId, name: 'Test Connection', uri: '', isConnected: true, selectedDatabase: pipeline.database, selectedCollection: pipeline.collection });
 			pipelineStore.setSampleSize(pipeline.sampleSize);
 
 			// Verify pipeline was loaded
@@ -203,11 +173,7 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle pipeline sharing and collaboration workflow', async () => {
 			// Mock authenticated state
-			userStore.setState({
-				isAuthenticated: true,
-				user: { name: 'Test User', email: 'test@example.com' },
-				isLoading: false
-			});
+            userStore.setUser({ _id: '1', email: 'test@example.com', name: 'Test User', plan: 'free', createdAt: '', updatedAt: '', isActive: true, preferences: { theme: 'light', language: 'en', notifications: { email: false, pipelineUpdates: false } } } as any);
 
 			// Mock pipeline save as public
 			const mockFetch = vi.mocked(fetch);
@@ -244,22 +210,15 @@ describe('Phase 5 - Integration Tests', () => {
 				})
 			} as Response);
 
-			localStorageMock.getItem.mockReturnValue('mock-token');
+            (global as any).localStorage.getItem.mockReturnValue('mock-token');
 
 			// Set up pipeline state
-			pipelineStore.setState({
-				connection: {
-					id: 'test-conn',
-					name: 'Test Connection',
-					selectedDatabase: 'test-db',
-					selectedCollection: 'test-collection'
-				},
-				pipeline: [
-					{ $match: { status: 'active' } },
-					{ $group: { _id: '$category', count: { $sum: 1 } } }
-				],
-				sampleSize: 10
-			});
+            pipelineStore.setConnection({ id: 'test-conn', name: 'Test Connection', uri: '', isConnected: true, selectedDatabase: 'test-db', selectedCollection: 'test-collection' });
+            pipelineStore.setPipeline([
+                    { $match: { status: 'active' } },
+                    { $group: { _id: '$category', count: { $sum: 1 } } }
+            ]);
+            pipelineStore.setSampleSize(10);
 
 			// User should be authenticated
 			expect(get(userStore).isAuthenticated).toBe(true);
@@ -318,11 +277,7 @@ describe('Phase 5 - Integration Tests', () => {
 			} as Response);
 
 			// Mock guest state
-			userStore.setState({
-				isAuthenticated: false,
-				user: null,
-				isLoading: false
-			});
+            userStore.setUser(null as any);
 
 			// Attempt login should fail gracefully
 			await userStore.login('test@example.com', 'wrongpassword');
@@ -342,23 +297,12 @@ describe('Phase 5 - Integration Tests', () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
 			// Mock authenticated state
-			userStore.setState({
-				isAuthenticated: true,
-				user: { name: 'Test User', email: 'test@example.com' },
-				isLoading: false
-			});
+            userStore.setUser({ _id: '1', email: 'test@example.com', name: 'Test User', plan: 'free', createdAt: '', updatedAt: '', isActive: true, preferences: { theme: 'light', language: 'en', notifications: { email: false, pipelineUpdates: false } } } as any);
 
 			// Set up pipeline state
-			pipelineStore.setState({
-				connection: {
-					id: 'test-conn',
-					name: 'Test Connection',
-					selectedDatabase: 'test-db',
-					selectedCollection: 'test-collection'
-				},
-				pipeline: [{ $match: { status: 'active' } }],
-				sampleSize: 10
-			});
+            pipelineStore.setConnection({ id: 'test-conn', name: 'Test Connection', uri: '', isConnected: true, selectedDatabase: 'test-db', selectedCollection: 'test-collection' });
+            pipelineStore.setPipeline([{ $match: { status: 'active' } }]);
+            pipelineStore.setSampleSize(10);
 
 			// Should handle network error gracefully
 			try {
@@ -370,8 +314,8 @@ describe('Phase 5 - Integration Tests', () => {
 		});
 
 		it('should persist user session across page reloads', async () => {
-			// Mock localStorage with existing token
-			localStorageMock.getItem.mockReturnValue('mock-token');
+            // Mock localStorage with existing token
+            (global as any).localStorage.getItem.mockReturnValue('mock-token');
 
 			// Mock token validation
 			const mockFetch = vi.mocked(fetch);
@@ -399,7 +343,7 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle token expiration and refresh', async () => {
 			// Mock expired token
-			localStorageMock.getItem.mockReturnValue('expired-token');
+            (global as any).localStorage.getItem.mockReturnValue('expired-token');
 
 			// Mock token validation failure
 			const mockFetch = vi.mocked(fetch);
@@ -424,7 +368,7 @@ describe('Phase 5 - Integration Tests', () => {
 	describe('Data Persistence and Migration', () => {
 		it('should migrate guest pipelines to authenticated user', async () => {
 			// Create guest pipeline
-			LocalStorageService.savePipeline({
+            LocalStorageService.savePipeline({
 				name: 'Guest Pipeline',
 				description: 'A guest pipeline',
 				tags: ['guest'],
@@ -432,7 +376,8 @@ describe('Phase 5 - Integration Tests', () => {
 				connectionId: 'test-conn',
 				database: 'test-db',
 				collection: 'test-collection',
-				sampleSize: 10
+                sampleSize: 10,
+                metadata: {}
 			});
 
 			// Mock successful registration
@@ -463,7 +408,7 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle data corruption gracefully', () => {
 			// Mock corrupted localStorage data
-			localStorageMock.getItem.mockReturnValue('invalid-json');
+            (global as any).localStorage.getItem.mockReturnValue('invalid-json');
 
 			// Should handle gracefully
 			const pipelines = LocalStorageService.getPipelines();
@@ -472,23 +417,24 @@ describe('Phase 5 - Integration Tests', () => {
 
 		it('should handle storage quota exceeded', () => {
 			// Mock storage quota exceeded error
-			localStorageMock.setItem.mockImplementation(() => {
+            (global as any).localStorage.setItem.mockImplementation(() => {
 				throw new Error('QuotaExceededError');
 			});
 
 			// Should handle gracefully
-			expect(() => {
-				LocalStorageService.savePipeline({
-					name: 'Test Pipeline',
-					description: 'A test pipeline',
-					tags: ['test'],
-					pipeline: [{ $match: { status: 'active' } }],
-					connectionId: 'test-conn',
-					database: 'test-db',
-					collection: 'test-collection',
-					sampleSize: 10
-				});
-			}).not.toThrow();
+            expect(() => {
+                LocalStorageService.savePipeline({
+                    name: 'Test Pipeline',
+                    description: 'A test pipeline',
+                    tags: ['test'],
+                    pipeline: [{ $match: { status: 'active' } }],
+                    connectionId: 'test-conn',
+                    database: 'test-db',
+                    collection: 'test-collection',
+                    sampleSize: 10,
+                    metadata: {}
+                });
+            }).not.toThrow();
 		});
 	});
 });

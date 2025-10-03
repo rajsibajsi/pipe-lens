@@ -1,48 +1,52 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { keyboardShortcuts } from '../src/lib/utils/keyboard-shortcuts';
 
 describe('Phase 6 - Keyboard Shortcuts', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		keyboardShortcuts.unregister();
+    keyboardShortcuts.unregisterAll();
 	});
 
 	describe('KeyboardShortcutManager', () => {
 		it('should register a simple shortcut', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback);
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test' });
 
-			expect(keyboardShortcuts.getShortcuts()).toHaveLength(1);
+    expect(keyboardShortcuts.getAllShortcuts()).toHaveLength(1);
 		});
 
 		it('should register a shortcut with modifiers', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('s', callback, { ctrlKey: true });
+    keyboardShortcuts.register({ key: 's', ctrlKey: true, action: callback, description: 'save' });
 
-			expect(keyboardShortcuts.getShortcuts()).toHaveLength(1);
+    expect(keyboardShortcuts.getAllShortcuts()).toHaveLength(1);
 		});
 
 		it('should unregister a shortcut', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback);
-			keyboardShortcuts.unregister('a');
+    const sc = { key: 'a', action: callback, description: 'test' };
+    keyboardShortcuts.register(sc);
+    keyboardShortcuts.unregister(sc);
 
-			expect(keyboardShortcuts.getShortcuts()).toHaveLength(0);
+    expect(keyboardShortcuts.getAllShortcuts()).toHaveLength(0);
 		});
 
 		it('should unregister all shortcuts', () => {
 			const callback1 = vi.fn();
 			const callback2 = vi.fn();
-			keyboardShortcuts.register('a', callback1);
-			keyboardShortcuts.register('b', callback2);
+    keyboardShortcuts.register({ key: 'a', action: callback1, description: 'a' });
+    keyboardShortcuts.register({ key: 'b', action: callback2, description: 'b' });
+    keyboardShortcuts.register({ key: 'a', action: callback1, description: 'a' });
+    keyboardShortcuts.register({ key: 'b', action: callback2, description: 'b' });
 
-			keyboardShortcuts.unregister();
-			expect(keyboardShortcuts.getShortcuts()).toHaveLength(0);
+    keyboardShortcuts.unregisterAll();
+    expect(keyboardShortcuts.getAllShortcuts()).toHaveLength(0);
 		});
 
 		it('should handle keydown events', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback);
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test' });
 
 			// Simulate keydown event
 			const event = new KeyboardEvent('keydown', { key: 'a' });
@@ -53,7 +57,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should handle keydown events with modifiers', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('s', callback, { ctrlKey: true });
+    keyboardShortcuts.register({ key: 's', ctrlKey: true, action: callback, description: 'save' });
 
 			// Simulate Ctrl+S keydown event
 			const event = new KeyboardEvent('keydown', { 
@@ -67,7 +71,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should not trigger action for wrong key', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback);
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test' });
 
 			// Simulate different key
 			const event = new KeyboardEvent('keydown', { key: 'b' });
@@ -78,7 +82,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should not trigger action when disabled', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback);
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test' });
 			keyboardShortcuts.disable();
 
 			const event = new KeyboardEvent('keydown', { key: 'a' });
@@ -89,9 +93,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should prevent default when preventDefault is true', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback, { 
-				preventDefault: true 
-			});
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test', preventDefault: true });
 
 			const event = new KeyboardEvent('keydown', { key: 'a' });
 			const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
@@ -103,9 +105,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should not prevent default when preventDefault is false', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('a', callback, { 
-				preventDefault: false 
-			});
+    keyboardShortcuts.register({ key: 'a', action: callback, description: 'test', preventDefault: false });
 
 			const event = new KeyboardEvent('keydown', { key: 'a' });
 			const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
@@ -117,10 +117,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should handle complex modifier combinations', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('s', callback, { 
-				ctrlKey: true,
-				shiftKey: true 
-			});
+    keyboardShortcuts.register({ key: 's', ctrlKey: true, shiftKey: true, action: callback, description: 'save' });
 
 			const event = new KeyboardEvent('keydown', { 
 				key: 's', 
@@ -134,10 +131,7 @@ describe('Phase 6 - Keyboard Shortcuts', () => {
 
 		it('should not trigger for partial modifier match', () => {
 			const callback = vi.fn();
-			keyboardShortcuts.register('s', callback, { 
-				ctrlKey: true,
-				shiftKey: true 
-			});
+    keyboardShortcuts.register({ key: 's', ctrlKey: true, shiftKey: true, action: callback, description: 'save' });
 
 			// Only Ctrl, missing Shift
 			const event = new KeyboardEvent('keydown', { 

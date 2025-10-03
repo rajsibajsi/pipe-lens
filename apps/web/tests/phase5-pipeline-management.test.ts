@@ -40,7 +40,7 @@ describe('Phase 5 - Pipeline Management', () => {
 				selectedCollection: 'test-collection'
 			};
 
-			pipelineStore.setConnection(testConnection);
+            pipelineStore.setConnection({ ...testConnection, uri: '', isConnected: true });
 
 			const state = get(pipelineStore);
 			expect(state.connection).toEqual(testConnection);
@@ -77,13 +77,14 @@ describe('Phase 5 - Pipeline Management', () => {
 		it('should handle execution state updates', () => {
 			pipelineStore.setExecuting(true);
 
-			const state = get(pipelineStore);
-			expect(state.isExecuting).toBe(true);
+            const s1 = get(pipelineStore);
+            expect(s1.isExecuting).toBe(true);
 
 			pipelineStore.setExecuting(false);
 
-			const updatedState = pipelineStore.getState();
-			expect(updatedState.isExecuting).toBe(false);
+            let s2: any;
+            pipelineStore.subscribe(s => (s2 = s))();
+            expect(s2.isExecuting).toBe(false);
 		});
 	});
 
@@ -100,7 +101,7 @@ describe('Phase 5 - Pipeline Management', () => {
 				sampleSize: 10
 			};
 
-			LocalStorageService.savePipeline(pipelineData);
+            LocalStorageService.savePipeline({ ...pipelineData, metadata: {} });
 
 			const pipelines = LocalStorageService.getPipelines();
 			expect(pipelines).toHaveLength(1);
@@ -126,7 +127,7 @@ describe('Phase 5 - Pipeline Management', () => {
 				sampleSize: 10
 			};
 
-			LocalStorageService.savePipeline(pipelineData);
+            LocalStorageService.savePipeline({ ...pipelineData, metadata: {} });
 			const pipelines = LocalStorageService.getPipelines();
 			const pipelineId = pipelines[0].id;
 
@@ -148,7 +149,7 @@ describe('Phase 5 - Pipeline Management', () => {
 				sampleSize: 10
 			};
 
-			LocalStorageService.savePipeline(pipelineData);
+            LocalStorageService.savePipeline({ ...pipelineData, metadata: {} });
 			const pipelines = LocalStorageService.getPipelines();
 			const pipelineId = pipelines[0].id;
 
@@ -157,8 +158,8 @@ describe('Phase 5 - Pipeline Management', () => {
 		});
 
 		it('should return undefined for non-existent pipeline', () => {
-			const retrievedPipeline = LocalStorageService.getPipeline('non-existent-id');
-			expect(retrievedPipeline).toBeUndefined();
+            const retrievedPipeline = LocalStorageService.getPipeline('non-existent-id');
+            expect(retrievedPipeline).toBeNull();
 		});
 
 		it('should clear all pipelines', () => {
@@ -173,7 +174,7 @@ describe('Phase 5 - Pipeline Management', () => {
 				sampleSize: 10
 			};
 
-			LocalStorageService.savePipeline(pipelineData);
+            LocalStorageService.savePipeline({ ...pipelineData, metadata: {} });
 			expect(LocalStorageService.getPipelines()).toHaveLength(1);
 
 			LocalStorageService.clearPipelines();
@@ -186,7 +187,7 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			// Add more than the limit (10)
 			for (let i = 0; i < 12; i++) {
-				LocalStorageService.savePipeline({
+                LocalStorageService.savePipeline({
 					name: `Pipeline ${i}`,
 					description: `Pipeline ${i} description`,
 					tags: ['test'],
@@ -194,7 +195,8 @@ describe('Phase 5 - Pipeline Management', () => {
 					connectionId: 'test-conn',
 					database: 'test-db',
 					collection: 'test-collection',
-					sampleSize: 10
+                    sampleSize: 10,
+                    metadata: {}
 				});
 			}
 
@@ -203,14 +205,14 @@ describe('Phase 5 - Pipeline Management', () => {
 		});
 
 		it('should handle empty local storage gracefully', () => {
-			localStorageMock.getItem.mockReturnValue(null);
+            (global as any).localStorage.getItem.mockReturnValue(null);
 
 			const pipelines = LocalStorageService.getPipelines();
 			expect(pipelines).toEqual([]);
 		});
 
 		it('should handle corrupted local storage gracefully', () => {
-			localStorageMock.getItem.mockReturnValue('invalid-json');
+            (global as any).localStorage.getItem.mockReturnValue('invalid-json');
 
 			const pipelines = LocalStorageService.getPipelines();
 			expect(pipelines).toEqual([]);
@@ -239,8 +241,8 @@ describe('Phase 5 - Pipeline Management', () => {
 				sampleSize: 20
 			};
 
-			LocalStorageService.savePipeline(pipelineData1);
-			LocalStorageService.savePipeline(pipelineData2);
+            LocalStorageService.savePipeline({ ...pipelineData1, metadata: {} });
+            LocalStorageService.savePipeline({ ...pipelineData2, metadata: {} });
 
 			const pipelines = LocalStorageService.getPipelines();
 			expect(pipelines).toHaveLength(1);
@@ -264,15 +266,17 @@ describe('Phase 5 - Pipeline Management', () => {
 				})
 			} as Response);
 
-			// Initially unauthenticated
-			expect(userStore.getState().isAuthenticated).toBe(false);
+            // Initially unauthenticated
+            let us: any; userStore.subscribe(v => (us = v))();
+            expect(us.isAuthenticated).toBe(false);
 
 			// Login
 			await userStore.login('test@example.com', 'password123');
 
-			// Should be authenticated
-			expect(userStore.getState().isAuthenticated).toBe(true);
-			expect(userStore.getState().user).toEqual({
+            // Should be authenticated
+            userStore.subscribe(v => (us = v))();
+            expect(us.isAuthenticated).toBe(true);
+            expect(us.user).toEqual({
 				name: 'Test User',
 				email: 'test@example.com'
 			});
@@ -285,9 +289,10 @@ describe('Phase 5 - Pipeline Management', () => {
 
 			await userStore.logout();
 
-			// Should be unauthenticated again
-			expect(userStore.getState().isAuthenticated).toBe(false);
-			expect(userStore.getState().user).toBeNull();
+            // Should be unauthenticated again
+            userStore.subscribe(v => (us = v))();
+            expect(us.isAuthenticated).toBe(false);
+            expect(us.user).toBeNull();
 		});
 
 		it('should handle loading states', async () => {
@@ -310,17 +315,20 @@ describe('Phase 5 - Pipeline Management', () => {
 				)
 			);
 
-			// Start login
-			const loginPromise = userStore.login('test@example.com', 'password123');
+            // Start login
+            const loginPromise = userStore.login('test@example.com', 'password123');
 
-			// Should be loading
-			expect(userStore.getState().isLoading).toBe(true);
+            // Should be loading
+            let us: any;
+            userStore.subscribe(v => (us = v))();
+            expect(us.isLoading).toBe(true);
 
 			// Wait for completion
 			await loginPromise;
 
-			// Should not be loading anymore
-			expect(userStore.getState().isLoading).toBe(false);
+            // Should not be loading anymore
+            userStore.subscribe(v => (us = v))();
+            expect(us.isLoading).toBe(false);
 		});
 	});
 
@@ -359,23 +367,24 @@ describe('Phase 5 - Pipeline Management', () => {
 
 		it('should handle localStorage errors gracefully', () => {
 			// Mock localStorage error
-			localStorageMock.setItem.mockImplementation(() => {
+            (global as any).localStorage.setItem.mockImplementation(() => {
 				throw new Error('Storage quota exceeded');
 			});
 
 			// Should not throw
-			expect(() => {
-				LocalStorageService.savePipeline({
-					name: 'Test Pipeline',
-					description: 'A test pipeline',
-					tags: ['test'],
-					pipeline: [{ $match: { status: 'active' } }],
-					connectionId: 'test-conn',
-					database: 'test-db',
-					collection: 'test-collection',
-					sampleSize: 10
-				});
-			}).not.toThrow();
+            expect(() => {
+                LocalStorageService.savePipeline({
+                    name: 'Test Pipeline',
+                    description: 'A test pipeline',
+                    tags: ['test'],
+                    pipeline: [{ $match: { status: 'active' } }],
+                    connectionId: 'test-conn',
+                    database: 'test-db',
+                    collection: 'test-collection',
+                    sampleSize: 10,
+                    metadata: {}
+                });
+            }).not.toThrow();
 		});
 	});
 });

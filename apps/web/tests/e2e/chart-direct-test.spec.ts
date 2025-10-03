@@ -30,8 +30,8 @@ test.describe('Chart Direct Test', () => {
       ];
 
       // Try to access the pipeline store and set results
-      if (window.pipelineStore) {
-        window.pipelineStore.setResults(mockResults);
+      if ((window as any).pipelineStore) {
+        (window as any).pipelineStore.setResults(mockResults);
       } else {
         // If store is not available, try to trigger the chart view directly
         window.dispatchEvent(new CustomEvent('setResults', { detail: mockResults }));
@@ -107,8 +107,8 @@ test.describe('Chart Direct Test', () => {
         { _id: '2', name: 'Test2', value: 200 }
       ];
       
-      if (window.pipelineStore) {
-        window.pipelineStore.setResults(mockResults);
+      if ((window as any).pipelineStore) {
+        (window as any).pipelineStore.setResults(mockResults);
       }
     });
 

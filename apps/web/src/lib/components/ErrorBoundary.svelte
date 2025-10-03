@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+    import type { Snippet } from 'svelte';
+    import { onMount } from 'svelte';
 
 interface Props {
-		children: () => unknown;
-		fallback?: () => unknown;
-		onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
-}
+        children: Snippet;
+        fallback?: Snippet;
+        onError?: (error: Error, errorInfo: Record<string, unknown>) => void;
+    }
 
 const { children, fallback, onError }: Props = $props();
 const __use = (..._args: unknown[]) => {};
@@ -32,7 +33,7 @@ let errorInfo = $state<Record<string, unknown> | null>(null);
 		};
 
 		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-			_hasError = true;
+			hasError = true;
 			error = new Error(event.reason?.message || 'Unhandled promise rejection');
 			errorInfo = {
 				reason: event.reason,

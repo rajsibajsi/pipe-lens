@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 // Mock localStorage
 const localStorageMock = {
@@ -70,7 +70,6 @@ class MockKeyboardEvent {
         this.shiftKey = init.shiftKey || false;
         this.altKey = init.altKey || false;
         this.metaKey = init.metaKey || false;
-        // @ts-expect-error property exists in real KeyboardEvent, mocked here
         this.target = init.target || null;
         this.preventDefault = vi.fn();
         this.stopPropagation = vi.fn();
