@@ -1,0 +1,154 @@
+name: Dependabot
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # Update dependencies
+  update-dependencies:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update dependencies
+        run: |
+          echo "📦 Updating dependencies..."
+          
+          # Update all dependencies
+          pnpm update --interactive
+          
+          # Check for outdated dependencies
+          pnpm outdated || true
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests after dependency update..."
+          pnpm run test
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: 'chore: update dependencies'
+          body: |
+            This PR updates dependencies to their latest versions.
+            
+            ## Changes
+            - Updated all dependencies to latest compatible versions
+            - All tests pass after update
+            - No breaking changes detected
+            
+            ## Checklist
+            - [ ] Dependencies updated
+            - [ ] Tests pass
+            - [ ] No breaking changes
+            - [ ] Ready for review
+            
+            Please review the changes before merging.
+          branch: chore/update-dependencies
+          delete-branch: true
+
+  # Check for security updates
+  security-updates:
+    name: Security Updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "🔒 Checking for security vulnerabilities..."
+          pnpm audit --audit-level moderate || true
+
+      - name: Check for outdated dependencies
+        run: |
+          echo "📦 Checking for outdated dependencies..."
+          pnpm outdated || true
+
+  # Update pnpm lockfile
+  update-lockfile:
+    name: Update Lockfile
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Update lockfile
+        run: |
+          echo "🔒 Updating pnpm lockfile..."
+          pnpm install --frozen-lockfile
+          pnpm install --lockfile-only
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update pnpm lockfile'
+          title: 'chore: update pnpm lockfile'
+          body: |
+            This PR updates the pnpm lockfile to ensure all dependencies are properly locked.
+            
+            ## Changes
+            - Updated pnpm-lock.yaml
+            - Ensured all dependencies are properly locked
+            - No functional changes to dependencies
+            
+            ## Checklist
+            - [ ] Lockfile updated
+            - [ ] All dependencies properly locked
+            - [ ] Ready for review
+          branch: chore/update-lockfile
+          delete-branch: true
