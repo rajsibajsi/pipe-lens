@@ -181,7 +181,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: cd apps/web && pnpm exec playwright install --with-deps
 
       - name: Build applications
         run: pnpm run build
@@ -201,7 +201,7 @@ jobs:
           sleep 5
 
       - name: Run E2E tests
-        run: pnpm run test:e2e
+        run: cd apps/web && pnpm run test:e2e
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
 

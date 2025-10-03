@@ -95,7 +95,7 @@ jobs:
           sleep 10
           
           # Run performance tests
-          pnpm run test:e2e -- --grep "performance"
+          cd apps/web && pnpm run test:e2e -- --grep "performance"
           
           # Cleanup
           kill $API_PID $WEB_PID
@@ -143,7 +143,7 @@ jobs:
           sleep 10
           
           # Run accessibility tests
-          pnpm run test:e2e -- --grep "accessibility"
+          cd apps/web && pnpm run test:e2e -- --grep "accessibility"
           
           # Cleanup
           kill $API_PID $WEB_PID
