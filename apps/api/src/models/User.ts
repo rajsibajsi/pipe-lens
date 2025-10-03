@@ -21,83 +21,86 @@ export interface IUser extends Document {
 	};
 }
 
-const userSchema = new Schema<IUser>({
-	email: {
-		type: String,
-		required: true,
-		unique: true,
-		lowercase: true,
-		trim: true,
-		index: true
-	},
-	password: {
-		type: String,
-		required: true,
-		minlength: 8
-	},
-	name: {
-		type: String,
-		required: true,
-		minlength: 2,
-		trim: true
-	},
-	avatar: {
-		type: String,
-		trim: true
-	},
-	plan: {
-		type: String,
-		enum: ['free', 'pro', 'enterprise'],
-		default: 'free',
-		index: true
-	},
-	createdAt: {
-		type: Date,
-		default: Date.now,
-		index: true
-	},
-	updatedAt: {
-		type: Date,
-		default: Date.now
-	},
-	lastLoginAt: {
-		type: Date
-	},
-	isActive: {
-		type: Boolean,
-		default: true,
-		index: true
-	},
-	preferences: {
-		theme: {
+const userSchema = new Schema<IUser>(
+	{
+		email: {
 			type: String,
-			enum: ['light', 'dark', 'auto'],
-			default: 'auto'
+			required: true,
+			unique: true,
+			lowercase: true,
+			trim: true,
+			index: true,
 		},
-		language: {
+		password: {
 			type: String,
-			default: 'en'
+			required: true,
+			minlength: 8,
 		},
-		notifications: {
-			email: {
-				type: Boolean,
-				default: true
+		name: {
+			type: String,
+			required: true,
+			minlength: 2,
+			trim: true,
+		},
+		avatar: {
+			type: String,
+			trim: true,
+		},
+		plan: {
+			type: String,
+			enum: ['free', 'pro', 'enterprise'],
+			default: 'free',
+			index: true,
+		},
+		createdAt: {
+			type: Date,
+			default: Date.now,
+			index: true,
+		},
+		updatedAt: {
+			type: Date,
+			default: Date.now,
+		},
+		lastLoginAt: {
+			type: Date,
+		},
+		isActive: {
+			type: Boolean,
+			default: true,
+			index: true,
+		},
+		preferences: {
+			theme: {
+				type: String,
+				enum: ['light', 'dark', 'auto'],
+				default: 'auto',
 			},
-			pipelineUpdates: {
-				type: Boolean,
-				default: true
-			}
-		}
-	}
-}, {
-	timestamps: true,
-	toJSON: {
-		transform: (_doc, ret) => {
-			delete (ret as any).password;
-			return ret;
-		}
-	}
-});
+			language: {
+				type: String,
+				default: 'en',
+			},
+			notifications: {
+				email: {
+					type: Boolean,
+					default: true,
+				},
+				pipelineUpdates: {
+					type: Boolean,
+					default: true,
+				},
+			},
+		},
+	},
+	{
+		timestamps: true,
+		toJSON: {
+			transform: (_doc, ret) => {
+				delete (ret as any).password;
+				return ret;
+			},
+		},
+	},
+);
 
 // Indexes
 userSchema.index({ email: 1 });
@@ -105,7 +108,7 @@ userSchema.index({ createdAt: -1 });
 userSchema.index({ isActive: 1 });
 
 // Pre-save middleware
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
 	this.updatedAt = new Date();
 	next();
 });

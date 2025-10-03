@@ -20,18 +20,16 @@ describe('Authentication API', () => {
 			const userData = {
 				name: 'Test User',
 				email: 'test@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/register')
-				.send(userData);
+			const response = await request(app).post('/api/auth/register').send(userData);
 
 			expect(response.status).toBe(201);
 			expect(response.body.success).toBe(true);
 			expect(response.body.data.user).toMatchObject({
 				name: userData.name,
-				email: userData.email
+				email: userData.email,
 			});
 			expect(response.body.data.user.password).toBeUndefined();
 			expect(response.body.data.accessToken).toBeDefined();
@@ -42,12 +40,10 @@ describe('Authentication API', () => {
 			const userData = {
 				name: 'Test User',
 				email: 'invalid-email',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/register')
-				.send(userData);
+			const response = await request(app).post('/api/auth/register').send(userData);
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -58,12 +54,10 @@ describe('Authentication API', () => {
 			const userData = {
 				name: 'Test User',
 				email: 'test2@example.com',
-				password: '123'
+				password: '123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/register')
-				.send(userData);
+			const response = await request(app).post('/api/auth/register').send(userData);
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -74,12 +68,10 @@ describe('Authentication API', () => {
 			const userData = {
 				name: 'Test User',
 				email: 'test@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/register')
-				.send(userData);
+			const response = await request(app).post('/api/auth/register').send(userData);
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -87,9 +79,7 @@ describe('Authentication API', () => {
 		});
 
 		it('should reject registration with missing fields', async () => {
-			const response = await request(app)
-				.post('/api/auth/register')
-				.send({});
+			const response = await request(app).post('/api/auth/register').send({});
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -103,25 +93,23 @@ describe('Authentication API', () => {
 			await User.create({
 				name: 'Login Test User',
 				email: 'login@example.com',
-				password: hashedPassword
+				password: hashedPassword,
 			});
 		});
 
 		it('should login with valid credentials', async () => {
 			const loginData = {
 				email: 'login@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send(loginData);
+			const response = await request(app).post('/api/auth/login').send(loginData);
 
 			expect(response.status).toBe(200);
 			expect(response.body.success).toBe(true);
 			expect(response.body.data.user).toMatchObject({
 				name: 'Login Test User',
-				email: 'login@example.com'
+				email: 'login@example.com',
 			});
 			expect(response.body.data.accessToken).toBeDefined();
 			expect(response.body.data.refreshToken).toBeDefined();
@@ -130,12 +118,10 @@ describe('Authentication API', () => {
 		it('should reject login with invalid email', async () => {
 			const loginData = {
 				email: 'nonexistent@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send(loginData);
+			const response = await request(app).post('/api/auth/login').send(loginData);
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);
@@ -145,12 +131,10 @@ describe('Authentication API', () => {
 		it('should reject login with invalid password', async () => {
 			const loginData = {
 				email: 'login@example.com',
-				password: 'wrongpassword'
+				password: 'wrongpassword',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send(loginData);
+			const response = await request(app).post('/api/auth/login').send(loginData);
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);
@@ -158,9 +142,7 @@ describe('Authentication API', () => {
 		});
 
 		it('should reject login with missing fields', async () => {
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send({});
+			const response = await request(app).post('/api/auth/login').send({});
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -174,20 +156,16 @@ describe('Authentication API', () => {
 			// Get a refresh token
 			const loginData = {
 				email: 'login@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send(loginData);
+			const response = await request(app).post('/api/auth/login').send(loginData);
 
 			refreshToken = response.body.data.refreshToken;
 		});
 
 		it('should refresh access token with valid refresh token', async () => {
-			const response = await request(app)
-				.post('/api/auth/refresh')
-				.send({ refreshToken });
+			const response = await request(app).post('/api/auth/refresh').send({ refreshToken });
 
 			expect(response.status).toBe(200);
 			expect(response.body.success).toBe(true);
@@ -204,9 +182,7 @@ describe('Authentication API', () => {
 		});
 
 		it('should reject refresh with missing token', async () => {
-			const response = await request(app)
-				.post('/api/auth/refresh')
-				.send({});
+			const response = await request(app).post('/api/auth/refresh').send({});
 
 			expect(response.status).toBe(400);
 			expect(response.body.success).toBe(false);
@@ -220,12 +196,10 @@ describe('Authentication API', () => {
 			// Get an access token
 			const loginData = {
 				email: 'login@example.com',
-				password: 'password123'
+				password: 'password123',
 			};
 
-			const response = await request(app)
-				.post('/api/auth/login')
-				.send(loginData);
+			const response = await request(app).post('/api/auth/login').send(loginData);
 
 			accessToken = response.body.data.accessToken;
 		});
@@ -240,8 +214,7 @@ describe('Authentication API', () => {
 		});
 
 		it('should reject logout without token', async () => {
-			const response = await request(app)
-				.post('/api/auth/logout');
+			const response = await request(app).post('/api/auth/logout');
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);

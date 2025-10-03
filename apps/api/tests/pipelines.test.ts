@@ -14,14 +14,14 @@ describe('Pipeline API Endpoints', () => {
 		// Connect to test MongoDB
 		mongoClient = new MongoClient('mongodb://admin:password@localhost:27017');
 		await mongoClient.connect();
-		
+
 		// Create test data
 		const db = mongoClient.db(TEST_DB);
 		const collection = db.collection(TEST_COLLECTION);
-		
+
 		// Clear existing data
 		await collection.deleteMany({});
-		
+
 		// Insert test data
 		await collection.insertMany([
 			{
@@ -30,7 +30,7 @@ describe('Pipeline API Endpoints', () => {
 				category: 'Electronics',
 				status: 'shipped',
 				quantity: 1,
-				price: 1200
+				price: 1200,
 			},
 			{
 				_id: '2',
@@ -38,7 +38,7 @@ describe('Pipeline API Endpoints', () => {
 				category: 'Electronics',
 				status: 'shipped',
 				quantity: 3,
-				price: 25
+				price: 25,
 			},
 			{
 				_id: '3',
@@ -46,7 +46,7 @@ describe('Pipeline API Endpoints', () => {
 				category: 'Furniture',
 				status: 'pending',
 				quantity: 1,
-				price: 300
+				price: 300,
 			},
 			{
 				_id: '4',
@@ -54,17 +54,15 @@ describe('Pipeline API Endpoints', () => {
 				category: 'Furniture',
 				status: 'shipped',
 				quantity: 2,
-				price: 150
-			}
+				price: 150,
+			},
 		]);
 
 		// Create connection
-		const connectResponse = await request(app)
-			.post('/api/connections/connect')
-			.send({
-				connectionId: 'test-conn-1',
-				uri: 'mongodb://admin:password@localhost:27017'
-			});
+		const connectResponse = await request(app).post('/api/connections/connect').send({
+			connectionId: 'test-conn-1',
+			uri: 'mongodb://admin:password@localhost:27017',
+		});
 
 		expect(connectResponse.status).toBe(200);
 		connectionId = 'test-conn-1';
@@ -80,19 +78,14 @@ describe('Pipeline API Endpoints', () => {
 
 	describe('POST /api/pipelines/execute', () => {
 		it('should execute a simple pipeline', async () => {
-			const pipeline = [
-				{ $match: { status: 'shipped' } },
-				{ $limit: 2 }
-			];
+			const pipeline = [{ $match: { status: 'shipped' } }, { $limit: 2 }];
 
-			const response = await request(app)
-				.post('/api/pipelines/execute')
-				.send({
-					connectionId,
-					database: TEST_DB,
-					collection: TEST_COLLECTION,
-					pipeline
-				});
+			const response = await request(app).post('/api/pipelines/execute').send({
+				connectionId,
+				database: TEST_DB,
+				collection: TEST_COLLECTION,
+				pipeline,
+			});
 
 			expect(response.status).toBe(200);
 			expect(response.body.success).toBe(true);
@@ -107,7 +100,7 @@ describe('Pipeline API Endpoints', () => {
 					connectionId,
 					database: TEST_DB,
 					collection: TEST_COLLECTION,
-					pipeline: [{ invalid: 'operator' }]
+					pipeline: [{ invalid: 'operator' }],
 				});
 
 			expect(response.status).toBe(500);
@@ -115,12 +108,10 @@ describe('Pipeline API Endpoints', () => {
 		});
 
 		it('should return error for missing required fields', async () => {
-			const response = await request(app)
-				.post('/api/pipelines/execute')
-				.send({
-					connectionId,
-					// Missing database, collection, pipeline
-				});
+			const response = await request(app).post('/api/pipelines/execute').send({
+				connectionId,
+				// Missing database, collection, pipeline
+			});
 
 			expect(response.status).toBe(400);
 			expect(response.body.error).toContain('required');
@@ -131,23 +122,21 @@ describe('Pipeline API Endpoints', () => {
 		it('should execute pipeline with stage-by-stage results', async () => {
 			const pipeline = [
 				{ $match: { status: 'shipped' } },
-				{ $group: { _id: '$category', count: { $sum: 1 } } }
+				{ $group: { _id: '$category', count: { $sum: 1 } } },
 			];
 
-			const response = await request(app)
-				.post('/api/pipelines/execute-stages')
-				.send({
-					connectionId,
-					database: TEST_DB,
-					collection: TEST_COLLECTION,
-					pipeline,
-					sampleSize: 5
-				});
+			const response = await request(app).post('/api/pipelines/execute-stages').send({
+				connectionId,
+				database: TEST_DB,
+				collection: TEST_COLLECTION,
+				pipeline,
+				sampleSize: 5,
+			});
 
 			expect(response.status).toBe(200);
 			expect(response.body.success).toBe(true);
 			expect(response.body.stages).toHaveLength(2);
-			
+
 			// Check first stage
 			expect(response.body.stages[0].stageIndex).toBe(0);
 			expect(response.body.stages[0].stage).toEqual({ $match: { status: 'shipped' } });
@@ -157,7 +146,9 @@ describe('Pipeline API Endpoints', () => {
 
 			// Check second stage
 			expect(response.body.stages[1].stageIndex).toBe(1);
-			expect(response.body.stages[1].stage).toEqual({ $group: { _id: '$category', count: { $sum: 1 } } });
+			expect(response.body.stages[1].stage).toEqual({
+				$group: { _id: '$category', count: { $sum: 1 } },
+			});
 			expect(response.body.stages[1].count).toBeGreaterThan(0);
 			expect(response.body.stages[1].preview).toHaveLength(5); // sampleSize
 			expect(response.body.stages[1].executionTime).toBeGreaterThan(0);
@@ -166,30 +157,26 @@ describe('Pipeline API Endpoints', () => {
 		it('should respect sample size parameter', async () => {
 			const pipeline = [{ $limit: 10 }];
 
-			const response = await request(app)
-				.post('/api/pipelines/execute-stages')
-				.send({
-					connectionId,
-					database: TEST_DB,
-					collection: TEST_COLLECTION,
-					pipeline,
-					sampleSize: 2
-				});
+			const response = await request(app).post('/api/pipelines/execute-stages').send({
+				connectionId,
+				database: TEST_DB,
+				collection: TEST_COLLECTION,
+				pipeline,
+				sampleSize: 2,
+			});
 
 			expect(response.status).toBe(200);
 			expect(response.body.stages[0].preview).toHaveLength(2);
 		});
 
 		it('should handle empty pipeline', async () => {
-			const response = await request(app)
-				.post('/api/pipelines/execute-stages')
-				.send({
-					connectionId,
-					database: TEST_DB,
-					collection: TEST_COLLECTION,
-					pipeline: [],
-					sampleSize: 5
-				});
+			const response = await request(app).post('/api/pipelines/execute-stages').send({
+				connectionId,
+				database: TEST_DB,
+				collection: TEST_COLLECTION,
+				pipeline: [],
+				sampleSize: 5,
+			});
 
 			expect(response.status).toBe(200);
 			expect(response.body.stages).toHaveLength(0);
@@ -203,7 +190,7 @@ describe('Pipeline API Endpoints', () => {
 					database: TEST_DB,
 					collection: TEST_COLLECTION,
 					pipeline: [{ $limit: 1 }],
-					sampleSize: 5
+					sampleSize: 5,
 				});
 
 			expect(response.status).toBe(500);
@@ -215,21 +202,17 @@ describe('Pipeline API Endpoints', () => {
 		it('should validate correct pipeline', async () => {
 			const pipeline = [
 				{ $match: { status: 'shipped' } },
-				{ $group: { _id: '$category', count: { $sum: 1 } } }
+				{ $group: { _id: '$category', count: { $sum: 1 } } },
 			];
 
-			const response = await request(app)
-				.post('/api/pipelines/validate')
-				.send({ pipeline });
+			const response = await request(app).post('/api/pipelines/validate').send({ pipeline });
 
 			expect(response.status).toBe(200);
 			expect(response.body.valid).toBe(true);
 		});
 
 		it('should reject empty pipeline', async () => {
-			const response = await request(app)
-				.post('/api/pipelines/validate')
-				.send({ pipeline: [] });
+			const response = await request(app).post('/api/pipelines/validate').send({ pipeline: [] });
 
 			expect(response.status).toBe(200);
 			expect(response.body.valid).toBe(false);
@@ -247,14 +230,9 @@ describe('Pipeline API Endpoints', () => {
 		});
 
 		it('should reject pipeline with invalid operators', async () => {
-			const pipeline = [
-				{ $match: { status: 'shipped' } },
-				{ invalidOperator: 'value' }
-			];
+			const pipeline = [{ $match: { status: 'shipped' } }, { invalidOperator: 'value' }];
 
-			const response = await request(app)
-				.post('/api/pipelines/validate')
-				.send({ pipeline });
+			const response = await request(app).post('/api/pipelines/validate').send({ pipeline });
 
 			expect(response.status).toBe(200);
 			expect(response.body.valid).toBe(false);
@@ -264,9 +242,7 @@ describe('Pipeline API Endpoints', () => {
 		it('should reject pipeline with empty stages', async () => {
 			const pipeline = [{}];
 
-			const response = await request(app)
-				.post('/api/pipelines/validate')
-				.send({ pipeline });
+			const response = await request(app).post('/api/pipelines/validate').send({ pipeline });
 
 			expect(response.status).toBe(200);
 			expect(response.body.valid).toBe(false);
@@ -276,9 +252,7 @@ describe('Pipeline API Endpoints', () => {
 		it('should reject non-object stages', async () => {
 			const pipeline = ['not an object'];
 
-			const response = await request(app)
-				.post('/api/pipelines/validate')
-				.send({ pipeline });
+			const response = await request(app).post('/api/pipelines/validate').send({ pipeline });
 
 			expect(response.status).toBe(200);
 			expect(response.body.valid).toBe(false);

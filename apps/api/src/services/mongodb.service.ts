@@ -35,7 +35,7 @@ class MongoDBService {
 	async disconnectAll(): Promise<void> {
 		const promises = Array.from(this.clients.keys()).map((id) => this.disconnect(id));
 		await Promise.all(promises);
-		
+
 		// Disconnect Mongoose
 		if (this.mongooseConnected) {
 			await mongoose.disconnect();
@@ -49,7 +49,7 @@ class MongoDBService {
 		}
 
 		const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/pipe-lens';
-		
+
 		try {
 			await mongoose.connect(mongoUri);
 			this.mongooseConnected = true;

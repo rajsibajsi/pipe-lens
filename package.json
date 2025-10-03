@@ -1,32 +1,32 @@
 {
-  "name": "pipe-lens",
-  "version": "0.1.0",
-  "private": true,
-  "description": "MongoDB Aggregation Pipeline Visual Debugger",
-  "scripts": {
-    "dev": "pnpm --filter \"./apps/**\" dev",
-    "build": "pnpm --filter \"./apps/**\" build",
-    "test": "pnpm --filter \"./apps/**\" test",
-    "test:e2e": "pnpm --filter \"./apps/web\" test:e2e",
-    "test:coverage": "pnpm --filter \"./apps/**\" test:coverage",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "format:check": "biome ci .",
-    "check": "biome check --write .",
-    "typecheck": "pnpm --filter \"./apps/**\" check"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
-    "@types/node": "^20.11.5",
-    "typescript": "^5.3.3"
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "^0.25.0"
-    }
-  }
+	"name": "pipe-lens",
+	"version": "0.1.0",
+	"private": true,
+	"description": "MongoDB Aggregation Pipeline Visual Debugger",
+	"scripts": {
+		"dev": "pnpm --filter \"./apps/**\" dev",
+		"build": "pnpm --filter \"./apps/**\" build",
+		"test": "pnpm --filter \"./apps/**\" test",
+		"test:e2e": "pnpm --filter \"./apps/web\" test:e2e",
+		"test:coverage": "pnpm --filter \"./apps/**\" test:coverage",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"format:check": "biome ci .",
+		"check": "biome check --write .",
+		"typecheck": "pnpm --filter \"./apps/**\" check"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.4",
+		"@types/node": "^20.11.5",
+		"typescript": "^5.3.3"
+	},
+	"engines": {
+		"node": ">=20.0.0",
+		"pnpm": ">=8.0.0"
+	},
+	"pnpm": {
+		"overrides": {
+			"esbuild": "^0.25.0"
+		}
+	}
 }

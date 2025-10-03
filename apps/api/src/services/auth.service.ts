@@ -46,7 +46,7 @@ export class AuthService {
 			email,
 			password: hashedPassword,
 			name,
-			plan: 'free'
+			plan: 'free',
 		});
 
 		await user.save();
@@ -56,7 +56,7 @@ export class AuthService {
 
 		return {
 			user,
-			...tokens
+			...tokens,
 		};
 	}
 
@@ -87,7 +87,7 @@ export class AuthService {
 
 		return {
 			user,
-			...tokens
+			...tokens,
 		};
 	}
 
@@ -97,12 +97,12 @@ export class AuthService {
 	async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
 		// Verify refresh token
 		const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
-		
+
 		// Find session
 		const session = await UserSession.findOne({
 			refreshToken,
 			isActive: true,
-			expiresAt: { $gt: new Date() }
+			expiresAt: { $gt: new Date() },
 		});
 
 		if (!session) {
@@ -138,10 +138,7 @@ export class AuthService {
 	 * Logout from all devices
 	 */
 	async logoutAll(userId: string): Promise<void> {
-		await UserSession.updateMany(
-			{ userId, isActive: true },
-			{ isActive: false }
-		);
+		await UserSession.updateMany({ userId, isActive: true }, { isActive: false });
 	}
 
 	/**
@@ -149,12 +146,12 @@ export class AuthService {
 	 */
 	async verifyToken(token: string): Promise<IUser> {
 		const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-		
+
 		// Check if session exists and is valid
 		const session = await UserSession.findOne({
 			token,
 			isActive: true,
-			expiresAt: { $gt: new Date() }
+			expiresAt: { $gt: new Date() },
 		});
 
 		if (!session) {
@@ -176,20 +173,14 @@ export class AuthService {
 	/**
 	 * Generate access and refresh tokens
 	 */
-	private async generateTokens(userId: string): Promise<{ accessToken: string; refreshToken: string }> {
+	private async generateTokens(
+		userId: string,
+	): Promise<{ accessToken: string; refreshToken: string }> {
 		// Generate access token
-		const accessToken = jwt.sign(
-			{ userId },
-			JWT_SECRET,
-			{ expiresIn: JWT_EXPIRES_IN }
-		);
+		const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
 		// Generate refresh token
-		const refreshToken = jwt.sign(
-			{ userId },
-			JWT_REFRESH_SECRET,
-			{ expiresIn: undefined }
-		);
+		const refreshToken = jwt.sign({ userId }, JWT_REFRESH_SECRET, { expiresIn: undefined });
 
 		// Calculate expiration date
 		const expiresAt = new Date();
@@ -200,7 +191,7 @@ export class AuthService {
 			userId,
 			token: accessToken,
 			refreshToken,
-			expiresAt
+			expiresAt,
 		});
 
 		await session.save();
@@ -237,7 +228,11 @@ export class AuthService {
 	/**
 	 * Change password
 	 */
-	async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+	async changePassword(
+		userId: string,
+		currentPassword: string,
+		newPassword: string,
+	): Promise<void> {
 		const user = await User.findById(userId);
 		if (!user) {
 			throw new Error('User not found');

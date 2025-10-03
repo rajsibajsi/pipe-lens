@@ -26,14 +26,14 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 			sampleSize,
 			isPublic,
 			isTemplate,
-			metadata
+			metadata,
 		} = req.body;
 
 		// Validate required fields
 		if (!name || !pipeline || !connectionId || !database || !collectionName) {
 			return res.status(400).json({
 				success: false,
-				message: 'Name, pipeline, connectionId, database, and collection are required'
+				message: 'Name, pipeline, connectionId, database, and collection are required',
 			});
 		}
 
@@ -41,7 +41,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 		if (!Array.isArray(pipeline) || pipeline.length === 0) {
 			return res.status(400).json({
 				success: false,
-				message: 'Pipeline must be a non-empty array of aggregation stages'
+				message: 'Pipeline must be a non-empty array of aggregation stages',
 			});
 		}
 
@@ -49,7 +49,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 		if (tags && (!Array.isArray(tags) || tags.length > 10)) {
 			return res.status(400).json({
 				success: false,
-				message: 'Tags must be an array with maximum 10 items'
+				message: 'Tags must be an array with maximum 10 items',
 			});
 		}
 
@@ -65,7 +65,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 			sampleSize: sampleSize || 10,
 			isPublic: isPublic || false,
 			isTemplate: isTemplate || false,
-			metadata: metadata || {}
+			metadata: metadata || {},
 		};
 
 		const savedPipeline = await pipelineService.createPipeline(pipelineData);
@@ -73,13 +73,13 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 		return res.status(201).json({
 			success: true,
 			message: 'Pipeline saved successfully',
-			data: { pipeline: savedPipeline }
+			data: { pipeline: savedPipeline },
 		});
 	} catch (error) {
 		console.error('Save pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to save pipeline'
+			message: error instanceof Error ? error.message : 'Failed to save pipeline',
 		});
 	}
 });
@@ -99,32 +99,36 @@ router.get('/saved', authenticate, async (req: Request, res: Response) => {
 			limit = 20,
 			offset = 0,
 			sortBy = 'updatedAt',
-			sortOrder = 'desc'
+			sortOrder = 'desc',
 		} = req.query;
 
 		const filters: PipelineFilters = {
 			userId: req.user!._id.toString(),
-			tags: tags ? (Array.isArray(tags) ? tags.map(t => t as string) : [tags as string]) : undefined,
+			tags: tags
+				? Array.isArray(tags)
+					? tags.map((t) => t as string)
+					: [tags as string]
+				: undefined,
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
 			limit: parseInt(limit as string),
 			offset: parseInt(offset as string),
 			sortBy: sortBy as any,
-			sortOrder: sortOrder as 'asc' | 'desc'
+			sortOrder: sortOrder as 'asc' | 'desc',
 		};
 
 		const pipelines = await pipelineService.getUserPipelines(req.user!._id.toString(), filters);
 
 		res.json({
 			success: true,
-			data: { pipelines }
+			data: { pipelines },
 		});
 	} catch (error) {
 		console.error('Get pipelines error:', error);
 		res.status(500).json({
 			success: false,
-			message: 'Failed to get pipelines'
+			message: 'Failed to get pipelines',
 		});
 	}
 });
@@ -144,31 +148,35 @@ router.get('/saved/public', optionalAuth, async (req: Request, res: Response) =>
 			limit = 20,
 			offset = 0,
 			sortBy = 'createdAt',
-			sortOrder = 'desc'
+			sortOrder = 'desc',
 		} = req.query;
 
 		const filters: PipelineFilters = {
-			tags: tags ? (Array.isArray(tags) ? tags.map(t => t as string) : [tags as string]) : undefined,
+			tags: tags
+				? Array.isArray(tags)
+					? tags.map((t) => t as string)
+					: [tags as string]
+				: undefined,
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
 			limit: parseInt(limit as string),
 			offset: parseInt(offset as string),
 			sortBy: sortBy as any,
-			sortOrder: sortOrder as 'asc' | 'desc'
+			sortOrder: sortOrder as 'asc' | 'desc',
 		};
 
 		const pipelines = await pipelineService.getPublicPipelines(filters);
 
 		res.json({
 			success: true,
-			data: { pipelines }
+			data: { pipelines },
 		});
 	} catch (error) {
 		console.error('Get public pipelines error:', error);
 		res.status(500).json({
 			success: false,
-			message: 'Failed to get public pipelines'
+			message: 'Failed to get public pipelines',
 		});
 	}
 });
@@ -188,19 +196,19 @@ router.get('/saved/:id', optionalAuth, async (req: Request, res: Response) => {
 		if (!pipeline) {
 			return res.status(404).json({
 				success: false,
-				message: 'Pipeline not found'
+				message: 'Pipeline not found',
 			});
 		}
 
 		return res.json({
 			success: true,
-			data: { pipeline }
+			data: { pipeline },
 		});
 	} catch (error) {
 		console.error('Get pipeline error:', error);
 		return res.status(500).json({
 			success: false,
-			message: 'Failed to get pipeline'
+			message: 'Failed to get pipeline',
 		});
 	}
 });
@@ -216,10 +224,13 @@ router.put('/saved/:id', authenticate, pipelineRateLimit, async (req: Request, r
 		const updateData = req.body;
 
 		// Validate pipeline if provided
-		if (updateData.pipeline && (!Array.isArray(updateData.pipeline) || updateData.pipeline.length === 0)) {
+		if (
+			updateData.pipeline &&
+			(!Array.isArray(updateData.pipeline) || updateData.pipeline.length === 0)
+		) {
 			return res.status(400).json({
 				success: false,
-				message: 'Pipeline must be a non-empty array of aggregation stages'
+				message: 'Pipeline must be a non-empty array of aggregation stages',
 			});
 		}
 
@@ -227,7 +238,7 @@ router.put('/saved/:id', authenticate, pipelineRateLimit, async (req: Request, r
 		if (updateData.tags && (!Array.isArray(updateData.tags) || updateData.tags.length > 10)) {
 			return res.status(400).json({
 				success: false,
-				message: 'Tags must be an array with maximum 10 items'
+				message: 'Tags must be an array with maximum 10 items',
 			});
 		}
 
@@ -236,13 +247,13 @@ router.put('/saved/:id', authenticate, pipelineRateLimit, async (req: Request, r
 		return res.json({
 			success: true,
 			message: 'Pipeline updated successfully',
-			data: { pipeline }
+			data: { pipeline },
 		});
 	} catch (error) {
 		console.error('Update pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to update pipeline'
+			message: error instanceof Error ? error.message : 'Failed to update pipeline',
 		});
 	}
 });
@@ -260,13 +271,13 @@ router.delete('/saved/:id', authenticate, async (req: Request, res: Response) =>
 
 		return res.json({
 			success: true,
-			message: 'Pipeline deleted successfully'
+			message: 'Pipeline deleted successfully',
 		});
 	} catch (error) {
 		console.error('Delete pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to delete pipeline'
+			message: error instanceof Error ? error.message : 'Failed to delete pipeline',
 		});
 	}
 });
@@ -284,22 +295,26 @@ router.post('/saved/:id/duplicate', authenticate, async (req: Request, res: Resp
 		if (!name) {
 			return res.status(400).json({
 				success: false,
-				message: 'Name is required for duplicated pipeline'
+				message: 'Name is required for duplicated pipeline',
 			});
 		}
 
-		const duplicatedPipeline = await pipelineService.duplicatePipeline(id, req.user!._id.toString(), name);
+		const duplicatedPipeline = await pipelineService.duplicatePipeline(
+			id,
+			req.user!._id.toString(),
+			name,
+		);
 
 		return res.status(201).json({
 			success: true,
 			message: 'Pipeline duplicated successfully',
-			data: { pipeline: duplicatedPipeline }
+			data: { pipeline: duplicatedPipeline },
 		});
 	} catch (error) {
 		console.error('Duplicate pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to duplicate pipeline'
+			message: error instanceof Error ? error.message : 'Failed to duplicate pipeline',
 		});
 	}
 });
@@ -318,13 +333,13 @@ router.post('/saved/:id/execute', authenticate, async (req: Request, res: Respon
 		return res.json({
 			success: true,
 			message: 'Pipeline executed successfully',
-			data: { pipeline }
+			data: { pipeline },
 		});
 	} catch (error) {
 		console.error('Execute pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to execute pipeline'
+			message: error instanceof Error ? error.message : 'Failed to execute pipeline',
 		});
 	}
 });
@@ -340,13 +355,13 @@ router.get('/saved/stats', authenticate, async (req: Request, res: Response) => 
 
 		return res.json({
 			success: true,
-			data: { stats }
+			data: { stats },
 		});
 	} catch (error) {
 		console.error('Get pipeline stats error:', error);
 		return res.status(500).json({
 			success: false,
-			message: 'Failed to get pipeline statistics'
+			message: 'Failed to get pipeline statistics',
 		});
 	}
 });
@@ -364,13 +379,13 @@ router.get('/saved/:id/export', authenticate, async (req: Request, res: Response
 
 		return res.json({
 			success: true,
-			data: { export: exportData }
+			data: { export: exportData },
 		});
 	} catch (error) {
 		console.error('Export pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to export pipeline'
+			message: error instanceof Error ? error.message : 'Failed to export pipeline',
 		});
 	}
 });
@@ -387,29 +402,33 @@ router.post('/saved/import', authenticate, async (req: Request, res: Response) =
 		if (!importData || !name) {
 			return res.status(400).json({
 				success: false,
-				message: 'Import data and name are required'
+				message: 'Import data and name are required',
 			});
 		}
 
 		if (!importData.pipeline || !Array.isArray(importData.pipeline)) {
 			return res.status(400).json({
 				success: false,
-				message: 'Invalid import data: pipeline must be an array'
+				message: 'Invalid import data: pipeline must be an array',
 			});
 		}
 
-		const pipeline = await pipelineService.importPipeline(req.user!._id.toString(), importData, name);
+		const pipeline = await pipelineService.importPipeline(
+			req.user!._id.toString(),
+			importData,
+			name,
+		);
 
 		return res.status(201).json({
 			success: true,
 			message: 'Pipeline imported successfully',
-			data: { pipeline }
+			data: { pipeline },
 		});
 	} catch (error) {
 		console.error('Import pipeline error:', error);
 		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Failed to import pipeline'
+			message: error instanceof Error ? error.message : 'Failed to import pipeline',
 		});
 	}
 });
