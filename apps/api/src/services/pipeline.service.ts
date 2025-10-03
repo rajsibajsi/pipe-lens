@@ -280,7 +280,7 @@ export class PipelineService {
 			pipeline: [...originalPipeline.pipeline],
 			connectionId: originalPipeline.connectionId,
 			database: originalPipeline.database,
-			collection: originalPipeline.collection,
+			collection: originalPipeline.collectionName,
 			sampleSize: originalPipeline.sampleSize,
 			isPublic: false, // Duplicates are private by default
 			isTemplate: false,
@@ -375,12 +375,15 @@ export class PipelineService {
 	 * Import pipeline from JSON
 	 */
     async importPipeline(userId: string, importData: Record<string, unknown>, name: string): Promise<IPipeline> {
+		const description = typeof importData.description === 'string' ? importData.description : "";
+		const tags = Array.isArray(importData.tags) ? importData.tags : [];
+		const pipeline = Array.isArray(importData.pipeline) ? importData.pipeline : [];
 		const pipelineData: CreatePipelineData = {
 			userId,
 			name,
-			description: importData.description,
-			tags: importData.tags || [],
-			pipeline: importData.pipeline,
+			description,
+			tags,
+			pipeline,
 			connectionId: '', // Will need to be set by user
 			database: '', // Will need to be set by user
 			collection: '', // Will need to be set by user

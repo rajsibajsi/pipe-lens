@@ -1,12 +1,11 @@
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt, { Secret } from 'jsonwebtoken';
 import { User, type IUser } from '../models/User';
 import { UserSession } from '../models/UserSession';
 
-const JWT_SECRET = (process.env.JWT_SECRET || 'your-secret-key') as string;
-const JWT_REFRESH_SECRET = (process.env.JWT_REFRESH_SECRET || 'your-refresh-secret') as string;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_REFRESH_SECRET: Secret = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
+const JWT_EXPIRES_IN = parseInt(process.env.JWT_EXPIRES_IN || '7776000'); // 90 days
 
 export interface AuthResult {
 	user: IUser;
@@ -183,14 +182,14 @@ export class AuthService {
 			{ userId },
 			JWT_SECRET,
 			{ expiresIn: JWT_EXPIRES_IN }
-		) as string;
+		);
 
 		// Generate refresh token
 		const refreshToken = jwt.sign(
 			{ userId },
 			JWT_REFRESH_SECRET,
-			{ expiresIn: JWT_REFRESH_EXPIRES_IN }
-		) as string;
+			{ expiresIn: undefined }
+		);
 
 		// Calculate expiration date
 		const expiresAt = new Date();

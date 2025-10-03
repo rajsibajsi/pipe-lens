@@ -3,18 +3,19 @@
 interface Props {
 	isOpen: boolean;
 	onClose: () => void;
+	onConnect: () => void;
 }
 
-const { isOpen }: Props = $props();
+const { isOpen, onClose, onConnect }: Props = $props();
 
-const connectionName = $state('Local MongoDB');
-const connectionUri = $state('mongodb://admin:password@localhost:27017');
-const isConnecting = $state(false);
-const error = $state('');
+let connectionName = $state('Local MongoDB');
+let connectionUri = $state('mongodb://admin:password@localhost:27017');
+let isConnecting = $state(false);
+let error = $state('');
 
 // Mark as used for linter
 const __use = (..._args: unknown[]) => {};
-__use(isOpen, connectionName, connectionUri, isConnecting, error);
+__use(isOpen, connectionName, connectionUri, isConnecting, error, onClose, onConnect);
 
 </script>
 
@@ -69,7 +70,7 @@ __use(isOpen, connectionName, connectionUri, isConnecting, error);
 			<div class="modal-footer">
 				<button
 					type="button"
-					onclick={onClose}
+					onclick={() => onClose()}
 					disabled={isConnecting}
 					class="btn btn-secondary"
 					style="flex: 1;"
@@ -78,7 +79,7 @@ __use(isOpen, connectionName, connectionUri, isConnecting, error);
 				</button>
 				<button
 					type="button"
-					onclick={handleConnect}
+					onclick={() => onConnect()}
 					disabled={isConnecting}
 					class="btn btn-primary"
 					style="flex: 1;"

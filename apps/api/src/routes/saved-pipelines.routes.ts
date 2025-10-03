@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { authenticate, optionalAuth, rateLimit } from '../middleware/auth.middleware';
-import { PipelineService } from '../services/pipeline.service';
+import { CreatePipelineData, PipelineFilters, PipelineService } from '../services/pipeline.service';
 
 const router = Router();
 const pipelineService = new PipelineService();
@@ -53,7 +53,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 			});
 		}
 
-		const pipelineData = {
+		const pipelineData: CreatePipelineData = {
 			userId: req.user?._id?.toString() || '',
 			name: name.trim(),
 			description: description?.trim(),
@@ -61,7 +61,7 @@ router.post('/saved', authenticate, pipelineRateLimit, async (req: Request, res:
 			pipeline,
 			connectionId,
 			database,
-			collectionName,
+			collection: collectionName,
 			sampleSize: sampleSize || 10,
 			isPublic: isPublic || false,
 			isTemplate: isTemplate || false,
@@ -102,9 +102,9 @@ router.get('/saved', authenticate, async (req: Request, res: Response) => {
 			sortOrder = 'desc'
 		} = req.query;
 
-		const filters = {
-			userId: req.user!._id,
-			tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
+		const filters: PipelineFilters = {
+			userId: req.user!._id.toString(),
+			tags: tags ? (Array.isArray(tags) ? tags.map(t => t as string) : [tags as string]) : undefined,
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
@@ -114,7 +114,7 @@ router.get('/saved', authenticate, async (req: Request, res: Response) => {
 			sortOrder: sortOrder as 'asc' | 'desc'
 		};
 
-		const pipelines = await pipelineService.getUserPipelines(req.user!._id, filters);
+		const pipelines = await pipelineService.getUserPipelines(req.user!._id.toString(), filters);
 
 		res.json({
 			success: true,
@@ -147,8 +147,8 @@ router.get('/saved/public', optionalAuth, async (req: Request, res: Response) =>
 			sortOrder = 'desc'
 		} = req.query;
 
-		const filters = {
-			tags: tags ? (Array.isArray(tags) ? tags : [tags]) : undefined,
+		const filters: PipelineFilters = {
+			tags: tags ? (Array.isArray(tags) ? tags.map(t => t as string) : [tags as string]) : undefined,
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
@@ -181,7 +181,7 @@ router.get('/saved/public', optionalAuth, async (req: Request, res: Response) =>
 router.get('/saved/:id', optionalAuth, async (req: Request, res: Response) => {
 	try {
 		const { id } = req.params;
-		const userId = req.user?._id;
+		const userId = req.user?._id?.toString();
 
 		const pipeline = await pipelineService.getPipelineById(id, userId);
 
@@ -192,13 +192,13 @@ router.get('/saved/:id', optionalAuth, async (req: Request, res: Response) => {
 			});
 		}
 
-		res.json({
+		return res.json({
 			success: true,
 			data: { pipeline }
 		});
 	} catch (error) {
 		console.error('Get pipeline error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Failed to get pipeline'
 		});
@@ -231,16 +231,16 @@ router.put('/saved/:id', authenticate, pipelineRateLimit, async (req: Request, r
 			});
 		}
 
-		const pipeline = await pipelineService.updatePipeline(id, req.user!._id, updateData);
+		const pipeline = await pipelineService.updatePipeline(id, req.user!._id.toString(), updateData);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Pipeline updated successfully',
 			data: { pipeline }
 		});
 	} catch (error) {
 		console.error('Update pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to update pipeline'
 		});
@@ -256,15 +256,15 @@ router.delete('/saved/:id', authenticate, async (req: Request, res: Response) =>
 	try {
 		const { id } = req.params;
 
-		await pipelineService.deletePipeline(id, req.user!._id);
+		await pipelineService.deletePipeline(id, req.user!._id.toString());
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Pipeline deleted successfully'
 		});
 	} catch (error) {
 		console.error('Delete pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to delete pipeline'
 		});
@@ -288,16 +288,16 @@ router.post('/saved/:id/duplicate', authenticate, async (req: Request, res: Resp
 			});
 		}
 
-		const duplicatedPipeline = await pipelineService.duplicatePipeline(id, req.user!._id, name);
+		const duplicatedPipeline = await pipelineService.duplicatePipeline(id, req.user!._id.toString(), name);
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
 			message: 'Pipeline duplicated successfully',
 			data: { pipeline: duplicatedPipeline }
 		});
 	} catch (error) {
 		console.error('Duplicate pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to duplicate pipeline'
 		});
@@ -313,16 +313,16 @@ router.post('/saved/:id/execute', authenticate, async (req: Request, res: Respon
 	try {
 		const { id } = req.params;
 
-		const pipeline = await pipelineService.executePipeline(id, req.user!._id);
+		const pipeline = await pipelineService.executePipeline(id, req.user!._id.toString());
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Pipeline executed successfully',
 			data: { pipeline }
 		});
 	} catch (error) {
 		console.error('Execute pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to execute pipeline'
 		});
@@ -336,15 +336,15 @@ router.post('/saved/:id/execute', authenticate, async (req: Request, res: Respon
  */
 router.get('/saved/stats', authenticate, async (req: Request, res: Response) => {
 	try {
-		const stats = await pipelineService.getPipelineStats(req.user!._id);
+		const stats = await pipelineService.getPipelineStats(req.user!._id.toString());
 
-		res.json({
+		return res.json({
 			success: true,
 			data: { stats }
 		});
 	} catch (error) {
 		console.error('Get pipeline stats error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Failed to get pipeline statistics'
 		});
@@ -360,15 +360,15 @@ router.get('/saved/:id/export', authenticate, async (req: Request, res: Response
 	try {
 		const { id } = req.params;
 
-		const exportData = await pipelineService.exportPipeline(id, req.user!._id);
+		const exportData = await pipelineService.exportPipeline(id, req.user!._id.toString());
 
-		res.json({
+		return res.json({
 			success: true,
 			data: { export: exportData }
 		});
 	} catch (error) {
 		console.error('Export pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to export pipeline'
 		});
@@ -398,16 +398,16 @@ router.post('/saved/import', authenticate, async (req: Request, res: Response) =
 			});
 		}
 
-		const pipeline = await pipelineService.importPipeline(req.user!._id, importData, name);
+		const pipeline = await pipelineService.importPipeline(req.user!._id.toString(), importData, name);
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
 			message: 'Pipeline imported successfully',
 			data: { pipeline }
 		});
 	} catch (error) {
 		console.error('Import pipeline error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
 			message: error instanceof Error ? error.message : 'Failed to import pipeline'
 		});
