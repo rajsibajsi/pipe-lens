@@ -11,7 +11,7 @@
     "test:coverage": "pnpm --filter \"./apps/**\" test:coverage",
     "lint": "biome lint .",
     "format": "biome format --write .",
-		"format:check": "biome ci .",
+    "format:check": "biome ci .",
     "check": "biome check --write .",
     "typecheck": "pnpm --filter \"./apps/**\" check"
   },
