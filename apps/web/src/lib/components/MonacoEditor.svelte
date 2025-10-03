@@ -11,6 +11,13 @@
 		onChange?: (value: string | undefined) => void;
 	}>();
 
+	// Expose a method to update the editor value
+	export function updateValue(newValue: string) {
+		if (editor) {
+			editor.setValue(newValue);
+		}
+	}
+
 	// Locals
 	let editorContainer: HTMLDivElement | null = null;
 	let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
@@ -52,8 +59,13 @@
 	// Update editor value when prop changes (client-only)
     $effect(() => {
         if (!browser) return;
-        if (editor && value !== editor.getValue()) {
-            editor.setValue(value);
+        if (editor) {
+            // Explicitly reference the value prop to ensure reactivity
+            const newValue = value;
+            const currentValue = editor.getValue();
+            if (newValue !== currentValue) {
+                editor.setValue(newValue);
+            }
         }
     });
 

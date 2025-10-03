@@ -29,6 +29,7 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = $state(defaultPipeline);
+let monacoEditor: any = null;
   let showConnectionModal = $state(false);
 let showDatabaseSelector = $state(false);
 let showCollectionSelector = $state(false);
@@ -104,7 +105,12 @@ function insertStage(stageOperator: string) {
         const template = stageTemplates[stageOperator];
         if (!template) return;
         pipelineArray.push(template);
-        editorContent = JSON.stringify(pipelineArray, null, 2);
+        const newContent = JSON.stringify(pipelineArray, null, 2);
+        editorContent = newContent;
+        // Update the Monaco editor directly
+        if (monacoEditor) {
+            monacoEditor.updateValue(newContent);
+        }
         pipelineStore.setPipeline(pipelineArray);
         toastStore.success('Stage added', `${stageOperator} inserted into pipeline`);
     } catch {
@@ -112,7 +118,12 @@ function insertStage(stageOperator: string) {
         const template = stageTemplates[stageOperator];
         if (!template) return;
         const pipelineArray: any[] = [template];
-        editorContent = JSON.stringify(pipelineArray, null, 2);
+        const newContent = JSON.stringify(pipelineArray, null, 2);
+        editorContent = newContent;
+        // Update the Monaco editor directly
+        if (monacoEditor) {
+            monacoEditor.updateValue(newContent);
+        }
         pipelineStore.setPipeline(pipelineArray);
         toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);
     }
@@ -495,6 +506,7 @@ function handleEditorChange(value: string | undefined) {
 			<div style="flex: 1; border-bottom: 1px solid var(--glass-border);">
 				<div style="height: 100%;">
 					<MonacoEditor
+						bind:this={monacoEditor}
 						value={editorContent}
 						language="json"
 						theme="vs-dark"
