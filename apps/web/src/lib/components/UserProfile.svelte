@@ -1,4 +1,6 @@
 <script lang="ts">
+/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
+
 import { onMount } from 'svelte';
 import { userStore } from '$lib/stores/user.store';
 
@@ -9,14 +11,14 @@ interface Props {
 
 const { isOpen, onClose }: Props = $props();
 
-let _activeTab = $state<'profile' | 'password' | 'preferences'>('profile');
+let activeTab = $state<'profile' | 'password' | 'preferences'>('profile');
 let isLoading = $state(false);
-let _error = $state('');
-let _success = $state('');
+let error = $state('');
+let success = $state('');
 
 // Profile form
 let name = $state('');
-let _email = $state('');
+let email = $state('');
 let avatar = $state('');
 
 // Password form
@@ -45,7 +47,7 @@ function initializeForm() {
 
 	const user = authState.user;
 	name = user.name;
-	_email = user.email;
+	email = user.email;
 	avatar = user.avatar || '';
 	theme = user.preferences.theme;
 	language = user.preferences.language;
@@ -53,9 +55,9 @@ function initializeForm() {
 	pipelineNotifications = user.preferences.notifications.pipelineUpdates;
 }
 
-function _resetForms() {
+function resetForms() {
 	name = '';
-	_email = '';
+	email = '';
 	avatar = '';
 	currentPassword = '';
 	newPassword = '';
@@ -64,22 +66,22 @@ function _resetForms() {
 	language = 'en';
 	emailNotifications = true;
 	pipelineNotifications = true;
-	_error = '';
-	_success = '';
+	error = '';
+	success = '';
 }
 
-function _switchTab(tab: 'profile' | 'password' | 'preferences') {
-	_activeTab = tab;
-	_error = '';
-	_success = '';
+function switchTab(tab: 'profile' | 'password' | 'preferences') {
+	activeTab = tab;
+	error = '';
+	success = '';
 }
 
-async function _updateProfile() {
+async function updateProfile() {
 	if (isLoading) return;
 
 	isLoading = true;
-	_error = '';
-	_success = '';
+	error = '';
+	success = '';
 
 	try {
 		const result = await userStore.updateProfile({
@@ -96,58 +98,58 @@ async function _updateProfile() {
 		});
 
 		if (result.success) {
-			_success = 'Profile updated successfully';
+			success = 'Profile updated successfully';
 		} else {
-			_error = result.error || 'Profile update failed';
+			error = result.error || 'Profile update failed';
 		}
 	} catch (err) {
-		_error = err instanceof Error ? err.message : 'Profile update failed';
+		error = err instanceof Error ? err.message : 'Profile update failed';
 	} finally {
 		isLoading = false;
 	}
 }
 
-async function _changePassword() {
+async function changePassword() {
 	if (isLoading) return;
 
 	if (!currentPassword || !newPassword) {
-		_error = 'Current password and new password are required';
+		error = 'Current password and new password are required';
 		return;
 	}
 
 	if (newPassword.length < 8) {
-		_error = 'New password must be at least 8 characters long';
+		error = 'New password must be at least 8 characters long';
 		return;
 	}
 
 	if (newPassword !== confirmPassword) {
-		_error = 'New passwords do not match';
+		error = 'New passwords do not match';
 		return;
 	}
 
 	isLoading = true;
-	_error = '';
-	_success = '';
+	error = '';
+	success = '';
 
 	try {
 		const result = await userStore.changePassword(currentPassword, newPassword);
 
 		if (result.success) {
-			_success = 'Password changed successfully';
+			success = 'Password changed successfully';
 			currentPassword = '';
 			newPassword = '';
 			confirmPassword = '';
 		} else {
-			_error = result.error || 'Password change failed';
+			error = result.error || 'Password change failed';
 		}
 	} catch (err) {
-		_error = err instanceof Error ? err.message : 'Password change failed';
+		error = err instanceof Error ? err.message : 'Password change failed';
 	} finally {
 		isLoading = false;
 	}
 }
 
-async function _deleteAccount() {
+async function deleteAccount() {
 	if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
 		return;
 	}
@@ -161,7 +163,7 @@ async function _deleteAccount() {
 	}
 
 	isLoading = true;
-	_error = '';
+	error = '';
 
 	try {
 		const response = await fetch('/api/auth/account', {
@@ -177,10 +179,10 @@ async function _deleteAccount() {
 			onClose();
 		} else {
 			const data = await response.json();
-			_error = data.message || 'Account deletion failed';
+			error = data.message || 'Account deletion failed';
 		}
 	} catch (err) {
-		_error = err instanceof Error ? err.message : 'Account deletion failed';
+		error = err instanceof Error ? err.message : 'Account deletion failed';
 	} finally {
 		isLoading = false;
 	}

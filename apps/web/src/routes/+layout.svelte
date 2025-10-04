@@ -1,5 +1,15 @@
 <script lang="ts">
+/** biome-ignore-all lint/correctness/noUnusedImports: false positives */
+
 import { onMount } from 'svelte';
+import { page } from '$app/stores';
+import favicon from '$lib/assets/favicon.svg';
+import AuthModal from '$lib/components/AuthModal.svelte';
+import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+import KeyboardShortcutsHelp from '$lib/components/KeyboardShortcutsHelp.svelte';
+import ToastContainer from '$lib/components/ToastContainer.svelte';
+import TutorialModal from '$lib/components/TutorialModal.svelte';
+import UserProfile from '$lib/components/UserProfile.svelte';
 import { userStore } from '$lib/stores/user.store';
 import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
 import '../app.css';
@@ -106,29 +116,29 @@ async function _handleLogout() {
 			</nav>
 
 			<div class="app-auth">
-				{#if authState.isLoading}
+				{#if _authState.isLoading}
 					<div class="auth-loading">Loading...</div>
-				{:else if authState.isAuthenticated && authState.user}
+				{:else if _authState.isAuthenticated && _authState.user}
 					<div class="user-menu">
 						<button
 							class="user-button"
-							onclick={openUserProfile}
+							onclick={_openUserProfile}
 							title="User Profile"
 						>
-							{#if authState.user.avatar}
-								<img src={authState.user.avatar} alt="Avatar" class="user-avatar" />
+							{#if _authState.user.avatar}
+								<img src={_authState.user.avatar} alt="Avatar" class="user-avatar" />
 							{:else}
 								<div class="user-avatar-placeholder">
-									{authState.user.name.charAt(0).toUpperCase()}
+									{_authState.user.name.charAt(0).toUpperCase()}
 								</div>
 							{/if}
-							<span class="user-name">{authState.user.name}</span>
+							<span class="user-name">{_authState.user.name}</span>
 						</button>
 						<div class="user-dropdown">
-							<button class="dropdown-item" onclick={openUserProfile}>
+							<button class="dropdown-item" onclick={_openUserProfile}>
 								Profile
 							</button>
-							<button class="dropdown-item" onclick={handleLogout}>
+							<button class="dropdown-item" onclick={_handleLogout}>
 								Logout
 							</button>
 						</div>
@@ -137,13 +147,13 @@ async function _handleLogout() {
 					<div class="auth-buttons">
 						<button
 							class="auth-button login"
-							onclick={() => openAuthModal('login')}
+							onclick={() => _openAuthModal('login')}
 						>
 							Sign In
 						</button>
 						<button
 							class="auth-button register"
-							onclick={() => openAuthModal('register')}
+							onclick={() => _openAuthModal('register')}
 						>
 							Sign Up
 						</button>
@@ -172,14 +182,14 @@ async function _handleLogout() {
 <!-- Authentication Modal -->
 <AuthModal
 	isOpen={showAuthModal}
-	onClose={closeAuthModal}
-	mode={authMode}
+	onClose={_closeAuthModal}
+	mode={_authMode}
 />
 
 <!-- User Profile Modal -->
 <UserProfile
 	isOpen={showUserProfile}
-	onClose={closeUserProfile}
+	onClose={_closeUserProfile}
 />
 
 <!-- Toast Notifications -->
