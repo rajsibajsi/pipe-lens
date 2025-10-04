@@ -14,7 +14,7 @@ export async function seedTestDatabase() {
 		// Drop existing collection if it exists
 		try {
 			await db.collection('orders').drop();
-		} catch (error) {
+		} catch (_error) {
 			// Collection might not exist, ignore error
 		}
 

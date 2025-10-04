@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { IUser } from '../models/User';
+import type { NextFunction, Request, Response } from 'express';
+import type { IUser } from '../models/User';
 import { AuthService } from '../services/auth.service';
 
 // Extend Express Request interface to include user
@@ -20,24 +20,24 @@ const authService = new AuthService();
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const authHeader = req.headers.authorization;
-		
+
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
 			return res.status(401).json({
 				success: false,
-				message: 'Access token required'
+				message: 'Access token required',
 			});
 		}
 
 		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-		
+
 		const user = await authService.verifyToken(token);
 		req.user = user;
-		
-		next();
-	} catch (error) {
+
+		return next();
+	} catch (_error) {
 		return res.status(401).json({
 			success: false,
-			message: 'Invalid or expired token'
+			message: 'Invalid or expired token',
 		});
 	}
 };
@@ -46,18 +46,18 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
  * Optional authentication middleware
  * Adds user to request if token is valid, but doesn't require it
  */
-export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction) => {
 	try {
 		const authHeader = req.headers.authorization;
-		
-		if (authHeader && authHeader.startsWith('Bearer ')) {
+
+		if (authHeader?.startsWith('Bearer ')) {
 			const token = authHeader.substring(7);
 			const user = await authService.verifyToken(token);
 			req.user = user;
 		}
-		
+
 		next();
-	} catch (error) {
+	} catch (_error) {
 		// Continue without user if token is invalid
 		next();
 	}
@@ -72,7 +72,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 		if (!req.user) {
 			return res.status(401).json({
 				success: false,
-				message: 'Authentication required'
+				message: 'Authentication required',
 			});
 		}
 
@@ -81,15 +81,15 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
 		if (req.user.plan !== 'enterprise') {
 			return res.status(403).json({
 				success: false,
-				message: 'Admin privileges required'
+				message: 'Admin privileges required',
 			});
 		}
 
-		next();
-	} catch (error) {
+		return next();
+	} catch (_error) {
 		return res.status(500).json({
 			success: false,
-			message: 'Authentication error'
+			message: 'Authentication error',
 		});
 	}
 };
@@ -102,7 +102,7 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 	const requests = new Map<string, { count: number; resetTime: number }>();
 
 	return (req: Request, res: Response, next: NextFunction) => {
-		const userId = req.user?._id || req.ip;
+		const userId = req.user?._id?.toString() || req.ip || 'anonymous';
 		const now = Date.now();
 		const windowStart = now - windowMs;
 
@@ -114,31 +114,29 @@ export const rateLimit = (maxRequests: number, windowMs: number) => {
 		}
 
 		const userRequests = requests.get(userId);
-		
+
 		if (!userRequests) {
 			requests.set(userId, { count: 1, resetTime: now });
-			next();
-			return;
+			return next();
 		}
 
 		if (userRequests.resetTime < windowStart) {
 			// Reset window
 			userRequests.count = 1;
 			userRequests.resetTime = now;
-			next();
-			return;
+			return next();
 		}
 
 		if (userRequests.count >= maxRequests) {
 			return res.status(429).json({
 				success: false,
 				message: 'Too many requests, please try again later',
-				retryAfter: Math.ceil((userRequests.resetTime + windowMs - now) / 1000)
+				retryAfter: Math.ceil((userRequests.resetTime + windowMs - now) / 1000),
 			});
 		}
 
 		userRequests.count++;
-		next();
+		return next();
 	};
 };
 
@@ -150,7 +148,7 @@ export const requirePlan = (requiredPlan: 'free' | 'pro' | 'enterprise') => {
 		if (!req.user) {
 			return res.status(401).json({
 				success: false,
-				message: 'Authentication required'
+				message: 'Authentication required',
 			});
 		}
 
@@ -164,10 +162,10 @@ export const requirePlan = (requiredPlan: 'free' | 'pro' | 'enterprise') => {
 				message: `${requiredPlan} plan required`,
 				upgradeRequired: true,
 				currentPlan: req.user.plan,
-				requiredPlan
+				requiredPlan,
 			});
 		}
 
-		next();
+		return next();
 	};
 };

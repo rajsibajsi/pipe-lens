@@ -20,6 +20,17 @@
 			"recommended": true,
 			"suspicious": {
 				"noUnknownAtRules": "off"
+			},
+			"correctness": {
+				"noUnusedVariables": "error",
+				"useExhaustiveDependencies": "warn"
+			},
+			"style": {
+				"noNonNullAssertion": "warn",
+				"useConst": "error"
+			},
+			"complexity": {
+				"noStaticOnlyClass": "warn"
 			}
 		}
 	},
@@ -27,6 +38,12 @@
 		"formatter": {
 			"quoteStyle": "single",
 			"semicolons": "always"
+		}
+	},
+	"json": {
+		"formatter": {
+			"indentStyle": "tab",
+			"indentWidth": 2
 		}
 	},
 	"assist": {

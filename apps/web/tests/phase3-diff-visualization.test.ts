@@ -14,14 +14,14 @@ test.describe('Phase 3: Diff Visualization', () => {
 
 	test('should toggle diff view when diff button is clicked', async ({ page }) => {
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
-		
+
 		// Initially should not be active
 		await expect(diffButton).toHaveAttribute('style', /background: transparent/);
-		
+
 		// Click to activate
 		await diffButton.click();
 		await expect(diffButton).toHaveAttribute('style', /background: var\(--color-primary\)/);
-		
+
 		// Click to deactivate
 		await diffButton.click();
 		await expect(diffButton).toHaveAttribute('style', /background: transparent/);
@@ -33,7 +33,7 @@ test.describe('Phase 3: Diff Visualization', () => {
 		// For now, we'll just check that the diff button exists and can be toggled
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
 		await diffButton.click();
-		
+
 		// The diff functionality would be visible in stage preview if we had results
 		// This is a basic smoke test for the UI elements
 		await expect(diffButton).toBeVisible();
@@ -41,25 +41,25 @@ test.describe('Phase 3: Diff Visualization', () => {
 
 	test('should have proper accessibility attributes for diff controls', async ({ page }) => {
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
-		
+
 		// Check for proper title attribute
 		await expect(diffButton).toHaveAttribute('title', 'Toggle diff view');
-		
+
 		// Verify it's a button element (implicit role)
 		await expect(diffButton).toHaveCount(1);
 	});
 
 	test('should maintain diff state across page interactions', async ({ page }) => {
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
-		
+
 		// Activate diff
 		await diffButton.click();
 		await expect(diffButton).toHaveAttribute('style', /background: var\(--color-primary\)/);
-		
+
 		// Interact with other elements (like sample size input)
 		const sampleSizeInput = page.getByLabel('Sample Size:');
 		await sampleSizeInput.fill('20');
-		
+
 		// Diff state should be maintained
 		await expect(diffButton).toHaveAttribute('style', /background: var\(--color-primary\)/);
 	});
@@ -75,7 +75,7 @@ test.describe('Phase 3: Stage Preview Diff Integration', () => {
 		// Enable diff mode
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
 		await diffButton.click();
-		
+
 		// This test would require actual pipeline execution to show stage preview
 		// For now, we'll verify the diff button state
 		await expect(diffButton).toHaveAttribute('style', /background: var\(--color-primary\)/);
@@ -99,7 +99,7 @@ test.describe('Phase 3: Diff Algorithm Integration', () => {
 		// For now, we'll verify the UI elements are present
 		await page.goto('/builder');
 		await page.waitForLoadState('networkidle');
-		
+
 		const diffButton = page.getByRole('button', { name: '🔍 Diff View' });
 		await expect(diffButton).toBeVisible();
 	});
@@ -110,7 +110,7 @@ test.describe('Phase 3: Diff Algorithm Integration', () => {
 		// For now, we'll verify the basic UI structure
 		await page.goto('/builder');
 		await page.waitForLoadState('networkidle');
-		
+
 		// Check that the page loads without errors
 		await expect(page.locator('h1')).toBeVisible();
 	});

@@ -1,82 +1,98 @@
 <script lang="ts">
-	import BaseChart from './BaseChart.svelte';
-	import DataTable from './DataTable.svelte';
-	import ChartSelector from './ChartSelector.svelte';
-	import { 
-		detectChartType, 
-		transformToChartData, 
-		getChartConfig,
-		type ChartType, 
-		type ChartConfig,
-		type ChartData,
-		type TableData
-	} from '$lib/utils/chart-data';
+import {
+	type ChartConfig,
+	type ChartData,
+	type ChartType,
+	detectChartType,
+	getChartConfig,
+	type TableData,
+	transformToChartData,
+} from '$lib/utils/chart-data';
+import BaseChart from './BaseChart.svelte';
+import ChartSelector from './ChartSelector.svelte';
+import DataTable from './DataTable.svelte';
 
-	interface Props {
-		data: unknown[];
-		title?: string;
-		showControls?: boolean;
-		width?: string;
-		height?: string;
+const __use = (..._args: unknown[]) => {};
+
+interface Props {
+	data: unknown[];
+	title?: string;
+	showControls?: boolean;
+	width?: string;
+	height?: string;
+}
+
+const {
+	data,
+	title = 'Data Visualization',
+	showControls = true,
+	width = '100%',
+	height = '400px',
+}: Props = $props();
+
+// Linter: acknowledge usage in template
+__use(BaseChart, ChartSelector, DataTable, showControls, width, height);
+
+let selectedChartType = $state<ChartType>('table');
+let chartConfig = $state<ChartConfig>(getChartConfig(data, 'table', title));
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+let chartData = $state<ChartData | TableData | null>(null);
+
+// Single effect that only updates chartData, not the other state variables
+$effect(() => {
+	if (data && data.length > 0) {
+		// Use the current values without modifying them in the effect
+		const currentType = selectedChartType;
+		const currentConfig = chartConfig;
+
+		// Only update chartData, don't modify selectedChartType or chartConfig
+		chartData = transformToChartData(data, currentType, currentConfig);
+	} else {
+		chartData = null;
 	}
+});
 
-	const { 
-		data, 
-		title = 'Data Visualization',
-		showControls = true,
-		width = '100%',
-		height = '400px'
-	}: Props = $props();
-
-	let selectedChartType = $state<ChartType>('table');
-	let chartConfig = $state<ChartConfig>(getChartConfig(data, 'table', title));
-	let chartData = $state<ChartData | TableData | null>(null);
-
-	// Auto-detect chart type when data changes
-	$effect(() => {
-		if (data && data.length > 0) {
+// Separate effect for auto-detection when data changes
+$effect(() => {
+	if (data && data.length > 0) {
+		// Only auto-detect if we're still on the default table type
+		if (selectedChartType === 'table') {
 			const detectedType = detectChartType(data);
 			selectedChartType = detectedType;
 			chartConfig = getChartConfig(data, detectedType, title);
-			updateChartData();
 		}
-	});
+	}
+});
 
-	// Update chart data when type or config changes
-	$effect(() => {
-		if (data && data.length > 0) {
-			updateChartData();
-		}
-	});
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleTypeChange(type: ChartType) {
+	selectedChartType = type;
+	chartConfig = getChartConfig(data, type, title);
+	// Update chart data immediately
+	if (data && data.length > 0) {
+		chartData = transformToChartData(data, type, chartConfig);
+	}
+}
 
-	function updateChartData() {
-		if (!data || data.length === 0) {
-			chartData = null;
-			return;
-		}
-
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleConfigChange(newConfig: Partial<ChartConfig>) {
+	chartConfig = { ...chartConfig, ...newConfig };
+	// Update chart data immediately
+	if (data && data.length > 0) {
 		chartData = transformToChartData(data, selectedChartType, chartConfig);
 	}
+}
 
-	function handleTypeChange(type: ChartType) {
-		selectedChartType = type;
-		chartConfig = getChartConfig(data, type, title);
-		updateChartData();
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function resetToAutoDetected() {
+	if (data && data.length > 0) {
+		const detectedType = detectChartType(data);
+		selectedChartType = detectedType;
+		chartConfig = getChartConfig(data, detectedType, title);
+		// Update chart data immediately
+		chartData = transformToChartData(data, detectedType, chartConfig);
 	}
-
-	function handleConfigChange(newConfig: Partial<ChartConfig>) {
-		chartConfig = { ...chartConfig, ...newConfig };
-		updateChartData();
-	}
-
-	function resetToAutoDetected() {
-		if (data && data.length > 0) {
-			const detectedType = detectChartType(data);
-			selectedChartType = detectedType;
-			chartConfig = getChartConfig(data, detectedType, title);
-			updateChartData();
-		}
-	}
+}
 </script>
 
 <div class="chart-viewer">

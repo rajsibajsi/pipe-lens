@@ -90,21 +90,44 @@ function createPipelineStore() {
 			update((state) => ({ ...state, stageResults, viewMode: 'stages' })),
 		setExecuting: (isExecuting: boolean) => update((state) => ({ ...state, isExecuting })),
 		setError: (error: string | null) => update((state) => ({ ...state, error })),
-		setViewMode: (viewMode: 'results' | 'stages' | 'chart') => update((state) => ({ ...state, viewMode })),
-		setSampleSize: (sampleSize: number) => update((state) => ({ ...state, sampleSize: Math.min(sampleSize, state.maxSampleSize) })),
+		setViewMode: (viewMode: 'results' | 'stages' | 'chart') =>
+			update((state) => ({ ...state, viewMode })),
+		setSampleSize: (sampleSize: number) =>
+			update((state) => ({ ...state, sampleSize: Math.min(sampleSize, state.maxSampleSize) })),
 		setMaxSampleSize: (maxSampleSize: number) => update((state) => ({ ...state, maxSampleSize })),
-		getCacheKey: (pipeline: unknown[], sampleSize: number, connectionId: string, database: string, collection: string) => {
+		getCacheKey: (
+			pipeline: unknown[],
+			sampleSize: number,
+			connectionId: string,
+			database: string,
+			collection: string,
+		) => {
 			return `${connectionId}:${database}:${collection}:${sampleSize}:${JSON.stringify(pipeline)}`;
 		},
-		getCachedResult: (pipeline: unknown[], sampleSize: number, connectionId: string, database: string, collection: string) => {
+		getCachedResult: (
+			pipeline: unknown[],
+			sampleSize: number,
+			connectionId: string,
+			database: string,
+			collection: string,
+		) => {
 			const key = `${connectionId}:${database}:${collection}:${sampleSize}:${JSON.stringify(pipeline)}`;
 			const cached = initialState.cache.get(key);
-			if (cached && Date.now() - cached.timestamp < 300000) { // 5 minutes cache
+			if (cached && Date.now() - cached.timestamp < 300000) {
+				// 5 minutes cache
 				return cached;
 			}
 			return null;
 		},
-		setCachedResult: (pipeline: unknown[], sampleSize: number, connectionId: string, database: string, collection: string, results: unknown[], stageResults: StageResult[]) => {
+		setCachedResult: (
+			pipeline: unknown[],
+			sampleSize: number,
+			connectionId: string,
+			database: string,
+			collection: string,
+			results: unknown[],
+			stageResults: StageResult[],
+		) => {
 			const key = `${connectionId}:${database}:${collection}:${sampleSize}:${JSON.stringify(pipeline)}`;
 			const cached: CachedResult = {
 				pipeline,
@@ -145,44 +168,50 @@ function createPipelineStore() {
 					? { ...state.connection, selectedCollection: collection }
 					: null,
 			})),
-		
+
 		// Diff methods
-		toggleDiff: () => update((state) => ({
-			...state,
-			diff: { ...state.diff, showDiff: !state.diff.showDiff }
-		})),
-		
-		setDiffResult: (diffResult: DiffResult | null) => update((state) => ({
-			...state,
-			diff: { ...state.diff, diffResult }
-		})),
-		
-		setSelectedStageIndex: (stageIndex: number | null) => update((state) => ({
-			...state,
-			diff: { ...state.diff, selectedStageIndex: stageIndex }
-		})),
-		
-		setDiffFilter: (filter: 'all' | 'added' | 'removed' | 'modified') => update((state) => ({
-			...state,
-			diff: { ...state.diff, diffFilter: filter }
-		})),
-		
-		toggleShowUnchanged: () => update((state) => ({
-			...state,
-			diff: { ...state.diff, showUnchanged: !state.diff.showUnchanged }
-		})),
-		
-		resetDiff: () => update((state) => ({
-			...state,
-			diff: {
-				showDiff: false,
-				diffResult: null,
-				selectedStageIndex: null,
-				diffFilter: 'all',
-				showUnchanged: false,
-			}
-		})),
-		
+		toggleDiff: () =>
+			update((state) => ({
+				...state,
+				diff: { ...state.diff, showDiff: !state.diff.showDiff },
+			})),
+
+		setDiffResult: (diffResult: DiffResult | null) =>
+			update((state) => ({
+				...state,
+				diff: { ...state.diff, diffResult },
+			})),
+
+		setSelectedStageIndex: (stageIndex: number | null) =>
+			update((state) => ({
+				...state,
+				diff: { ...state.diff, selectedStageIndex: stageIndex },
+			})),
+
+		setDiffFilter: (filter: 'all' | 'added' | 'removed' | 'modified') =>
+			update((state) => ({
+				...state,
+				diff: { ...state.diff, diffFilter: filter },
+			})),
+
+		toggleShowUnchanged: () =>
+			update((state) => ({
+				...state,
+				diff: { ...state.diff, showUnchanged: !state.diff.showUnchanged },
+			})),
+
+		resetDiff: () =>
+			update((state) => ({
+				...state,
+				diff: {
+					showDiff: false,
+					diffResult: null,
+					selectedStageIndex: null,
+					diffFilter: 'all',
+					showUnchanged: false,
+				},
+			})),
+
 		reset: () => set(initialState),
 	};
 }

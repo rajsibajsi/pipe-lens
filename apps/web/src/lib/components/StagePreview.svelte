@@ -1,55 +1,69 @@
 <script lang="ts">
-	import type { StageResult } from '$lib/stores/pipeline.store';
-	import DocumentViewer from './DocumentViewer.svelte';
-	import DiffViewer from './DiffViewer.svelte';
-	import ChartViewer from './ChartViewer.svelte';
-	import { createDiff } from '$lib/utils/diff';
+import type { StageResult } from '$lib/stores/pipeline.store';
+import { createDiff } from '$lib/utils/diff';
+import ChartViewer from './ChartViewer.svelte';
+import DiffViewer from './DiffViewer.svelte';
+import DocumentViewer from './DocumentViewer.svelte';
 
-	interface Props {
-		stages: StageResult[];
-		showFieldTypes?: boolean;
-		highlightChanges?: boolean;
-		showDiff?: boolean;
-	}
+const __use = (..._args: unknown[]) => {};
+__use(ChartViewer, DiffViewer, DocumentViewer);
 
-	const { stages, showFieldTypes = true, highlightChanges = false, showDiff = false }: Props = $props();
-	let expandedStage = $state<number | null>(null);
-	const viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
+interface Props {
+	stages: StageResult[];
+	showFieldTypes?: boolean;
+	highlightChanges?: boolean;
+	showDiff?: boolean;
+}
 
-	function toggleStage(index: number) {
-		expandedStage = expandedStage === index ? null : index;
-	}
+const {
+	stages,
+	showFieldTypes = true,
+	highlightChanges = false,
+	showDiff = false,
+}: Props = $props();
+const __useProps = (..._args: unknown[]) => {};
+__useProps(showFieldTypes, highlightChanges, showDiff);
+let expandedStage = $state<number | null>(null);
+let _viewMode = $state<'preview' | 'side-by-side' | 'diff' | 'chart'>('preview');
 
-	function formatTime(ms: number): string {
-		if (ms < 1000) return `${ms}ms`;
-		return `${(ms / 1000).toFixed(2)}s`;
-	}
+function _toggleStage(index: number) {
+	expandedStage = expandedStage === index ? null : index;
+}
 
-	function getPreviousStageDocuments(index: number): unknown[] {
-		if (index === 0) return [];
-		return stages[index - 1]?.preview || [];
-	}
+function _setViewMode(mode: 'preview' | 'side-by-side' | 'diff' | 'chart') {
+	_viewMode = mode;
+}
 
-	function calculateDiff(stageIndex: number) {
-		if (stageIndex === 0) return null;
-		
-		const currentStage = stages[stageIndex];
-		const previousStage = stages[stageIndex - 1];
-		
-		if (!currentStage || !previousStage) return null;
-		
-		// Compare the first document from each stage
-		const currentDoc = currentStage.preview[0];
-		const previousDoc = previousStage.preview[0];
-		
-		if (!currentDoc || !previousDoc) return null;
-		
-		return createDiff(previousDoc, currentDoc);
-	}
+function _formatTime(ms: number): string {
+	if (ms < 1000) return `${ms}ms`;
+	return `${(ms / 1000).toFixed(2)}s`;
+}
 
-	function getDiffForStage(stageIndex: number) {
-		return calculateDiff(stageIndex);
-	}
+function _getPreviousStageDocuments(index: number): unknown[] {
+	if (index === 0) return [];
+	return stages[index - 1]?.preview || [];
+}
+
+function calculateDiff(stageIndex: number) {
+	if (stageIndex === 0) return null;
+
+	const currentStage = stages[stageIndex];
+	const previousStage = stages[stageIndex - 1];
+
+	if (!currentStage || !previousStage) return null;
+
+	// Compare the first document from each stage
+	const currentDoc = currentStage.preview[0];
+	const previousDoc = previousStage.preview[0];
+
+	if (!currentDoc || !previousDoc) return null;
+
+	return createDiff(previousDoc, currentDoc);
+}
+
+function _getDiffForStage(stageIndex: number) {
+	return calculateDiff(stageIndex);
+}
 </script>
 
 <div style="padding: var(--space-lg);">
@@ -94,7 +108,7 @@
 				<div class="card" style="padding: 0; overflow: hidden;">
 					<!-- Stage Header -->
 					<button
-						onclick={() => toggleStage(index)}
+                    onclick={() => _toggleStage(index)}
 						style="width: 100%; padding: var(--space-md) var(--space-lg); display: flex; justify-content: space-between; align-items: center; background: transparent; border: none; cursor: pointer; text-align: left;"
 					>
 						<div style="flex: 1;">
@@ -145,32 +159,32 @@
 									View Mode:
 								</span>
 								<div style="display: flex; background: var(--color-bg-tertiary); border-radius: var(--radius-sm); padding: 2px;">
-									<button
-										onclick={() => (viewMode = 'preview')}
+                                    <button
+                                        onclick={() => _setViewMode('preview')}
 										class="btn btn-ghost"
-										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'preview' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'preview' ? 'white' : 'var(--color-text-secondary)'};"
+                                        style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {_viewMode === 'preview' ? 'var(--color-primary)' : 'transparent'}; color: {_viewMode === 'preview' ? 'white' : 'var(--color-text-secondary)'};"
 									>
 										Preview
 									</button>
-									<button
-										onclick={() => (viewMode = 'side-by-side')}
+                                    <button
+                                        onclick={() => _setViewMode('side-by-side')}
 										class="btn btn-ghost"
-										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'side-by-side' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'side-by-side' ? 'white' : 'var(--color-text-secondary)'};"
+                                        style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {_viewMode === 'side-by-side' ? 'var(--color-primary)' : 'transparent'}; color: {_viewMode === 'side-by-side' ? 'white' : 'var(--color-text-secondary)'};"
 									>
 										Side-by-Side
 									</button>
-									<button
-										onclick={() => (viewMode = 'chart')}
+                                    <button
+                                        onclick={() => _setViewMode('chart')}
 										class="btn btn-ghost"
-										style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'chart' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'chart' ? 'white' : 'var(--color-text-secondary)'};"
+                                        style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {_viewMode === 'chart' ? 'var(--color-primary)' : 'transparent'}; color: {_viewMode === 'chart' ? 'white' : 'var(--color-text-secondary)'};"
 									>
 										📊 Chart
 									</button>
 									{#if showDiff && index > 0}
-										<button
-											onclick={() => (viewMode = 'diff')}
+                                        <button
+                                            onclick={() => _setViewMode('diff')}
 											class="btn btn-ghost"
-											style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {viewMode === 'diff' ? 'var(--color-primary)' : 'transparent'}; color: {viewMode === 'diff' ? 'white' : 'var(--color-text-secondary)'};"
+                                            style="padding: var(--space-xs) var(--space-sm); font-size: var(--text-xs); background: {_viewMode === 'diff' ? 'var(--color-primary)' : 'transparent'}; color: {_viewMode === 'diff' ? 'white' : 'var(--color-text-secondary)'};"
 										>
 											Diff
 										</button>
@@ -179,7 +193,7 @@
 							</div>
 
 							<!-- Document Viewer -->
-							{#if viewMode === 'preview'}
+                            {#if _viewMode === 'preview'}
 								<DocumentViewer
 									documents={stage.preview}
 									title="Preview Documents"
@@ -188,7 +202,7 @@
 									highlightChanges={highlightChanges}
 									previousDocuments={getPreviousStageDocuments(index)}
 								/>
-							{:else if viewMode === 'side-by-side'}
+                            {:else if _viewMode === 'side-by-side'}
 								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
 									<div>
 										<DocumentViewer
@@ -210,7 +224,7 @@
 										/>
 									</div>
 								</div>
-							{:else if viewMode === 'chart'}
+                            {:else if _viewMode === 'chart'}
 								<ChartViewer
 									data={stage.preview}
 									title="Stage {index + 1} Data Visualization"
@@ -218,7 +232,7 @@
 									width="100%"
 									height="400px"
 								/>
-							{:else if viewMode === 'diff'}
+                            {:else if _viewMode === 'diff'}
 								{#if getDiffForStage(index)}
 									<DiffViewer
 										diffResult={getDiffForStage(index)!}

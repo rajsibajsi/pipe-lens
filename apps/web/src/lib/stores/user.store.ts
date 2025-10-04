@@ -1,5 +1,5 @@
-import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 export interface User {
 	_id: string;
@@ -32,7 +32,7 @@ const initialState: AuthState = {
 	user: null,
 	isAuthenticated: false,
 	isLoading: true,
-	error: null
+	error: null,
 };
 
 function createUserStore() {
@@ -43,39 +43,39 @@ function createUserStore() {
 
 		// Set user data
 		setUser: (user: User | null) => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				user,
 				isAuthenticated: !!user,
 				isLoading: false,
-				error: null
+				error: null,
 			}));
 		},
 
 		// Set loading state
 		setLoading: (isLoading: boolean) => {
-			update(state => ({ ...state, isLoading }));
+			update((state) => ({ ...state, isLoading }));
 		},
 
 		// Set error
 		setError: (error: string | null) => {
-			update(state => ({ ...state, error, isLoading: false }));
+			update((state) => ({ ...state, error, isLoading: false }));
 		},
 
 		// Clear error
 		clearError: () => {
-			update(state => ({ ...state, error: null }));
+			update((state) => ({ ...state, error: null }));
 		},
 
 		// Login
 		login: async (email: string, password: string) => {
-			update(state => ({ ...state, isLoading: true, error: null }));
+			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
 				const response = await fetch('/api/auth/login', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ email, password })
+					body: JSON.stringify({ email, password }),
 				});
 
 				const data = await response.json();
@@ -92,21 +92,21 @@ function createUserStore() {
 					localStorage.setItem('refreshToken', refreshToken);
 				}
 
-				update(state => ({
+				update((state) => ({
 					...state,
 					user,
 					isAuthenticated: true,
 					isLoading: false,
-					error: null
+					error: null,
 				}));
 
 				return { success: true, user };
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Login failed';
-				update(state => ({
+				update((state) => ({
 					...state,
 					isLoading: false,
-					error: errorMessage
+					error: errorMessage,
 				}));
 				return { success: false, error: errorMessage };
 			}
@@ -114,13 +114,13 @@ function createUserStore() {
 
 		// Register
 		register: async (email: string, password: string, name: string) => {
-			update(state => ({ ...state, isLoading: true, error: null }));
+			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
 				const response = await fetch('/api/auth/register', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ email, password, name })
+					body: JSON.stringify({ email, password, name }),
 				});
 
 				const data = await response.json();
@@ -137,21 +137,21 @@ function createUserStore() {
 					localStorage.setItem('refreshToken', refreshToken);
 				}
 
-				update(state => ({
+				update((state) => ({
 					...state,
 					user,
 					isAuthenticated: true,
 					isLoading: false,
-					error: null
+					error: null,
 				}));
 
 				return { success: true, user };
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-				update(state => ({
+				update((state) => ({
 					...state,
 					isLoading: false,
-					error: errorMessage
+					error: errorMessage,
 				}));
 				return { success: false, error: errorMessage };
 			}
@@ -161,14 +161,14 @@ function createUserStore() {
 		logout: async () => {
 			try {
 				const accessToken = browser ? localStorage.getItem('accessToken') : null;
-				
+
 				if (accessToken) {
 					await fetch('/api/auth/logout', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${accessToken}`,
-							'Content-Type': 'application/json'
-						}
+							Authorization: `Bearer ${accessToken}`,
+							'Content-Type': 'application/json',
+						},
 					});
 				}
 			} catch (error) {
@@ -180,12 +180,12 @@ function createUserStore() {
 					localStorage.removeItem('refreshToken');
 				}
 
-				update(state => ({
+				update((state) => ({
 					...state,
 					user: null,
 					isAuthenticated: false,
 					isLoading: false,
-					error: null
+					error: null,
 				}));
 			}
 		},
@@ -201,7 +201,7 @@ function createUserStore() {
 				const response = await fetch('/api/auth/refresh', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ refreshToken })
+					body: JSON.stringify({ refreshToken }),
 				});
 
 				const data = await response.json();
@@ -226,34 +226,34 @@ function createUserStore() {
 			}
 		},
 
-	// Get current user
-	getCurrentUser: async (): Promise<void> => {
-		if (!browser) return;
+		// Get current user
+		getCurrentUser: async (): Promise<void> => {
+			if (!browser) return;
 
 			const accessToken = localStorage.getItem('accessToken');
 			if (!accessToken) {
-				update(state => ({ ...state, isLoading: false }));
+				update((state) => ({ ...state, isLoading: false }));
 				return;
 			}
 
-			update(state => ({ ...state, isLoading: true }));
+			update((state) => ({ ...state, isLoading: true }));
 
 			try {
 				const response = await fetch('/api/auth/me', {
 					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
-					}
+						Authorization: `Bearer ${accessToken}`,
+						'Content-Type': 'application/json',
+					},
 				});
 
 				if (response.ok) {
 					const data = await response.json();
-					update(state => ({
+					update((state) => ({
 						...state,
 						user: data.data.user,
 						isAuthenticated: true,
 						isLoading: false,
-						error: null
+						error: null,
 					}));
 				} else if (response.status === 401) {
 					// Token expired, try to refresh
@@ -265,12 +265,12 @@ function createUserStore() {
 						// Refresh failed, clear tokens
 						localStorage.removeItem('accessToken');
 						localStorage.removeItem('refreshToken');
-						update(state => ({
+						update((state) => ({
 							...state,
 							user: null,
 							isAuthenticated: false,
 							isLoading: false,
-							error: null
+							error: null,
 						}));
 					}
 				} else {
@@ -278,12 +278,12 @@ function createUserStore() {
 				}
 			} catch (error) {
 				console.error('Get current user error:', error);
-				update(state => ({
+				update((state) => ({
 					...state,
 					user: null,
 					isAuthenticated: false,
 					isLoading: false,
-					error: null
+					error: null,
 				}));
 			}
 		},
@@ -295,16 +295,16 @@ function createUserStore() {
 			const accessToken = localStorage.getItem('accessToken');
 			if (!accessToken) return { success: false, error: 'Not authenticated' };
 
-			update(state => ({ ...state, isLoading: true, error: null }));
+			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
 				const response = await fetch('/api/auth/profile', {
 					method: 'PUT',
 					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
+						Authorization: `Bearer ${accessToken}`,
+						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(updateData)
+					body: JSON.stringify(updateData),
 				});
 
 				const data = await response.json();
@@ -313,20 +313,20 @@ function createUserStore() {
 					throw new Error(data.message || 'Profile update failed');
 				}
 
-				update(state => ({
+				update((state) => ({
 					...state,
 					user: data.data.user,
 					isLoading: false,
-					error: null
+					error: null,
 				}));
 
 				return { success: true, user: data.data.user };
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Profile update failed';
-				update(state => ({
+				update((state) => ({
 					...state,
 					isLoading: false,
-					error: errorMessage
+					error: errorMessage,
 				}));
 				return { success: false, error: errorMessage };
 			}
@@ -339,16 +339,16 @@ function createUserStore() {
 			const accessToken = localStorage.getItem('accessToken');
 			if (!accessToken) return { success: false, error: 'Not authenticated' };
 
-			update(state => ({ ...state, isLoading: true, error: null }));
+			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
 				const response = await fetch('/api/auth/change-password', {
 					method: 'PUT',
 					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
+						Authorization: `Bearer ${accessToken}`,
+						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ currentPassword, newPassword })
+					body: JSON.stringify({ currentPassword, newPassword }),
 				});
 
 				const data = await response.json();
@@ -357,22 +357,22 @@ function createUserStore() {
 					throw new Error(data.message || 'Password change failed');
 				}
 
-				update(state => ({ ...state, isLoading: false, error: null }));
+				update((state) => ({ ...state, isLoading: false, error: null }));
 
 				return { success: true };
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : 'Password change failed';
-				update(state => ({
+				update((state) => ({
 					...state,
 					isLoading: false,
-					error: errorMessage
+					error: errorMessage,
 				}));
 				return { success: false, error: errorMessage };
 			}
 		},
 
 		// Reset to initial state
-		reset: () => set(initialState)
+		reset: () => set(initialState),
 	};
 }
 

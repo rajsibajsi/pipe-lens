@@ -3,6 +3,7 @@
 /**
  * Focus management utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class FocusManager {
 	private static focusableSelectors = [
 		'button:not([disabled])',
@@ -11,7 +12,7 @@ export class FocusManager {
 		'textarea:not([disabled])',
 		'a[href]',
 		'[tabindex]:not([tabindex="-1"])',
-		'[contenteditable="true"]'
+		'[contenteditable="true"]',
 	].join(', ');
 
 	static getFocusableElements(container: HTMLElement): HTMLElement[] {
@@ -55,6 +56,7 @@ export class FocusManager {
 /**
  * ARIA utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class AriaManager {
 	static announce(message: string, priority: 'polite' | 'assertive' = 'polite') {
 		const announcement = document.createElement('div');
@@ -94,9 +96,10 @@ export class AriaManager {
 /**
  * Color contrast utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class ColorContrast {
 	static getLuminance(r: number, g: number, b: number): number {
-		const [rs, gs, bs] = [r, g, b].map(c => {
+		const [rs, gs, bs] = [r, g, b].map((c) => {
 			c = c / 255;
 			return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 		});
@@ -106,25 +109,27 @@ export class ColorContrast {
 	static getContrastRatio(color1: string, color2: string): number {
 		const rgb1 = ColorContrast.hexToRgb(color1);
 		const rgb2 = ColorContrast.hexToRgb(color2);
-		
+
 		if (!rgb1 || !rgb2) return 0;
 
 		const lum1 = ColorContrast.getLuminance(rgb1.r, rgb1.g, rgb1.b);
 		const lum2 = ColorContrast.getLuminance(rgb2.r, rgb2.g, rgb2.b);
-		
+
 		const brightest = Math.max(lum1, lum2);
 		const darkest = Math.min(lum1, lum2);
-		
+
 		return (brightest + 0.05) / (darkest + 0.05);
 	}
 
 	static hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result ? {
-			r: parseInt(result[1], 16),
-			g: parseInt(result[2], 16),
-			b: parseInt(result[3], 16)
-		} : null;
+		return result
+			? {
+					r: parseInt(result[1], 16),
+					g: parseInt(result[2], 16),
+					b: parseInt(result[3], 16),
+				}
+			: null;
 	}
 
 	static meetsWCAGAA(contrastRatio: number): boolean {
@@ -139,11 +144,12 @@ export class ColorContrast {
 /**
  * Keyboard navigation utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class KeyboardNavigation {
 	static handleArrowKeys(
 		event: KeyboardEvent,
 		elements: HTMLElement[],
-		orientation: 'horizontal' | 'vertical' = 'horizontal'
+		orientation: 'horizontal' | 'vertical' = 'horizontal',
 	) {
 		const currentIndex = elements.indexOf(event.target as HTMLElement);
 		if (currentIndex === -1) return;
@@ -189,6 +195,7 @@ export class KeyboardNavigation {
 /**
  * Screen reader utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class ScreenReader {
 	static hideFromScreenReader(element: HTMLElement) {
 		element.setAttribute('aria-hidden', 'true');
@@ -214,11 +221,12 @@ export class ScreenReader {
 /**
  * Form accessibility utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class FormAccessibility {
 	static associateLabelWithInput(labelId: string, inputId: string) {
 		const label = document.getElementById(labelId);
 		const input = document.getElementById(inputId);
-		
+
 		if (label && input) {
 			label.setAttribute('for', inputId);
 			input.setAttribute('aria-labelledby', labelId);
@@ -231,7 +239,7 @@ export class FormAccessibility {
 
 		const errorId = `${inputId}-error`;
 		let errorElement = document.getElementById(errorId);
-		
+
 		if (!errorElement) {
 			errorElement = document.createElement('div');
 			errorElement.id = errorId;
@@ -239,7 +247,7 @@ export class FormAccessibility {
 			errorElement.setAttribute('role', 'alert');
 			input.parentNode?.insertBefore(errorElement, input.nextSibling);
 		}
-		
+
 		errorElement.textContent = errorMessage;
 		input.setAttribute('aria-invalid', 'true');
 		input.setAttribute('aria-describedby', errorId);
@@ -249,12 +257,12 @@ export class FormAccessibility {
 		const input = document.getElementById(inputId);
 		const errorId = `${inputId}-error`;
 		const errorElement = document.getElementById(errorId);
-		
+
 		if (input) {
 			input.removeAttribute('aria-invalid');
 			input.removeAttribute('aria-describedby');
 		}
-		
+
 		if (errorElement) {
 			errorElement.remove();
 		}
@@ -264,6 +272,7 @@ export class FormAccessibility {
 /**
  * Animation accessibility utilities
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Purposefully static API
 export class AnimationAccessibility {
 	static respectsReducedMotion(): boolean {
 		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -282,7 +291,7 @@ export class AnimationAccessibility {
 	static setupReducedMotionListener(callback: (reduced: boolean) => void) {
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		callback(mediaQuery.matches);
-		
+
 		mediaQuery.addEventListener('change', (e) => {
 			callback(e.matches);
 		});

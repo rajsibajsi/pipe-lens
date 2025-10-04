@@ -54,8 +54,8 @@
 	--radius-full: 9999px;
 
 	/* Typography */
-	--font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	--font-mono: 'Fira Code', 'Menlo', 'Monaco', monospace;
+	--font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-mono: "Fira Code", "Menlo", "Monaco", monospace;
 
 	--text-xs: 0.75rem;
 	--text-sm: 0.875rem;

@@ -1,0 +1,202 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # Create release
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          # Generate changelog
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## Changes since $PREVIOUS_TAG" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD >> CHANGELOG.md
+          else
+            echo "## Initial Release" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" >> CHANGELOG.md
+          fi
+          
+          # Output changelog
+          cat CHANGELOG.md
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+
+  # Build and upload assets
+  build-assets:
+    name: Build Assets
+    runs-on: ubuntu-latest
+    needs: create-release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Create distribution package
+        run: |
+          # Create a distribution package
+          mkdir -p dist
+          
+          # Copy built applications
+          cp -r apps/web/build dist/web
+          cp -r apps/api/dist dist/api
+          
+          # Copy configuration files
+          cp package.json dist/
+          cp pnpm-lock.yaml dist/
+          cp README.md dist/
+          
+          # Create archive
+          tar -czf pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.tar.gz -C dist .
+          zip -r pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.zip dist/
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
+          asset_name: pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Asset (ZIP)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.zip
+          asset_name: pipe-lens-${{ github.ref_name }}-${{ matrix.os }}.zip
+          asset_content_type: application/zip
+
+  # Publish to npm (if applicable)
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Publish to NPM
+        run: |
+          # Only publish if this is not a pre-release
+          if [[ "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Publishing to NPM..."
+            # Add your npm publish commands here
+            # pnpm publish --access public
+          else
+            echo "Skipping NPM publish for pre-release: ${{ github.ref_name }}"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Notify about release
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [create-release, build-assets]
+    if: always()
+    steps:
+      - name: Notify Success
+        if: needs.create-release.result == 'success'
+        run: |
+          echo "✅ Release ${{ github.ref_name }} created successfully!"
+          # Add notification logic here (Slack, Discord, email, etc.)
+
+      - name: Notify Failure
+        if: needs.create-release.result == 'failure'
+        run: |
+          echo "❌ Release ${{ github.ref_name }} failed!"
+          # Add notification logic here (Slack, Discord, email, etc.)

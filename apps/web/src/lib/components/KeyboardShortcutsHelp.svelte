@@ -1,35 +1,41 @@
 <script lang="ts">
-	import { keyboardShortcuts, type KeyboardShortcut } from '$lib/utils/keyboard-shortcuts';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import { type KeyboardShortcut, keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
 
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+}
+
+const { isOpen, onClose }: Props = $props();
+// Mark isOpen as used for linter
+const __use = (..._args: unknown[]) => {};
+__use(isOpen);
+
+// biome-ignore lint/correctness/noUnusedVariables: shortcuts is used in template
+let shortcuts = $state<KeyboardShortcut[]>([]);
+
+onMount(() => {
+	shortcuts = keyboardShortcuts.getAllShortcuts();
+});
+
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function getKeyDisplay(shortcut: KeyboardShortcut): string {
+	const parts = [];
+	if (shortcut.ctrlKey) parts.push('Ctrl');
+	if (shortcut.shiftKey) parts.push('Shift');
+	if (shortcut.altKey) parts.push('Alt');
+	if (shortcut.metaKey) parts.push('Cmd');
+	parts.push(shortcut.key.toUpperCase());
+	return parts.join(' + ');
+}
+
+// biome-ignore lint/correctness/noUnusedVariables: used as event handler
+function handleKeydown(event: KeyboardEvent) {
+	if (event.key === 'Escape') {
+		onClose();
 	}
-
-	const { isOpen, onClose }: Props = $props();
-
-	let shortcuts = $state<KeyboardShortcut[]>([]);
-
-	onMount(() => {
-		shortcuts = keyboardShortcuts.getAllShortcuts();
-	});
-
-	function getKeyDisplay(shortcut: KeyboardShortcut): string {
-		const parts = [];
-		if (shortcut.ctrlKey) parts.push('Ctrl');
-		if (shortcut.shiftKey) parts.push('Shift');
-		if (shortcut.altKey) parts.push('Alt');
-		if (shortcut.metaKey) parts.push('Cmd');
-		parts.push(shortcut.key.toUpperCase());
-		return parts.join(' + ');
-	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			onClose();
-		}
-	}
+}
 </script>
 
 {#if isOpen}

@@ -1,38 +1,69 @@
 <script lang="ts">
-	import type { ChartType, ChartConfig } from '$lib/utils/chart-data';
+import type { ChartConfig, ChartType } from '$lib/utils/chart-data';
 
-	interface Props {
-		selectedType: ChartType;
-		config: ChartConfig;
-		onTypeChange: (type: ChartType) => void;
-		onConfigChange: (config: Partial<ChartConfig>) => void;
-	}
+interface Props {
+	selectedType: ChartType;
+	config: ChartConfig;
+	onTypeChange: (type: ChartType) => void;
+	onConfigChange: (config: Partial<ChartConfig>) => void;
+}
 
-	const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
+const { selectedType, config, onTypeChange, onConfigChange }: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(selectedType, config, onTypeChange, onConfigChange);
 
-	const chartTypes = [
-		{ type: 'bar' as ChartType, label: 'Bar Chart', icon: '📊', description: 'Compare values across categories' },
-		{ type: 'pie' as ChartType, label: 'Pie Chart', icon: '🥧', description: 'Show parts of a whole' },
-		{ type: 'line' as ChartType, label: 'Line Chart', icon: '📈', description: 'Show trends over time' },
-		{ type: 'table' as ChartType, label: 'Data Table', icon: '📋', description: 'View raw data in table format' }
-	];
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const chartTypes = [
+	{
+		type: 'bar' as ChartType,
+		label: 'Bar Chart',
+		icon: '📊',
+		description: 'Compare values across categories',
+	},
+	{
+		type: 'pie' as ChartType,
+		label: 'Pie Chart',
+		icon: '🥧',
+		description: 'Show parts of a whole',
+	},
+	{
+		type: 'line' as ChartType,
+		label: 'Line Chart',
+		icon: '📈',
+		description: 'Show trends over time',
+	},
+	{
+		type: 'table' as ChartType,
+		label: 'Data Table',
+		icon: '📋',
+		description: 'View raw data in table format',
+	},
+];
 
-	const showAdvanced = $state(false);
+let showAdvanced = $state(false);
 
-	function handleTypeChange(type: ChartType) {
-		onTypeChange(type);
-	}
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleTypeChange(type: ChartType) {
+	onTypeChange(type);
+}
 
-	function handleConfigChange(key: keyof ChartConfig, value: unknown) {
-		onConfigChange({ [key]: value });
-	}
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function handleConfigChange(key: keyof ChartConfig, value: unknown) {
+	onConfigChange({ [key]: value });
+}
 
-	const colorPresets = [
-		['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
-		['#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#ec4899'],
-		['#6b7280', '#374151', '#1f2937', '#111827', '#000000'],
-		['#fbbf24', '#f59e0b', '#d97706', '#b45309', '#92400e']
-	];
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+function toggleAdvanced() {
+	showAdvanced = !showAdvanced;
+}
+
+// biome-ignore lint/correctness/noUnusedVariables: used in template
+const colorPresets = [
+	['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
+	['#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#ec4899'],
+	['#6b7280', '#374151', '#1f2937', '#111827', '#000000'],
+	['#fbbf24', '#f59e0b', '#d97706', '#b45309', '#92400e'],
+];
 </script>
 
 <div class="chart-selector">
@@ -57,7 +88,7 @@
 			<h4 class="config-title">Configuration</h4>
 			<button
 				class="btn btn-ghost btn-sm"
-				onclick={() => showAdvanced = !showAdvanced}
+				onclick={toggleAdvanced}
 			>
 				{showAdvanced ? 'Hide' : 'Show'} Advanced
 			</button>
@@ -130,8 +161,8 @@
 				{/if}
 
 				<div class="config-field">
-					<label class="config-label">Color Scheme</label>
-					<div class="color-presets">
+					<label class="config-label" for="color-scheme">Color Scheme</label>
+					<div class="color-presets" id="color-scheme" role="group" aria-labelledby="color-scheme">
 						{#each colorPresets as preset, index}
 							<button
 								class="color-preset {config.colors?.join(',') === preset.join(',') ? 'selected' : ''}"

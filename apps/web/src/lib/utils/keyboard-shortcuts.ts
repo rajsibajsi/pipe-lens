@@ -41,7 +41,7 @@ class KeyboardShortcutManager {
 		if (shortcut.shiftKey) modifiers.push('shift');
 		if (shortcut.altKey) modifiers.push('alt');
 		if (shortcut.metaKey) modifiers.push('meta');
-		
+
 		return [...modifiers, shortcut.key.toLowerCase()].join('+');
 	}
 
@@ -53,7 +53,7 @@ class KeyboardShortcutManager {
 		if (event.shiftKey) modifiers.push('shift');
 		if (event.altKey) modifiers.push('alt');
 		if (event.metaKey) modifiers.push('meta');
-		
+
 		const key = [...modifiers, event.key.toLowerCase()].join('+');
 		const shortcut = this.shortcuts.get(key);
 
@@ -77,7 +77,7 @@ class KeyboardShortcutManager {
 		return Array.from(this.shortcuts.values());
 	}
 
-	getShortcutsByCategory(category: string): KeyboardShortcut[] {
+	getShortcutsByCategory(_category: string): KeyboardShortcut[] {
 		// This would be used if we categorize shortcuts
 		return this.getAllShortcuts();
 	}
@@ -94,7 +94,7 @@ export const COMMON_SHORTCUTS = {
 	CLOSE: 'Ctrl+W',
 	FIND: 'Ctrl+F',
 	HELP: 'F1',
-	ESCAPE: 'Escape'
+	ESCAPE: 'Escape',
 } as const;
 
 // Initialize on module load

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Helper function to connect to MongoDB
-async function connectToMongoDB(page: any, connectionName = 'Local MongoDB') {
+async function connectToMongoDB(page: unknown, connectionName = 'Local MongoDB') {
 	await page.waitForLoadState('networkidle');
 	await page.getByTestId('connect-button').click();
 	await page.waitForTimeout(200);
@@ -16,7 +16,7 @@ async function connectToMongoDB(page: any, connectionName = 'Local MongoDB') {
 
 // Helper function to select database and collection
 async function selectDatabaseAndCollection(
-	page: any,
+	page: unknown,
 	database = 'testdb',
 	collection = 'orders',
 ) {
@@ -27,7 +27,7 @@ async function selectDatabaseAndCollection(
 }
 
 // Helper function to run pipeline with preview
-async function runPipelineWithPreview(page: any, pipeline: string) {
+async function runPipelineWithPreview(page: unknown, pipeline: string) {
 	await page.locator('.monaco-editor').click();
 	await page.keyboard.press('Control+A');
 	await page.keyboard.type(pipeline);
@@ -140,10 +140,10 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 
 			// Click to expand second stage
 			await page.locator('button').filter({ hasText: '$group' }).first().click();
-			
+
 			// Switch to side-by-side view
 			await page.getByRole('button', { name: 'Side-by-Side' }).click();
-			
+
 			// Check for change indicators (yellow highlighting)
 			const changedFields = page.locator('[style*="color: var(--color-warning)"]');
 			await expect(changedFields.first()).toBeVisible();
@@ -161,7 +161,7 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 		test('should update sample size and affect results', async ({ page }) => {
 			// Change sample size to 2
 			await page.getByRole('spinbutton').fill('2');
-			
+
 			const pipeline = `[{ "$limit": 5 }]`;
 			await runPipelineWithPreview(page, pipeline);
 
@@ -173,10 +173,10 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 		test('should enforce maximum sample size limit', async ({ page }) => {
 			// Try to set sample size above limit
 			await page.getByRole('spinbutton').fill('600');
-			
+
 			// Should be capped at 500
 			const value = await page.getByRole('spinbutton').inputValue();
-			expect(parseInt(value)).toBeLessThanOrEqual(500);
+			expect(parseInt(value, 10)).toBeLessThanOrEqual(500);
 		});
 	});
 
@@ -215,7 +215,7 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 
 			// Navigate to last stage
 			await page.getByRole('button', { name: 'Next Stage →' }).click();
-			
+
 			// Next button should be disabled at last stage
 			await expect(page.getByRole('button', { name: 'Next Stage →' })).toBeDisabled();
 		});
@@ -228,7 +228,7 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 
 		test('should cache results for repeated queries', async ({ page }) => {
 			const pipeline = `[{ "$limit": 2 }]`;
-			
+
 			// First execution
 			await runPipelineWithPreview(page, pipeline);
 			await expect(page.getByText('Stage-by-Stage Results')).toBeVisible();
@@ -301,11 +301,11 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 			// Should show different document counts for each stage
 			const documentCounts = page.locator('text=/\\d+ documents/');
 			const counts = await documentCounts.allTextContents();
-			
+
 			// First stage should have more documents than second stage
-			const firstCount = parseInt(counts[0].match(/\d+/)?.[0] || '0');
-			const secondCount = parseInt(counts[1].match(/\d+/)?.[0] || '0');
-			
+			const firstCount = parseInt(counts[0].match(/\d+/)?.[0] || '0', 10);
+			const secondCount = parseInt(counts[1].match(/\d+/)?.[0] || '0', 10);
+
 			expect(firstCount).toBeGreaterThan(secondCount);
 		});
 	});
@@ -314,13 +314,13 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 		test('should handle different screen sizes', async ({ page }) => {
 			// Test on mobile viewport
 			await page.setViewportSize({ width: 375, height: 667 });
-			
+
 			const pipeline = `[{ "$limit": 1 }]`;
 			await runPipelineWithPreview(page, pipeline);
 
 			// UI should still be functional
 			await expect(page.getByText('Stage-by-Stage Results')).toBeVisible();
-			
+
 			// Click to expand stage
 			await page.locator('button').filter({ hasText: '$limit' }).first().click();
 			await expect(page.getByText('Preview Documents')).toBeVisible();
@@ -335,11 +335,11 @@ test.describe('Phase 2: Advanced Stage Preview Features', () => {
 
 			// Click to expand second stage
 			await page.locator('button').filter({ hasText: '$group' }).first().click();
-			
+
 			// Switch between view modes
 			await page.getByRole('button', { name: 'Side-by-Side' }).click();
 			await expect(page.getByText('Before (Previous Stage)')).toBeVisible();
-			
+
 			await page.getByRole('button', { name: 'Preview' }).click();
 			await expect(page.getByText('Preview Documents')).toBeVisible();
 		});

@@ -12,7 +12,7 @@ declare global {
 }
 
 // Setup Monaco environment for Web Workers
-(self as any).MonacoEnvironment = {
+(self as unknown as { MonacoEnvironment: unknown }).MonacoEnvironment = {
 	getWorker(_: unknown, label: string) {
 		if (label === 'json') {
 			return new jsonWorker();

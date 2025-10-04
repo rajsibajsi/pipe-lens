@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { authenticate, rateLimit } from '../middleware/auth.middleware';
 import { AuthService } from '../services/auth.service';
 
@@ -21,7 +22,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 		if (!email || !password || !name) {
 			return res.status(400).json({
 				success: false,
-				message: 'Email, password, and name are required'
+				message: 'Email, password, and name are required',
 			});
 		}
 
@@ -30,7 +31,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 		if (!emailRegex.test(email)) {
 			return res.status(400).json({
 				success: false,
-				message: 'Invalid email format'
+				message: 'Invalid email format',
 			});
 		}
 
@@ -38,7 +39,7 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 		if (password.length < 8) {
 			return res.status(400).json({
 				success: false,
-				message: 'Password must be at least 8 characters long'
+				message: 'Password must be at least 8 characters long',
 			});
 		}
 
@@ -46,30 +47,30 @@ router.post('/register', authRateLimit, async (req: Request, res: Response) => {
 		if (name.trim().length < 2) {
 			return res.status(400).json({
 				success: false,
-				message: 'Name must be at least 2 characters long'
+				message: 'Name must be at least 2 characters long',
 			});
 		}
 
 		const result = await authService.register({
 			email: email.toLowerCase().trim(),
 			password,
-			name: name.trim()
+			name: name.trim(),
 		});
 
-		res.status(201).json({
+		return res.status(201).json({
 			success: true,
 			message: 'User registered successfully',
 			data: {
 				user: result.user,
 				accessToken: result.accessToken,
-				refreshToken: result.refreshToken
-			}
+				refreshToken: result.refreshToken,
+			},
 		});
 	} catch (error) {
 		console.error('Registration error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Registration failed'
+			message: error instanceof Error ? error.message : 'Registration failed',
 		});
 	}
 });
@@ -87,29 +88,29 @@ router.post('/login', authRateLimit, async (req: Request, res: Response) => {
 		if (!email || !password) {
 			return res.status(400).json({
 				success: false,
-				message: 'Email and password are required'
+				message: 'Email and password are required',
 			});
 		}
 
 		const result = await authService.login({
 			email: email.toLowerCase().trim(),
-			password
+			password,
 		});
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Login successful',
 			data: {
 				user: result.user,
 				accessToken: result.accessToken,
-				refreshToken: result.refreshToken
-			}
+				refreshToken: result.refreshToken,
+			},
 		});
 	} catch (error) {
 		console.error('Login error:', error);
-		res.status(401).json({
+		return res.status(401).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Login failed'
+			message: error instanceof Error ? error.message : 'Login failed',
 		});
 	}
 });
@@ -126,22 +127,22 @@ router.post('/refresh', async (req: Request, res: Response) => {
 		if (!refreshToken) {
 			return res.status(400).json({
 				success: false,
-				message: 'Refresh token is required'
+				message: 'Refresh token is required',
 			});
 		}
 
 		const tokens = await authService.refreshToken(refreshToken);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Token refreshed successfully',
-			data: tokens
+			data: tokens,
 		});
 	} catch (error) {
 		console.error('Token refresh error:', error);
-		res.status(401).json({
+		return res.status(401).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Token refresh failed'
+			message: error instanceof Error ? error.message : 'Token refresh failed',
 		});
 	}
 });
@@ -160,15 +161,15 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
 			await authService.logout(token);
 		}
 
-		res.json({
+		return res.json({
 			success: true,
-			message: 'Logout successful'
+			message: 'Logout successful',
 		});
 	} catch (error) {
 		console.error('Logout error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
-			message: 'Logout failed'
+			message: 'Logout failed',
 		});
 	}
 });
@@ -180,17 +181,17 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
  */
 router.post('/logout-all', authenticate, async (req: Request, res: Response) => {
 	try {
-		await authService.logoutAll(req.user!._id);
+		await authService.logoutAll(req.user?._id?.toString() || '');
 
-		res.json({
+		return res.json({
 			success: true,
-			message: 'Logged out from all devices'
+			message: 'Logged out from all devices',
 		});
 	} catch (error) {
 		console.error('Logout all error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
-			message: 'Logout failed'
+			message: 'Logout failed',
 		});
 	}
 });
@@ -202,24 +203,24 @@ router.post('/logout-all', authenticate, async (req: Request, res: Response) => 
  */
 router.get('/me', authenticate, async (req: Request, res: Response) => {
 	try {
-		const user = await authService.getUserById(req.user!._id);
-		
+		const user = await authService.getUserById(req.user?._id?.toString() || '');
+
 		if (!user) {
 			return res.status(404).json({
 				success: false,
-				message: 'User not found'
+				message: 'User not found',
 			});
 		}
 
-		res.json({
+		return res.json({
 			success: true,
-			data: { user }
+			data: { user },
 		});
 	} catch (error) {
 		console.error('Get profile error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
-			message: 'Failed to get user profile'
+			message: 'Failed to get user profile',
 		});
 	}
 });
@@ -232,13 +233,13 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
 router.put('/profile', authenticate, async (req: Request, res: Response) => {
 	try {
 		const { name, avatar, preferences } = req.body;
-		const updateData: any = {};
+		const updateData: Record<string, unknown> = {};
 
 		if (name !== undefined) {
 			if (name.trim().length < 2) {
 				return res.status(400).json({
 					success: false,
-					message: 'Name must be at least 2 characters long'
+					message: 'Name must be at least 2 characters long',
 				});
 			}
 			updateData.name = name.trim();
@@ -252,18 +253,18 @@ router.put('/profile', authenticate, async (req: Request, res: Response) => {
 			updateData.preferences = preferences;
 		}
 
-		const user = await authService.updateProfile(req.user!._id, updateData);
+		const user = await authService.updateProfile(req.user?._id?.toString() || '', updateData);
 
-		res.json({
+		return res.json({
 			success: true,
 			message: 'Profile updated successfully',
-			data: { user }
+			data: { user },
 		});
 	} catch (error) {
 		console.error('Update profile error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Profile update failed'
+			message: error instanceof Error ? error.message : 'Profile update failed',
 		});
 	}
 });
@@ -280,28 +281,28 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
 		if (!currentPassword || !newPassword) {
 			return res.status(400).json({
 				success: false,
-				message: 'Current password and new password are required'
+				message: 'Current password and new password are required',
 			});
 		}
 
 		if (newPassword.length < 8) {
 			return res.status(400).json({
 				success: false,
-				message: 'New password must be at least 8 characters long'
+				message: 'New password must be at least 8 characters long',
 			});
 		}
 
-		await authService.changePassword(req.user!._id, currentPassword, newPassword);
+		await authService.changePassword(req.user?._id?.toString() || '', currentPassword, newPassword);
 
-		res.json({
+		return res.json({
 			success: true,
-			message: 'Password changed successfully'
+			message: 'Password changed successfully',
 		});
 	} catch (error) {
 		console.error('Change password error:', error);
-		res.status(400).json({
+		return res.status(400).json({
 			success: false,
-			message: error instanceof Error ? error.message : 'Password change failed'
+			message: error instanceof Error ? error.message : 'Password change failed',
 		});
 	}
 });
@@ -313,17 +314,17 @@ router.put('/change-password', authenticate, async (req: Request, res: Response)
  */
 router.delete('/account', authenticate, async (req: Request, res: Response) => {
 	try {
-		await authService.deleteAccount(req.user!._id);
+		await authService.deleteAccount(req.user?._id?.toString() || '');
 
-		res.json({
+		return res.json({
 			success: true,
-			message: 'Account deleted successfully'
+			message: 'Account deleted successfully',
 		});
 	} catch (error) {
 		console.error('Delete account error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
-			message: 'Account deletion failed'
+			message: 'Account deletion failed',
 		});
 	}
 });

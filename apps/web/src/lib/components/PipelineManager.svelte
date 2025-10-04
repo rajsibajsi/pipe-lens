@@ -1,344 +1,351 @@
 <script lang="ts">
-	import { LocalStorageService, type LocalPipeline } from '$lib/services/local-storage.service';
-	import { pipelineStore } from '$lib/stores/pipeline.store';
-	import { userStore } from '$lib/stores/user.store';
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
+import { type LocalPipeline, LocalStorageService } from '$lib/services/local-storage.service';
 
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
-		onLoadPipeline?: (pipeline: any) => void;
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+	onLoadPipeline?: (pipeline: unknown) => void;
+}
+
+const { isOpen, onClose, onLoadPipeline }: Props = $props();
+
+let activeTab = $state<'saved' | 'public' | 'templates'>('saved');
+let _isLoading = $state(false);
+let _error = $state('');
+const searchQuery = $state('');
+const selectedCategory = $state('');
+const selectedDifficulty = $state('');
+
+// Pipeline data
+let savedPipelines = $state<unknown[]>([]);
+let publicPipelines = $state<unknown[]>([]);
+let templates = $state<unknown[]>([]);
+let localPipelines = $state<LocalPipeline[]>([]);
+
+// Form data for saving
+let saveName = $state('');
+let saveDescription = $state('');
+let saveTags = $state('');
+let saveIsPublic = $state(false);
+let _showSaveForm = $state(false);
+
+// Reactive state from stores
+const authState = $derived($userStore);
+const pipelineState = $derived($pipelineStore);
+
+// Initialize data when modal opens
+$effect(() => {
+	if (isOpen) {
+		loadPipelines();
 	}
+});
 
-	const { isOpen, onClose, onLoadPipeline }: Props = $props();
+async function loadPipelines() {
+	_isLoading = true;
+	_error = '';
 
-	let activeTab = $state<'saved' | 'public' | 'templates'>('saved');
-	let isLoading = $state(false);
-	let error = $state('');
-	const searchQuery = $state('');
-	const selectedCategory = $state('');
-	const selectedDifficulty = $state('');
-
-	// Pipeline data
-	let savedPipelines = $state<any[]>([]);
-	let publicPipelines = $state<any[]>([]);
-	let templates = $state<any[]>([]);
-	let localPipelines = $state<LocalPipeline[]>([]);
-
-	// Form data for saving
-	let saveName = $state('');
-	let saveDescription = $state('');
-	let saveTags = $state('');
-	let saveIsPublic = $state(false);
-	let showSaveForm = $state(false);
-
-	// Reactive state from stores
-	const authState = $derived($userStore);
-	const pipelineState = $derived($pipelineStore);
-
-	// Initialize data when modal opens
-	$effect(() => {
-		if (isOpen) {
-			loadPipelines();
-		}
-	});
-
-	async function loadPipelines() {
-		isLoading = true;
-		error = '';
-
-		try {
-			if (authState.isAuthenticated) {
-				// Load authenticated user pipelines
-				const accessToken = localStorage.getItem('accessToken');
-				if (!accessToken) throw new Error('Not authenticated');
-
-				// Load saved pipelines
-				const savedResponse = await fetch('/api/pipelines/saved', {
-					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (savedResponse.ok) {
-					const savedData = await savedResponse.json();
-					savedPipelines = savedData.data.pipelines || [];
-				}
-
-				// Load public pipelines
-				const publicResponse = await fetch('/api/pipelines/saved/public', {
-					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (publicResponse.ok) {
-					const publicData = await publicResponse.json();
-					publicPipelines = publicData.data.pipelines || [];
-				}
-
-				// Load templates (filter public pipelines that are templates)
-				templates = publicPipelines.filter(p => p.isTemplate);
-			} else {
-				// Load local storage pipelines for guest users
-				localPipelines = LocalStorageService.getPipelines();
-				
-				// Load public pipelines (no auth required)
-				const publicResponse = await fetch('/api/pipelines/saved/public');
-
-				if (publicResponse.ok) {
-					const publicData = await publicResponse.json();
-					publicPipelines = publicData.data.pipelines || [];
-					templates = publicPipelines.filter(p => p.isTemplate);
-				}
-			}
-
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load pipelines';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	async function savePipeline() {
-		if (!pipelineState.connection) return;
-
-		if (!saveName.trim()) {
-			error = 'Pipeline name is required';
-			return;
-		}
-
-		isLoading = true;
-		error = '';
-
-		try {
-			const pipelineData = {
-				name: saveName.trim(),
-				description: saveDescription.trim() || undefined,
-				tags: saveTags.split(',').map(tag => tag.trim()).filter(tag => tag),
-				pipeline: pipelineState.pipeline,
-				connectionId: pipelineState.connection.id,
-				database: pipelineState.connection.selectedDatabase,
-				collection: pipelineState.connection.selectedCollection,
-				sampleSize: pipelineState.sampleSize,
-				isPublic: saveIsPublic
-			};
-
-			if (authState.isAuthenticated) {
-				// Save to server
-				const accessToken = localStorage.getItem('accessToken');
-				if (!accessToken) throw new Error('Not authenticated');
-
-				const response = await fetch('/api/pipelines/saved', {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(pipelineData)
-				});
-
-				const data = await response.json();
-
-				if (!response.ok) {
-					throw new Error(data.message || 'Failed to save pipeline');
-				}
-			} else {
-				// Save to local storage
-				LocalStorageService.savePipeline(pipelineData);
-			}
-
-			// Reset form and reload pipelines
-			saveName = '';
-			saveDescription = '';
-			saveTags = '';
-			saveIsPublic = false;
-			showSaveForm = false;
-			await loadPipelines();
-
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to save pipeline';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	async function loadPipeline(pipeline: any) {
-		if (onLoadPipeline) {
-			onLoadPipeline(pipeline);
-		}
-		onClose();
-	}
-
-	async function deletePipeline(pipelineId: string) {
-		if (!confirm('Are you sure you want to delete this pipeline?')) return;
-
-		isLoading = true;
-		error = '';
-
-		try {
-			if (authState.isAuthenticated) {
-				// Delete from server
-				const accessToken = localStorage.getItem('accessToken');
-				if (!accessToken) throw new Error('Not authenticated');
-
-				const response = await fetch(`/api/pipelines/saved/${pipelineId}`, {
-					method: 'DELETE',
-					headers: {
-						'Authorization': `Bearer ${accessToken}`,
-						'Content-Type': 'application/json'
-					}
-				});
-
-				if (!response.ok) {
-					const data = await response.json();
-					throw new Error(data.message || 'Failed to delete pipeline');
-				}
-			} else {
-				// Delete from local storage
-				LocalStorageService.deletePipeline(pipelineId);
-			}
-
-			await loadPipelines();
-
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to delete pipeline';
-		} finally {
-			isLoading = false;
-		}
-	}
-
-	async function duplicatePipeline(pipeline: any) {
-		const newName = `${pipeline.name} (Copy)`;
-		
-		isLoading = true;
-		error = '';
-
-		try {
+	try {
+		if (authState.isAuthenticated) {
+			// Load authenticated user pipelines
 			const accessToken = localStorage.getItem('accessToken');
 			if (!accessToken) throw new Error('Not authenticated');
 
-			const response = await fetch(`/api/pipelines/saved/${pipeline._id}/duplicate`, {
+			// Load saved pipelines
+			const savedResponse = await fetch('/api/pipelines/saved', {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (savedResponse.ok) {
+				const savedData = await savedResponse.json();
+				savedPipelines = savedData.data.pipelines || [];
+			}
+
+			// Load public pipelines
+			const publicResponse = await fetch('/api/pipelines/saved/public', {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (publicResponse.ok) {
+				const publicData = await publicResponse.json();
+				publicPipelines = publicData.data.pipelines || [];
+			}
+
+			// Load templates (filter public pipelines that are templates)
+			templates = publicPipelines.filter((p) => p.isTemplate);
+		} else {
+			// Load local storage pipelines for guest users
+			localPipelines = LocalStorageService.getPipelines();
+
+			// Load public pipelines (no auth required)
+			const publicResponse = await fetch('/api/pipelines/saved/public');
+
+			if (publicResponse.ok) {
+				const publicData = await publicResponse.json();
+				publicPipelines = publicData.data.pipelines || [];
+				templates = publicPipelines.filter((p) => p.isTemplate);
+			}
+		}
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Failed to load pipelines';
+	} finally {
+		_isLoading = false;
+	}
+}
+
+async function _savePipeline() {
+	if (!pipelineState.connection) return;
+
+	if (!saveName.trim()) {
+		_error = 'Pipeline name is required';
+		return;
+	}
+
+	_isLoading = true;
+	_error = '';
+
+	try {
+		const pipelineData = {
+			name: saveName.trim(),
+			description: saveDescription.trim() || undefined,
+			tags: saveTags
+				.split(',')
+				.map((tag) => tag.trim())
+				.filter((tag) => tag),
+			pipeline: pipelineState.pipeline as object[],
+			connectionId: pipelineState.connection.id,
+			database: pipelineState.connection.selectedDatabase || '',
+			collection: pipelineState.connection.selectedCollection || '',
+			sampleSize: pipelineState.sampleSize,
+			isPublic: saveIsPublic,
+			metadata: {
+				estimatedExecutionTime: undefined,
+				complexity: 'simple' as const,
+				category: 'general',
+				difficulty: 'beginner' as const,
+			},
+		};
+
+		if (authState.isAuthenticated) {
+			// Save to server
+			const accessToken = localStorage.getItem('accessToken');
+			if (!accessToken) throw new Error('Not authenticated');
+
+			const response = await fetch('/api/pipelines/saved', {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${accessToken}`,
-					'Content-Type': 'application/json'
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ name: newName })
+				body: JSON.stringify(pipelineData),
 			});
 
 			const data = await response.json();
 
 			if (!response.ok) {
-				throw new Error(data.message || 'Failed to duplicate pipeline');
+				throw new Error(data.message || 'Failed to save pipeline');
 			}
-
-			await loadPipelines();
-
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to duplicate pipeline';
-		} finally {
-			isLoading = false;
+		} else {
+			// Save to local storage
+			LocalStorageService.savePipeline(pipelineData);
 		}
-	}
 
-	async function exportPipeline(pipeline: any) {
-		try {
+		// Reset form and reload pipelines
+		saveName = '';
+		saveDescription = '';
+		saveTags = '';
+		saveIsPublic = false;
+		_showSaveForm = false;
+		await loadPipelines();
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Failed to save pipeline';
+	} finally {
+		_isLoading = false;
+	}
+}
+
+async function _loadPipeline(pipeline: unknown) {
+	if (onLoadPipeline) {
+		onLoadPipeline(pipeline);
+	}
+	onClose();
+}
+
+async function _deletePipeline(pipelineId: string) {
+	if (!confirm('Are you sure you want to delete this pipeline?')) return;
+
+	_isLoading = true;
+	_error = '';
+
+	try {
+		if (authState.isAuthenticated) {
+			// Delete from server
 			const accessToken = localStorage.getItem('accessToken');
 			if (!accessToken) throw new Error('Not authenticated');
 
-			const response = await fetch(`/api/pipelines/saved/${pipeline._id}/export`, {
+			const response = await fetch(`/api/pipelines/saved/${pipelineId}`, {
+				method: 'DELETE',
 				headers: {
-					'Authorization': `Bearer ${accessToken}`,
-					'Content-Type': 'application/json'
-				}
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
 			});
 
-			const data = await response.json();
-
 			if (!response.ok) {
-				throw new Error(data.message || 'Failed to export pipeline');
+				const data = await response.json();
+				throw new Error(data.message || 'Failed to delete pipeline');
 			}
-
-			// Download as JSON file
-			const blob = new Blob([JSON.stringify(data.data.export, null, 2)], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `${pipeline.name}.json`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to export pipeline';
-		}
-	}
-
-	function switchTab(tab: 'saved' | 'public' | 'templates') {
-		activeTab = tab;
-		error = '';
-	}
-
-	function getFilteredPipelines() {
-		let pipelines: any[] = [];
-		
-		switch (activeTab) {
-			case 'saved':
-				pipelines = authState.isAuthenticated ? savedPipelines : localPipelines;
-				break;
-			case 'public':
-				pipelines = publicPipelines;
-				break;
-			case 'templates':
-				pipelines = templates;
-				break;
+		} else {
+			// Delete from local storage
+			LocalStorageService.deletePipeline(pipelineId);
 		}
 
-		// Apply filters
-		if (searchQuery) {
-			pipelines = pipelines.filter(p => 
+		await loadPipelines();
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Failed to delete pipeline';
+	} finally {
+		_isLoading = false;
+	}
+}
+
+async function _duplicatePipeline(pipeline: unknown) {
+	const newName = `${pipeline.name} (Copy)`;
+
+	_isLoading = true;
+	_error = '';
+
+	try {
+		const accessToken = localStorage.getItem('accessToken');
+		if (!accessToken) throw new Error('Not authenticated');
+
+		const response = await fetch(`/api/pipelines/saved/${pipeline._id}/duplicate`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ name: newName }),
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			throw new Error(data.message || 'Failed to duplicate pipeline');
+		}
+
+		await loadPipelines();
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Failed to duplicate pipeline';
+	} finally {
+		_isLoading = false;
+	}
+}
+
+async function _exportPipeline(pipeline: unknown) {
+	try {
+		const accessToken = localStorage.getItem('accessToken');
+		if (!accessToken) throw new Error('Not authenticated');
+
+		const response = await fetch(`/api/pipelines/saved/${pipeline._id}/export`, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			throw new Error(data.message || 'Failed to export pipeline');
+		}
+
+		// Download as JSON file
+		const blob = new Blob([JSON.stringify(data.data.export, null, 2)], {
+			type: 'application/json',
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${pipeline.name}.json`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	} catch (err) {
+		_error = err instanceof Error ? err.message : 'Failed to export pipeline';
+	}
+}
+
+function _switchTab(tab: 'saved' | 'public' | 'templates') {
+	activeTab = tab;
+	_error = '';
+}
+
+function _getFilteredPipelines() {
+	let pipelines: unknown[] = [];
+
+	switch (activeTab) {
+		case 'saved':
+			pipelines = authState.isAuthenticated ? savedPipelines : localPipelines;
+			break;
+		case 'public':
+			pipelines = publicPipelines;
+			break;
+		case 'templates':
+			pipelines = templates;
+			break;
+	}
+
+	// Apply filters
+	if (searchQuery) {
+		pipelines = pipelines.filter(
+			(p) =>
 				p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-				p.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-			);
-		}
-
-		if (selectedCategory) {
-			pipelines = pipelines.filter(p => p.metadata?.category === selectedCategory);
-		}
-
-		if (selectedDifficulty) {
-			pipelines = pipelines.filter(p => p.metadata?.difficulty === selectedDifficulty);
-		}
-
-		return pipelines;
+				p.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
+		);
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			onClose();
-		}
+	if (selectedCategory) {
+		pipelines = pipelines.filter((p) => p.metadata?.category === selectedCategory);
 	}
 
-	onMount(() => {
-		document.addEventListener('keydown', handleKeydown);
-		return () => document.removeEventListener('keydown', handleKeydown);
-	});
+	if (selectedDifficulty) {
+		pipelines = pipelines.filter((p) => p.metadata?.difficulty === selectedDifficulty);
+	}
+
+	return pipelines;
+}
+
+function handleKeydown(event: KeyboardEvent) {
+	if (event.key === 'Escape') {
+		onClose();
+	}
+}
+
+onMount(() => {
+	document.addEventListener('keydown', handleKeydown);
+	return () => document.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 {#if isOpen}
 	<div
 		class="pipeline-manager-overlay"
 		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="pipeline-manager-title"
+		tabindex="-1"
 	>
-		<div class="pipeline-manager" onclick={(e) => e.stopPropagation()}>
+		<div class="pipeline-manager" onclick={(e) => e.stopPropagation()} role="presentation">
 			<div class="pipeline-manager-header">
 				<h2 id="pipeline-manager-title">Pipeline Manager</h2>
 				<button class="pipeline-manager-close" onclick={onClose} aria-label="Close modal">

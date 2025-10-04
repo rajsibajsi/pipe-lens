@@ -1,0 +1,220 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop, "feat/*", "fix/*"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "22.12.0"
+  PNPM_VERSION: "9"
+
+jobs:
+  # Bundle size analysis
+  bundle-size:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Analyze bundle size
+        run: |
+          echo "📊 Analyzing bundle sizes..."
+
+          # Web app bundle size
+          if [ -d "apps/web/build" ]; then
+            echo "Web app bundle size:"
+            du -sh apps/web/build/*
+          fi
+
+          # API bundle size
+          if [ -d "apps/api/dist" ]; then
+            echo "API bundle size:"
+            du -sh apps/api/dist/*
+          fi
+
+  # Performance testing
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: cd apps/web && pnpm exec playwright install --with-deps
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Start services and run performance tests
+        run: |
+          # Start API
+          (cd apps/api && pnpm run dev &) 
+          API_PID=$!
+
+          # Start web
+          (cd apps/web && pnpm run preview &)
+          WEB_PID=$!
+
+          # Wait for services to start
+          sleep 10
+
+          # Run performance tests from repo root, targeting web app
+          pnpm --filter "./apps/web" run test:e2e -- --grep "performance"
+
+          # Cleanup
+          kill $API_PID $WEB_PID
+
+  # Accessibility testing
+  accessibility:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: cd apps/web && pnpm exec playwright install --with-deps
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Start services and run accessibility tests
+        run: |
+          # Start API
+          (cd apps/api && pnpm run dev &) 
+          API_PID=$!
+
+          # Start web
+          (cd apps/web && pnpm run preview &)
+          WEB_PID=$!
+
+          # Wait for services to start
+          sleep 10
+
+          # Run accessibility tests
+          pnpm --filter "./apps/web" run test:e2e -- --grep "accessibility"
+
+          # Cleanup
+          kill $API_PID $WEB_PID
+
+  # Code complexity analysis
+  complexity:
+    name: Code Complexity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Analyze code complexity
+        run: |
+          echo "🔍 Analyzing code complexity..."
+
+          # Install complexity analysis tools
+          npm install -g complexity-report
+
+          # Analyze web app
+          if [ -d "apps/web/src" ]; then
+            echo "Web app complexity:"
+            cr --format table apps/web/src/**/*.{js,ts,svelte} || true
+          fi
+
+          # Analyze API
+          if [ -d "apps/api/src" ]; then
+            echo "API complexity:"
+            cr --format table apps/api/src/**/*.{js,ts} || true
+          fi
+
+  # Dead code detection
+  dead-code:
+    name: Dead Code Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm run build
+
+      - name: Detect dead code
+        run: |
+          echo "💀 Detecting dead code..."
+
+          # Install unimported
+          npm install -g unimported
+
+          # Check for unused files
+          unimported --init
+          unimported || true

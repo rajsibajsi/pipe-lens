@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Helper function to connect to MongoDB
-async function connectToMongoDB(page: any, connectionName = 'Local MongoDB') {
+async function connectToMongoDB(page: unknown, connectionName = 'Local MongoDB') {
 	await page.waitForLoadState('networkidle');
 	await page.getByTestId('connect-button').click();
 	await page.waitForTimeout(200);
@@ -16,7 +16,7 @@ async function connectToMongoDB(page: any, connectionName = 'Local MongoDB') {
 
 // Helper function to select database and collection
 async function selectDatabaseAndCollection(
-	page: any,
+	page: unknown,
 	database = 'testdb',
 	collection = 'orders',
 ) {
@@ -181,7 +181,10 @@ test.describe('Pipeline Builder - Stage Preview', () => {
 		await expect(page.getByText('Stage-by-Stage Results')).toBeVisible({ timeout: 10000 });
 
 		// Check for execution times (should show ms or s)
-		const timeText = await page.getByText(/\d+(ms|s)/).first().textContent();
+		const timeText = await page
+			.getByText(/\d+(ms|s)/)
+			.first()
+			.textContent();
 		expect(timeText).toMatch(/\d+(ms|s)/);
 	});
 

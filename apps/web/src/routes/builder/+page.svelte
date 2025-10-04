@@ -1,18 +1,9 @@
 <script lang="ts">
+import { onMount } from 'svelte';
 import { api } from '$lib/api';
-import ConnectionModal from '$lib/components/ConnectionModal.svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
-import LazyChartViewer from '$lib/components/LazyChartViewer.svelte';
-import LoadingButton from '$lib/components/LoadingButton.svelte';
-import MonacoEditor from '$lib/components/MonacoEditor.svelte';
-import PipelineLoadingState from '$lib/components/PipelineLoadingState.svelte';
-import PipelineManager from '$lib/components/PipelineManager.svelte';
-import StagePreview from '$lib/components/StagePreview.svelte';
 import { pipelineStore } from '$lib/stores/pipeline.store';
 import { toastStore } from '$lib/stores/toast.store';
-import { userStore } from '$lib/stores/user.store';
 import { keyboardShortcuts } from '$lib/utils/keyboard-shortcuts';
-import { onMount } from 'svelte';
 
 const defaultPipeline = `[
   {
@@ -29,11 +20,11 @@ const defaultPipeline = `[
 ]`;
 
 let editorContent = $state(defaultPipeline);
-const showConnectionModal = $state(false);
-let showDatabaseSelector = $state(false);
-let showCollectionSelector = $state(false);
-let showPipelineManager = $state(false);
-const showMobileMenu = $state(false);
+const monacoEditor: unknown = null;
+const _showConnectionModal = $state(false);
+let _showDatabaseSelector = $state(false);
+let _showCollectionSelector = $state(false);
+let _showPipelineManager = $state(false);
 
 // Initialize keyboard shortcuts
 onMount(() => {
@@ -41,7 +32,7 @@ onMount(() => {
 		key: 'Enter',
 		ctrlKey: true,
 		action: handleRunWithPreview,
-		description: 'Run pipeline with preview'
+		description: 'Run pipeline with preview',
 	});
 
 	keyboardShortcuts.register({
@@ -49,12 +40,12 @@ onMount(() => {
 		ctrlKey: true,
 		action: () => {
 			if (authState.isAuthenticated) {
-				showPipelineManager = true;
+				_showPipelineManager = true;
 			} else {
 				toastStore.warning('Sign in required', 'Please sign in to save pipelines');
 			}
 		},
-		description: 'Save pipeline'
+		description: 'Save pipeline',
 	});
 
 	keyboardShortcuts.register({
@@ -62,51 +53,98 @@ onMount(() => {
 		ctrlKey: true,
 		action: () => {
 			if (authState.isAuthenticated) {
-				showPipelineManager = true;
+				_showPipelineManager = true;
 			} else {
 				toastStore.warning('Sign in required', 'Please sign in to load pipelines');
 			}
 		},
-		description: 'Open pipeline manager'
+		description: 'Open pipeline manager',
 	});
 });
 
 const connection = $derived($pipelineStore.connection);
-const databases = $derived($pipelineStore.databases);
-const collections = $derived($pipelineStore.collections);
-const results = $derived($pipelineStore.results);
-const stageResults = $derived($pipelineStore.stageResults);
-const viewMode = $derived($pipelineStore.viewMode);
-const isExecuting = $derived($pipelineStore.isExecuting);
-const error = $derived($pipelineStore.error);
+const _databases = $derived($pipelineStore.databases);
+const _collections = $derived($pipelineStore.collections);
+const _results = $derived($pipelineStore.results);
+const _stageResults = $derived($pipelineStore.stageResults);
+const _viewMode = $derived($pipelineStore.viewMode);
+const _isExecuting = $derived($pipelineStore.isExecuting);
+const _error = $derived($pipelineStore.error);
 const sampleSize = $derived($pipelineStore.sampleSize);
-const maxSampleSize = $derived($pipelineStore.maxSampleSize);
-const diff = $derived($pipelineStore.diff);
+const _maxSampleSize = $derived($pipelineStore.maxSampleSize);
+const _diff = $derived($pipelineStore.diff);
 const authState = $derived($userStore);
 
-async function handleSelectDatabase(database: string) {
+// Pre-built templates for common stages
+const stageTemplates: Record<string, object> = {
+	$match: { $match: { field: 'value' } },
+	$project: { $project: { field: 1 } },
+	$group: { $group: { _id: '$field', count: { $sum: 1 } } },
+	$sort: { $sort: { field: 1 } },
+	$limit: { $limit: 10 },
+	$skip: { $skip: 10 },
+	$lookup: {
+		$lookup: { from: 'otherCollection', localField: 'field', foreignField: 'field', as: 'joined' },
+	},
+	$unwind: { $unwind: '$arrayField' },
+	$addFields: { $addFields: { newField: 'value' } },
+	$replaceRoot: { $replaceRoot: { newRoot: '$doc' } },
+};
+
+function _insertStage(stageOperator: string) {
+	try {
+		const parsed = JSON.parse(editorContent);
+		const pipelineArray: unknown[] = Array.isArray(parsed) ? (parsed as unknown[]) : [];
+		const template = stageTemplates[stageOperator];
+		if (!template) return;
+		pipelineArray.push(template);
+		const newContent = JSON.stringify(pipelineArray, null, 2);
+		editorContent = newContent;
+		// Update the Monaco editor directly
+		if (monacoEditor) {
+			monacoEditor.updateValue(newContent);
+		}
+		pipelineStore.setPipeline(pipelineArray);
+		toastStore.success('Stage added', `${stageOperator} inserted into pipeline`);
+	} catch {
+		// If editor content is not valid JSON, initialize a new pipeline with the stage
+		const template = stageTemplates[stageOperator];
+		if (!template) return;
+		const pipelineArray: unknown[] = [template];
+		const newContent = JSON.stringify(pipelineArray, null, 2);
+		editorContent = newContent;
+		// Update the Monaco editor directly
+		if (monacoEditor) {
+			monacoEditor.updateValue(newContent);
+		}
+		pipelineStore.setPipeline(pipelineArray);
+		toastStore.info('Started new pipeline', `${stageOperator} added as first stage`);
+	}
+}
+
+async function _handleSelectDatabase(database: string) {
 	if (!connection) return;
 
 	pipelineStore.selectDatabase(database);
-	showDatabaseSelector = false;
+	_showDatabaseSelector = false;
 
 	// Load collections
 	const { collections: cols } = await api.listCollections(connection.id, database);
 	pipelineStore.setCollections(cols);
 }
 
-function handleSelectCollection(collection: string) {
+function _handleSelectCollection(collection: string) {
 	pipelineStore.selectCollection(collection);
-	showCollectionSelector = false;
+	_showCollectionSelector = false;
 }
 
-function handleLoadPipeline(pipeline: any) {
+function _handleLoadPipeline(pipeline: unknown) {
 	// Load pipeline data into the editor
-	editorContent = JSON.stringify(pipeline.pipeline, null, 2);
-	
+	editorContent = JSON.stringify(pipeline, null, 2);
+
 	// Update pipeline store
-	pipelineStore.setPipeline(pipeline.pipeline);
-	
+	pipelineStore.setPipeline(pipeline);
+
 	// Set connection if available
 	if (pipeline.connectionId && pipeline.database && pipeline.collection) {
 		// Note: In a real app, you'd need to ensure the connection exists
@@ -114,22 +152,22 @@ function handleLoadPipeline(pipeline: any) {
 		pipelineStore.selectDatabase(pipeline.database);
 		pipelineStore.selectCollection(pipeline.collection);
 	}
-	
+
 	// Set sample size if available
 	if (pipeline.sampleSize) {
 		pipelineStore.setSampleSize(pipeline.sampleSize);
 	}
 }
 
-function openPipelineManager() {
-	showPipelineManager = true;
+function _openPipelineManager() {
+	_showPipelineManager = true;
 }
 
-function closePipelineManager() {
-	showPipelineManager = false;
+function _closePipelineManager() {
+	_showPipelineManager = false;
 }
 
-async function handleRunPipeline() {
+async function _handleRunPipeline() {
 	if (!connection?.selectedDatabase || !connection?.selectedCollection) {
 		pipelineStore.setError('Please select a database and collection');
 		toastStore.error('Configuration required', 'Please select a database and collection first');
@@ -145,7 +183,7 @@ async function handleRunPipeline() {
 			sampleSize,
 			connection.id,
 			connection.selectedDatabase,
-			connection.selectedCollection
+			connection.selectedCollection,
 		);
 
 		if (cached) {
@@ -182,7 +220,7 @@ async function handleRunPipeline() {
 				connection.selectedDatabase,
 				connection.selectedCollection,
 				result.results,
-				[]
+				[],
 			);
 			toastStore.success('Pipeline executed', `Found ${result.results.length} documents`);
 		} else {
@@ -213,7 +251,7 @@ async function handleRunWithPreview() {
 			sampleSize,
 			connection.id,
 			connection.selectedDatabase,
-			connection.selectedCollection
+			connection.selectedCollection,
 		);
 
 		if (cached) {
@@ -249,7 +287,7 @@ async function handleRunWithPreview() {
 				connection.selectedDatabase,
 				connection.selectedCollection,
 				[],
-				result.stages
+				result.stages,
 			);
 		} else {
 			pipelineStore.setError(result.message || 'Pipeline execution failed');
@@ -261,7 +299,7 @@ async function handleRunWithPreview() {
 	}
 }
 
-function handleEditorChange(value: string | undefined) {
+function _handleEditorChange(value: string | undefined) {
 	if (value !== undefined) {
 		editorContent = value;
 	}
@@ -269,177 +307,92 @@ function handleEditorChange(value: string | undefined) {
 </script>
 
 <div style="height: 100vh; display: flex; flex-direction: column;">
-	<!-- Header -->
-	<header style="background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--glass-border); padding: var(--space-lg) var(--space-xl);">
-		<div style="display: flex; align-items: center; justify-content: space-between;">
-			<div>
-				<h1 style="font-size: var(--text-2xl); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">Pipeline Builder</h1>
-				<p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0;">
+	<!-- Top Toolbar -->
+	<div class="top-toolbar">
+		<div class="toolbar-content">
+			<div class="toolbar-left">
+				<div class="connection-info">
 					{#if connection?.selectedDatabase && connection?.selectedCollection}
-						{connection.selectedDatabase}.{connection.selectedCollection}
+						<span class="connection-text">{connection.selectedDatabase}.{connection.selectedCollection}</span>
 					{:else}
-						Build and test MongoDB aggregation pipelines
+						<span class="connection-text">Select database and collection</span>
 					{/if}
-				</p>
+				</div>
 			</div>
-			<div class="header-controls">
-				<!-- Desktop Controls -->
-				<div class="desktop-controls">
-					<!-- Sample Size Control -->
-					<div class="sample-size-control">
-						<label for="sample-size-input" class="sample-size-label">
-							Sample Size:
-						</label>
-						<input
-							id="sample-size-input"
-							type="number"
-							min="1"
-							max={maxSampleSize}
-							value={sampleSize}
-							oninput={(e) => {
-								const value = parseInt((e.target as HTMLInputElement).value) || 10;
-								const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
-								pipelineStore.setSampleSize(clampedValue);
-								// Update the input value to reflect the clamped value
-								if (value !== clampedValue) {
-									(e.target as HTMLInputElement).value = clampedValue.toString();
-								}
-							}}
-							class="sample-size-input"
-						/>
-						<span class="sample-size-max">
-							/ {maxSampleSize}
-						</span>
-					</div>
-
-					{#if authState.isAuthenticated}
-						<button
-							onclick={openPipelineManager}
-							class="btn btn-secondary"
-							title="Manage saved pipelines"
-						>
-							📚 Pipelines
-						</button>
-					{/if}
-					<button
-						onclick={() => pipelineStore.clearCache()}
-						class="btn btn-ghost"
-						title="Clear cache"
-					>
-						🗑️ Clear Cache
-					</button>
-					<button
-						onclick={() => pipelineStore.toggleDiff()}
-						class="btn btn-ghost"
-						class:active={diff.showDiff}
-						title="Toggle diff view"
-					>
-						🔍 Diff View
-					</button>
-					<LoadingButton
-						loading={isExecuting}
-						disabled={!connection}
-						onclick={handleRunWithPreview}
-						className="btn-primary"
-						style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
-					>
-						Run with Preview
-					</LoadingButton>
-					<LoadingButton
-						loading={isExecuting}
-						disabled={!connection}
-						onclick={handleRunPipeline}
-						className="btn-primary"
-					>
-						Run Pipeline
-					</LoadingButton>
+			
+			<div class="toolbar-right">
+				<!-- Sample Size Control -->
+				<div class="sample-size-control">
+					<label for="sample-size-input" class="sample-size-label">
+						Sample:
+					</label>
+					<input
+						id="sample-size-input"
+						type="number"
+						min="1"
+						max={maxSampleSize}
+						value={sampleSize}
+						oninput={(e) => {
+							const value = parseInt((e.target as HTMLInputElement).value) || 10;
+							const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
+							pipelineStore.setSampleSize(clampedValue);
+							if (value !== clampedValue) {
+								(e.target as HTMLInputElement).value = clampedValue.toString();
+							}
+						}}
+						class="sample-size-input"
+					/>
+					<span class="sample-size-max">/{maxSampleSize}</span>
 				</div>
 
-				<!-- Mobile Menu Button -->
+				{#if authState.isAuthenticated}
+					<button
+						onclick={openPipelineManager}
+						class="btn btn-secondary"
+						title="Manage saved pipelines"
+					>
+						📚
+					</button>
+				{/if}
+				
 				<button
-					class="mobile-menu-button"
-					onclick={() => showMobileMenu = !showMobileMenu}
-					title="Toggle mobile menu"
+					onclick={() => pipelineStore.clearCache()}
+					class="btn btn-ghost"
+					title="Clear cache"
 				>
-					☰
+					🗑️
 				</button>
+				
+				<button
+					onclick={() => pipelineStore.toggleDiff()}
+					class="btn btn-ghost"
+					class:active={diff.showDiff}
+					title="Toggle diff view"
+				>
+					🔍
+				</button>
+
+				<LoadingButton
+					loading={isExecuting}
+					disabled={!connection}
+					onclick={handleRunWithPreview}
+					className="btn btn-primary"
+					style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
+				>
+					Run with Preview
+				</LoadingButton>
+				
+				<LoadingButton
+					loading={isExecuting}
+					disabled={!connection}
+					onclick={handleRunPipeline}
+					className="btn btn-primary"
+				>
+					Run Pipeline
+				</LoadingButton>
 			</div>
-
-			<!-- Mobile Controls -->
-			{#if showMobileMenu}
-				<div class="mobile-controls">
-					<div class="mobile-controls-content">
-						<!-- Sample Size Control -->
-						<div class="mobile-sample-size">
-							<label for="mobile-sample-size-input" class="mobile-sample-size-label">
-								Sample Size
-							</label>
-							<div class="mobile-sample-size-input-group">
-								<input
-									id="mobile-sample-size-input"
-									type="number"
-									min="1"
-									max={maxSampleSize}
-									value={sampleSize}
-									oninput={(e) => {
-										const value = parseInt((e.target as HTMLInputElement).value) || 10;
-										const clampedValue = Math.min(Math.max(value, 1), maxSampleSize);
-										pipelineStore.setSampleSize(clampedValue);
-										if (value !== clampedValue) {
-											(e.target as HTMLInputElement).value = clampedValue.toString();
-										}
-									}}
-									class="mobile-sample-size-input"
-								/>
-								<span class="mobile-sample-size-max">/ {maxSampleSize}</span>
-							</div>
-						</div>
-
-						<div class="mobile-buttons">
-							{#if authState.isAuthenticated}
-								<button
-									onclick={() => { openPipelineManager(); showMobileMenu = false; }}
-									class="btn btn-secondary mobile-btn"
-								>
-									📚 Pipelines
-								</button>
-							{/if}
-							<button
-								onclick={() => { pipelineStore.clearCache(); showMobileMenu = false; }}
-								class="btn btn-ghost mobile-btn"
-							>
-								🗑️ Clear Cache
-							</button>
-							<button
-								onclick={() => { pipelineStore.toggleDiff(); showMobileMenu = false; }}
-								class="btn btn-ghost mobile-btn"
-								class:active={diff.showDiff}
-							>
-								🔍 Diff View
-							</button>
-							<LoadingButton
-								loading={isExecuting}
-								disabled={!connection}
-								onclick={() => { handleRunWithPreview(); showMobileMenu = false; }}
-								className="btn-primary mobile-btn"
-								style="background: {!connection ? 'var(--color-bg-tertiary)' : '#7c3aed'}; color: white;"
-							>
-								Run with Preview
-							</LoadingButton>
-							<LoadingButton
-								loading={isExecuting}
-								disabled={!connection}
-								onclick={() => { handleRunPipeline(); showMobileMenu = false; }}
-								className="btn-primary mobile-btn"
-							>
-								Run Pipeline
-							</LoadingButton>
-						</div>
-					</div>
-				</div>
-			{/if}
 		</div>
-	</header>
+	</div>
 
 	<!-- Main Content -->
 	<div style="flex: 1; display: flex; overflow: hidden;">
@@ -450,8 +403,10 @@ function handleEditorChange(value: string | undefined) {
 				<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
 					{#each ['$match', '$project', '$group', '$sort', '$limit', '$skip', '$lookup', '$unwind', '$addFields', '$replaceRoot'] as stage}
 						<button
+							onclick={() => insertStage(stage)}
 							class="btn btn-ghost"
 							style="justify-content: flex-start; font-family: var(--font-mono); width: 100%;"
+							title={`Insert ${stage} stage`}
 						>
 							{stage}
 						</button>
@@ -544,6 +499,7 @@ function handleEditorChange(value: string | undefined) {
 			<div style="flex: 1; border-bottom: 1px solid var(--glass-border);">
 				<div style="height: 100%;">
 					<MonacoEditor
+						bind:this={monacoEditor}
 						value={editorContent}
 						language="json"
 						theme="vs-dark"
@@ -666,6 +622,7 @@ function handleEditorChange(value: string | undefined) {
 <ConnectionModal
 	isOpen={showConnectionModal}
 	onClose={() => (showConnectionModal = false)}
+	onConnect={() => (showConnectionModal = false)}
 />
 
 <PipelineManager
@@ -675,119 +632,73 @@ function handleEditorChange(value: string | undefined) {
 />
 
 <style>
-	/* Header Controls */
-	.header-controls {
+	/* Top Toolbar */
+	.top-toolbar {
+		background: var(--glass-bg);
+		backdrop-filter: blur(16px);
+		border-bottom: 1px solid var(--glass-border);
+		padding: var(--space-md) var(--space-lg);
+		position: sticky;
+		top: 0;
+		z-index: 50;
+	}
+
+	.toolbar-content {
 		display: flex;
-		gap: var(--space-md);
+		align-items: center;
+		justify-content: space-between;
+		max-width: 100%;
+	}
+
+	.toolbar-left {
+		display: flex;
 		align-items: center;
 	}
 
-	.desktop-controls {
+	.toolbar-right {
 		display: flex;
+		align-items: center;
 		gap: var(--space-md);
+	}
+
+	.connection-info {
+		display: flex;
 		align-items: center;
 	}
 
-	.mobile-menu-button {
-		display: none;
-		background: none;
-		border: 1px solid var(--glass-border);
-		border-radius: var(--radius-sm);
-		padding: var(--space-sm);
-		color: var(--color-text-primary);
-		cursor: pointer;
-		font-size: var(--text-lg);
-		transition: all 0.2s ease;
-	}
-
-	.mobile-menu-button:hover {
-		background: var(--color-bg-tertiary);
+	.connection-text {
+		font-size: var(--text-sm);
+		color: var(--color-text-secondary);
+		font-weight: 500;
 	}
 
 	/* Sample Size Control */
 	.sample-size-control {
 		display: flex;
 		align-items: center;
-		gap: var(--space-sm);
+		gap: var(--space-xs);
 	}
 
 	.sample-size-label {
 		font-size: var(--text-xs);
 		color: var(--color-text-secondary);
+		font-weight: 500;
 	}
 
 	.sample-size-input {
-		width: 4rem;
+		width: 3rem;
 		padding: var(--space-xs);
 		font-size: var(--text-xs);
 		border: 1px solid var(--glass-border);
 		border-radius: var(--radius-sm);
 		background: var(--color-bg-secondary);
 		color: var(--color-text-primary);
+		text-align: center;
 	}
 
 	.sample-size-max {
 		font-size: var(--text-xs);
 		color: var(--color-text-tertiary);
-	}
-
-	/* Mobile Controls */
-	.mobile-controls {
-		display: none;
-		background: var(--color-bg-secondary);
-		border-top: 1px solid var(--glass-border);
-		padding: var(--space-md);
-		animation: slideDown 0.3s ease-out;
-	}
-
-	.mobile-controls-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-md);
-	}
-
-	.mobile-sample-size {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-xs);
-	}
-
-	.mobile-sample-size-label {
-		font-size: var(--text-sm);
-		color: var(--color-text-secondary);
-		font-weight: 500;
-	}
-
-	.mobile-sample-size-input-group {
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-	}
-
-	.mobile-sample-size-input {
-		width: 5rem;
-		padding: var(--space-sm);
-		font-size: var(--text-sm);
-		border: 1px solid var(--glass-border);
-		border-radius: var(--radius-sm);
-		background: var(--color-bg-primary);
-		color: var(--color-text-primary);
-	}
-
-	.mobile-sample-size-max {
-		font-size: var(--text-sm);
-		color: var(--color-text-tertiary);
-	}
-
-	.mobile-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-	}
-
-	.mobile-btn {
-		width: 100%;
-		justify-content: center;
 	}
 
 	/* Button active state */
@@ -798,7 +709,7 @@ function handleEditorChange(value: string | undefined) {
 
 	/* Responsive Design */
 	@media (max-width: 1024px) {
-		.desktop-controls {
+		.toolbar-right {
 			gap: var(--space-sm);
 		}
 
@@ -808,72 +719,38 @@ function handleEditorChange(value: string | undefined) {
 	}
 
 	@media (max-width: 768px) {
-		.desktop-controls {
-			display: none;
+		.top-toolbar {
+			padding: var(--space-sm) var(--space-md);
 		}
 
-		.mobile-menu-button {
-			display: block;
+		.toolbar-content {
+			flex-direction: column;
+			gap: var(--space-sm);
+			align-items: stretch;
 		}
 
-		.mobile-controls {
-			display: block;
+		.toolbar-left {
+			justify-content: center;
 		}
 
-		.header-controls {
-			justify-content: space-between;
+		.toolbar-right {
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.connection-text {
+			font-size: var(--text-xs);
 		}
 	}
 
 	@media (max-width: 480px) {
-		.mobile-controls {
-			padding: var(--space-sm);
-		}
-
-		.mobile-buttons {
+		.toolbar-right {
 			gap: var(--space-xs);
 		}
 
-		.mobile-btn {
-			padding: var(--space-sm);
-			font-size: var(--text-sm);
-		}
-	}
-
-	/* Main content responsive */
-	@media (max-width: 768px) {
-		.main-content {
-			flex-direction: column;
-		}
-
-		.sidebar {
-			width: 100%;
-			height: auto;
-			max-height: 200px;
-			border-right: none;
-			border-bottom: 1px solid var(--glass-border);
-		}
-
-		.editor-section {
-			height: 50vh;
-		}
-
-		.results-section {
-			height: 50vh;
-		}
-	}
-
-	/* Connection selector responsive */
-	@media (max-width: 480px) {
-		.connection-selector {
-			flex-direction: column;
-			align-items: stretch;
-			gap: var(--space-sm);
-		}
-
-		.connection-selector button {
-			width: 100%;
-			justify-content: center;
+		.btn {
+			padding: var(--space-xs) var(--space-sm);
+			font-size: var(--text-xs);
 		}
 	}
 </style>

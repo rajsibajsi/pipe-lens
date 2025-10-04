@@ -1,0 +1,85 @@
+name: Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # Check for outdated dependencies
+  check-outdated:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check outdated dependencies
+        run: |
+          echo "📦 Checking for outdated dependencies..."
+          pnpm outdated --format=table || true
+
+      - name: Check security vulnerabilities
+        run: |
+          echo "🔒 Checking for security vulnerabilities..."
+          pnpm audit --audit-level moderate || true
+
+  # Update dependencies (optional - uncomment if you want auto-updates)
+  # update-dependencies:
+  #   name: Update Dependencies
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+
+  #     - name: Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: ${{ env.PNPM_VERSION }}
+
+  #     - name: Install dependencies
+  #       run: pnpm install --frozen-lockfile
+
+  #     - name: Update dependencies
+  #       run: |
+  #         pnpm update --interactive
+
+  #     - name: Create Pull Request
+  #       uses: peter-evans/create-pull-request@v5
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         commit-message: 'chore: update dependencies'
+  #         title: 'chore: update dependencies'
+  #         body: |
+  #           This PR updates dependencies to their latest versions.
+  #           
+  #           - Updated via pnpm update
+  #           - Please review changes before merging
+  #         branch: chore/update-dependencies
+  #         delete-branch: true

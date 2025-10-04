@@ -1,0 +1,30 @@
+# Global owners
+* @rajsibajsi
+
+# Web application
+/apps/web/ @rajsibajsi
+
+# API application
+/apps/api/ @rajsibajsi
+
+# Documentation
+/docs/ @rajsibajsi
+*.md @rajsibajsi
+
+# Configuration files
+package.json @rajsibajsi
+pnpm-lock.yaml @rajsibajsi
+pnpm-workspace.yaml @rajsibajsi
+biome.json @rajsibajsi
+docker-compose.yml @rajsibajsi
+
+# GitHub workflows
+/.github/ @rajsibajsi
+
+# Tests
+/tests/ @rajsibajsi
+**/*.test.* @rajsibajsi
+**/*.spec.* @rajsibajsi
+
+# CI/CD
+/.github/workflows/ @rajsibajsi

@@ -1,10 +1,10 @@
-import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { app } from '../src/index.js';
-import { User } from '../src/models/User.js';
-import { Pipeline } from '../src/models/Pipeline.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import app from '../src/index.js';
+import { Pipeline } from '../src/models/Pipeline.js';
+import { User } from '../src/models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 
@@ -22,15 +22,13 @@ describe('Saved Pipelines API', () => {
 		const user = await User.create({
 			name: 'Test User',
 			email: 'test@example.com',
-			password: hashedPassword
+			password: hashedPassword,
 		});
 
 		userId = user._id.toString();
-		accessToken = jwt.sign(
-			{ userId: user._id, email: user.email },
-			JWT_SECRET,
-			{ expiresIn: '1h' }
-		);
+		accessToken = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, {
+			expiresIn: '1h',
+		});
 	});
 
 	afterAll(async () => {
@@ -47,13 +45,13 @@ describe('Saved Pipelines API', () => {
 				tags: ['test', 'aggregation'],
 				pipeline: [
 					{ $match: { status: 'active' } },
-					{ $group: { _id: '$category', count: { $sum: 1 } } }
+					{ $group: { _id: '$category', count: { $sum: 1 } } },
 				],
 				connectionId: 'test-conn',
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: false
+				isPublic: false,
 			};
 
 			const response = await request(app)
@@ -69,19 +67,17 @@ describe('Saved Pipelines API', () => {
 				tags: pipelineData.tags,
 				pipeline: pipelineData.pipeline,
 				userId: userId,
-				isPublic: false
+				isPublic: false,
 			});
 		});
 
 		it('should reject saving pipeline without authentication', async () => {
 			const pipelineData = {
 				name: 'Test Pipeline',
-				pipeline: [{ $match: { status: 'active' } }]
+				pipeline: [{ $match: { status: 'active' } }],
 			};
 
-			const response = await request(app)
-				.post('/api/pipelines/saved')
-				.send(pipelineData);
+			const response = await request(app).post('/api/pipelines/saved').send(pipelineData);
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);
@@ -102,15 +98,12 @@ describe('Saved Pipelines API', () => {
 				name: 'Public Test Pipeline',
 				description: 'A public test pipeline',
 				tags: ['public', 'test'],
-				pipeline: [
-					{ $match: { status: 'active' } },
-					{ $count: 'total' }
-				],
+				pipeline: [{ $match: { status: 'active' } }, { $count: 'total' }],
 				connectionId: 'test-conn',
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: true
+				isPublic: true,
 			};
 
 			const response = await request(app)
@@ -137,7 +130,7 @@ describe('Saved Pipelines API', () => {
 					database: 'test-db',
 					collection: 'test-collection',
 					sampleSize: 10,
-					isPublic: false
+					isPublic: false,
 				},
 				{
 					name: 'User Pipeline 2',
@@ -149,8 +142,8 @@ describe('Saved Pipelines API', () => {
 					database: 'test-db',
 					collection: 'test-collection',
 					sampleSize: 20,
-					isPublic: false
-				}
+					isPublic: false,
+				},
 			]);
 		});
 
@@ -164,13 +157,12 @@ describe('Saved Pipelines API', () => {
 			expect(response.body.data.pipelines).toHaveLength(2);
 			expect(response.body.data.pipelines[0]).toMatchObject({
 				name: expect.any(String),
-				userId: userId
+				userId: userId,
 			});
 		});
 
 		it('should reject getting pipelines without authentication', async () => {
-			const response = await request(app)
-				.get('/api/pipelines/saved');
+			const response = await request(app).get('/api/pipelines/saved');
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);
@@ -187,7 +179,7 @@ describe('Saved Pipelines API', () => {
 				page: 1,
 				limit: 1,
 				total: 2,
-				pages: 2
+				pages: 2,
 			});
 		});
 
@@ -225,13 +217,12 @@ describe('Saved Pipelines API', () => {
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: true
+				isPublic: true,
 			});
 		});
 
 		it('should get public pipelines without authentication', async () => {
-			const response = await request(app)
-				.get('/api/pipelines/saved/public');
+			const response = await request(app).get('/api/pipelines/saved/public');
 
 			expect(response.status).toBe(200);
 			expect(response.body.success).toBe(true);
@@ -240,8 +231,7 @@ describe('Saved Pipelines API', () => {
 		});
 
 		it('should support search in public pipelines', async () => {
-			const response = await request(app)
-				.get('/api/pipelines/saved/public?search=Public');
+			const response = await request(app).get('/api/pipelines/saved/public?search=Public');
 
 			expect(response.status).toBe(200);
 			expect(response.body.data.pipelines).toHaveLength(1);
@@ -263,7 +253,7 @@ describe('Saved Pipelines API', () => {
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: false
+				isPublic: false,
 			});
 			pipelineId = pipeline._id.toString();
 		});
@@ -277,13 +267,12 @@ describe('Saved Pipelines API', () => {
 			expect(response.body.success).toBe(true);
 			expect(response.body.data.pipeline).toMatchObject({
 				name: 'Test Pipeline Detail',
-				userId: userId
+				userId: userId,
 			});
 		});
 
 		it('should reject getting pipeline without authentication', async () => {
-			const response = await request(app)
-				.get(`/api/pipelines/saved/${pipelineId}`);
+			const response = await request(app).get(`/api/pipelines/saved/${pipelineId}`);
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);
@@ -313,7 +302,7 @@ describe('Saved Pipelines API', () => {
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: false
+				isPublic: false,
 			});
 			pipelineId = pipeline._id.toString();
 		});
@@ -323,7 +312,7 @@ describe('Saved Pipelines API', () => {
 				name: 'Updated Pipeline',
 				description: 'Updated description',
 				tags: ['updated'],
-				pipeline: [{ $match: { status: 'updated' } }]
+				pipeline: [{ $match: { status: 'updated' } }],
 			};
 
 			const response = await request(app)
@@ -336,13 +325,13 @@ describe('Saved Pipelines API', () => {
 			expect(response.body.data.pipeline).toMatchObject({
 				name: 'Updated Pipeline',
 				description: 'Updated description',
-				tags: ['updated']
+				tags: ['updated'],
 			});
 		});
 
 		it('should reject updating pipeline without authentication', async () => {
 			const updateData = {
-				name: 'Unauthorized Update'
+				name: 'Unauthorized Update',
 			};
 
 			const response = await request(app)
@@ -355,7 +344,7 @@ describe('Saved Pipelines API', () => {
 
 		it('should return 404 for non-existent pipeline', async () => {
 			const updateData = {
-				name: 'Non-existent Update'
+				name: 'Non-existent Update',
 			};
 
 			const response = await request(app)
@@ -382,7 +371,7 @@ describe('Saved Pipelines API', () => {
 				database: 'test-db',
 				collection: 'test-collection',
 				sampleSize: 10,
-				isPublic: false
+				isPublic: false,
 			});
 			pipelineId = pipeline._id.toString();
 		});
@@ -404,8 +393,7 @@ describe('Saved Pipelines API', () => {
 		});
 
 		it('should reject deleting pipeline without authentication', async () => {
-			const response = await request(app)
-				.delete(`/api/pipelines/saved/${pipelineId}`);
+			const response = await request(app).delete(`/api/pipelines/saved/${pipelineId}`);
 
 			expect(response.status).toBe(401);
 			expect(response.body.success).toBe(false);

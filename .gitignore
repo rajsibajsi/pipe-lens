@@ -14,6 +14,18 @@ build
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
+
+# Security and secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+.secrets/
 
 # Logs
 logs
@@ -44,6 +56,22 @@ Thumbs.db
 coverage
 .nyc_output
 test-results
+playwright-report
+test-results/
+e2e-results/
+
+# Security scanning
+.semgrep/
+trivy-results.sarif
+semgrep.sarif
+
+# Performance monitoring
+lighthouse-results/
+bundle-analysis/
+
+# Dependencies
+.pnpm-store/
+.pnpm-debug.log*
 
 # Misc
 *.tsbuildinfo

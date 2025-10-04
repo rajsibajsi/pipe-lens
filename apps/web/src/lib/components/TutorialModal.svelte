@@ -1,112 +1,118 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+import { onMount } from 'svelte';
 
-	interface Props {
-		isOpen: boolean;
-		onClose: () => void;
-		onComplete?: () => void;
+interface Props {
+	isOpen: boolean;
+	onClose: () => void;
+	onComplete?: () => void;
+}
+
+const { isOpen, onClose, onComplete }: Props = $props();
+const __use = (..._args: unknown[]) => {};
+__use(isOpen);
+
+let currentStep = $state(0);
+let _isCompleted = $state(false);
+
+const steps = [
+	{
+		title: 'Welcome to PipeLens!',
+		description: "Let's take a quick tour of the MongoDB aggregation pipeline builder.",
+		icon: '👋',
+		action: 'Next',
+	},
+	{
+		title: 'Connect to MongoDB',
+		description:
+			'First, connect to your MongoDB database by clicking the "Connect to MongoDB" button.',
+		icon: '🔌',
+		action: 'Got it',
+	},
+	{
+		title: 'Select Database & Collection',
+		description: 'Choose the database and collection you want to run your pipeline against.',
+		icon: '📊',
+		action: 'Next',
+	},
+	{
+		title: 'Write Your Pipeline',
+		description: 'Use the Monaco editor to write your MongoDB aggregation pipeline in JSON format.',
+		icon: '✍️',
+		action: 'Next',
+	},
+	{
+		title: 'Run Your Pipeline',
+		description:
+			'Click "Run Pipeline" or "Run with Preview" to execute your aggregation and see the results.',
+		icon: '⚡',
+		action: 'Next',
+	},
+	{
+		title: 'Explore Results',
+		description:
+			'View your results in different formats: raw JSON, charts, or stage-by-stage preview.',
+		icon: '📈',
+		action: 'Next',
+	},
+	{
+		title: 'Save Your Work',
+		description: 'Sign in to save your pipelines and access them later from your personal library.',
+		icon: '💾',
+		action: 'Next',
+	},
+	{
+		title: "You're All Set!",
+		description:
+			'You now know the basics of PipeLens. Start building amazing aggregation pipelines!',
+		icon: '🎉',
+		action: 'Start Building',
+	},
+];
+
+function nextStep() {
+	if (currentStep < steps.length - 1) {
+		currentStep++;
+	} else {
+		completeTutorial();
 	}
+}
 
-	const { isOpen, onClose, onComplete }: Props = $props();
-
-	let currentStep = $state(0);
-	let isCompleted = $state(false);
-
-	const steps = [
-		{
-			title: 'Welcome to PipeLens!',
-			description: 'Let\'s take a quick tour of the MongoDB aggregation pipeline builder.',
-			icon: '👋',
-			action: 'Next'
-		},
-		{
-			title: 'Connect to MongoDB',
-			description: 'First, connect to your MongoDB database by clicking the "Connect to MongoDB" button.',
-			icon: '🔌',
-			action: 'Got it'
-		},
-		{
-			title: 'Select Database & Collection',
-			description: 'Choose the database and collection you want to run your pipeline against.',
-			icon: '📊',
-			action: 'Next'
-		},
-		{
-			title: 'Write Your Pipeline',
-			description: 'Use the Monaco editor to write your MongoDB aggregation pipeline in JSON format.',
-			icon: '✍️',
-			action: 'Next'
-		},
-		{
-			title: 'Run Your Pipeline',
-			description: 'Click "Run Pipeline" or "Run with Preview" to execute your aggregation and see the results.',
-			icon: '⚡',
-			action: 'Next'
-		},
-		{
-			title: 'Explore Results',
-			description: 'View your results in different formats: raw JSON, charts, or stage-by-stage preview.',
-			icon: '📈',
-			action: 'Next'
-		},
-		{
-			title: 'Save Your Work',
-			description: 'Sign in to save your pipelines and access them later from your personal library.',
-			icon: '💾',
-			action: 'Next'
-		},
-		{
-			title: 'You\'re All Set!',
-			description: 'You now know the basics of PipeLens. Start building amazing aggregation pipelines!',
-			icon: '🎉',
-			action: 'Start Building'
-		}
-	];
-
-	function nextStep() {
-		if (currentStep < steps.length - 1) {
-			currentStep++;
-		} else {
-			completeTutorial();
-		}
+function prevStep() {
+	if (currentStep > 0) {
+		currentStep--;
 	}
+}
 
-	function prevStep() {
-		if (currentStep > 0) {
-			currentStep--;
-		}
+function completeTutorial() {
+	_isCompleted = true;
+	if (onComplete) {
+		onComplete();
 	}
+	// Store completion in localStorage
+	localStorage.setItem('pipe-lens-tutorial-completed', 'true');
+}
 
-	function completeTutorial() {
-		isCompleted = true;
-		if (onComplete) {
-			onComplete();
-		}
-		// Store completion in localStorage
-		localStorage.setItem('pipe-lens-tutorial-completed', 'true');
+function _skipTutorial() {
+	onClose();
+}
+
+function _handleKeydown(event: KeyboardEvent) {
+	if (event.key === 'Escape') {
+		onClose();
+	} else if (event.key === 'ArrowRight' || event.key === 'Enter') {
+		nextStep();
+	} else if (event.key === 'ArrowLeft') {
+		prevStep();
 	}
+}
 
-	function skipTutorial() {
+onMount(() => {
+	// Check if tutorial was already completed
+	const completed = localStorage.getItem('pipe-lens-tutorial-completed');
+	if (completed === 'true') {
 		onClose();
 	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			onClose();
-		} else if (event.key === 'ArrowRight' || event.key === 'Enter') {
-			nextStep();
-		} else if (event.key === 'ArrowLeft') {
-			prevStep();
-		}
-	}
-
-	onMount(() => {
-		// Check if tutorial was already completed
-		const completed = localStorage.getItem('pipe-lens-tutorial-completed');
-		if (completed === 'true') {
-			onClose();
-		}
-	});
+});
 </script>
 
 {#if isOpen}

@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 // Mock localStorage
 const localStorageMock = {
@@ -7,7 +7,7 @@ const localStorageMock = {
 	removeItem: vi.fn(),
 	clear: vi.fn(),
 	length: 0,
-	key: vi.fn()
+	key: vi.fn(),
 };
 
 // Mock window object
@@ -22,35 +22,35 @@ Object.defineProperty(global, 'window', {
 				setAttribute: vi.fn(),
 				remove: vi.fn(),
 				appendChild: vi.fn(),
-				style: {}
+				style: {},
 			})),
 			body: {
 				appendChild: vi.fn(),
-				removeChild: vi.fn()
-			}
-		}
+				removeChild: vi.fn(),
+			},
+		},
 	},
-	writable: true
+	writable: true,
 });
 
 // Mock localStorage globally
 Object.defineProperty(global, 'localStorage', {
 	value: localStorageMock,
-	writable: true
+	writable: true,
 });
 
 // Mock browser environment from SvelteKit
 Object.defineProperty(global, 'browser', {
 	value: true,
-	writable: true
+	writable: true,
 });
 
 // Mock crypto for UUID generation
 Object.defineProperty(global, 'crypto', {
 	value: {
-		randomUUID: vi.fn(() => 'mock-uuid-123')
+		randomUUID: vi.fn(() => 'mock-uuid-123'),
 	},
-	writable: true
+	writable: true,
 });
 
 // Mock KeyboardEvent
@@ -60,11 +60,11 @@ class MockKeyboardEvent {
 	shiftKey: boolean;
 	altKey: boolean;
 	metaKey: boolean;
-	target: any;
-	preventDefault: any;
-	stopPropagation: any;
+	target: unknown;
+	preventDefault: () => void;
+	stopPropagation: () => void;
 
-	constructor(type: string, init: any = {}) {
+	constructor(_type: string, init: Partial<KeyboardEvent> = {}) {
 		this.key = init.key || '';
 		this.ctrlKey = init.ctrlKey || false;
 		this.shiftKey = init.shiftKey || false;
@@ -79,12 +79,12 @@ class MockKeyboardEvent {
 // Mock KeyboardEvent globally
 Object.defineProperty(global, 'KeyboardEvent', {
 	value: MockKeyboardEvent,
-	writable: true
+	writable: true,
 });
 
 // Mock SvelteKit browser environment
 vi.mock('$app/environment', () => ({
-	browser: true
+	browser: true,
 }));
 
 // Reset mocks before each test

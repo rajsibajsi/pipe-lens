@@ -1,4 +1,4 @@
-import { IPipeline, Pipeline } from '../models/Pipeline';
+import { type IPipeline, Pipeline } from '../models/Pipeline';
 import { User } from '../models/User';
 
 export interface CreatePipelineData {
@@ -50,8 +50,15 @@ export interface PipelineFilters {
 	search?: string;
 	limit?: number;
 	offset?: number;
-	sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'executionCount';
+	sortBy?: PipelineSortBy;
 	sortOrder?: 'asc' | 'desc';
+}
+
+export enum PipelineSortBy {
+	NAME = 'name',
+	CREATED_AT = 'createdAt',
+	UPDATED_AT = 'updatedAt',
+	EXECUTION_COUNT = 'executionCount',
 }
 
 export class PipelineService {
@@ -70,7 +77,7 @@ export class PipelineService {
 		// Check if pipeline name already exists for this user
 		const existingPipeline = await Pipeline.findOne({
 			userId,
-			name: pipelineData.name
+			name: pipelineData.name,
 		});
 
 		if (existingPipeline) {
@@ -87,13 +94,13 @@ export class PipelineService {
 		if (!pipelineData.metadata?.complexity) {
 			pipelineData.metadata = {
 				...pipelineData.metadata,
-				complexity: this.calculateComplexity(pipelineData.pipeline)
+				complexity: this.calculateComplexity(pipelineData.pipeline),
 			};
 		}
 
 		const pipeline = new Pipeline({
 			...pipelineData,
-			userId
+			userId,
 		});
 
 		await pipeline.save();
@@ -104,14 +111,11 @@ export class PipelineService {
 	 * Get pipeline by ID
 	 */
 	async getPipelineById(pipelineId: string, userId?: string): Promise<IPipeline | null> {
-		const query: any = { _id: pipelineId };
-		
+		const query: Record<string, unknown> = { _id: pipelineId };
+
 		// If userId provided, ensure user owns the pipeline or it's public
 		if (userId) {
-			query.$or = [
-				{ userId },
-				{ isPublic: true }
-			];
+			query.$or = [{ userId }, { isPublic: true }];
 		}
 
 		return await Pipeline.findOne(query);
@@ -121,37 +125,37 @@ export class PipelineService {
 	 * Get user's pipelines
 	 */
 	async getUserPipelines(userId: string, filters: PipelineFilters = {}): Promise<IPipeline[]> {
-		const query: any = { userId };
-		
+		const query: Record<string, unknown> = { userId };
+
 		// Apply filters
 		if (filters.tags && filters.tags.length > 0) {
 			query.tags = { $in: filters.tags };
 		}
-		
+
 		if (filters.category) {
 			query['metadata.category'] = filters.category;
 		}
-		
+
 		if (filters.difficulty) {
 			query['metadata.difficulty'] = filters.difficulty;
 		}
-		
+
 		if (filters.search) {
 			query.$or = [
 				{ name: { $regex: filters.search, $options: 'i' } },
 				{ description: { $regex: filters.search, $options: 'i' } },
-				{ tags: { $in: [new RegExp(filters.search, 'i')] } }
+				{ tags: { $in: [new RegExp(filters.search, 'i')] } },
 			];
 		}
 
 		// Build sort object
-		const sort: any = {};
+		const sort: Record<string, 1 | -1> = {};
 		const sortBy = filters.sortBy || 'updatedAt';
 		const sortOrder = filters.sortOrder || 'desc';
 		sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
 		// Build query options
-		const options: any = { sort };
+		const options: Record<string, unknown> = { sort };
 		if (filters.limit) {
 			options.limit = filters.limit;
 		}
@@ -166,37 +170,37 @@ export class PipelineService {
 	 * Get public pipelines
 	 */
 	async getPublicPipelines(filters: PipelineFilters = {}): Promise<IPipeline[]> {
-		const query: any = { isPublic: true };
-		
+		const query: Record<string, unknown> = { isPublic: true };
+
 		// Apply filters
 		if (filters.tags && filters.tags.length > 0) {
 			query.tags = { $in: filters.tags };
 		}
-		
+
 		if (filters.category) {
 			query['metadata.category'] = filters.category;
 		}
-		
+
 		if (filters.difficulty) {
 			query['metadata.difficulty'] = filters.difficulty;
 		}
-		
+
 		if (filters.search) {
 			query.$or = [
 				{ name: { $regex: filters.search, $options: 'i' } },
 				{ description: { $regex: filters.search, $options: 'i' } },
-				{ tags: { $in: [new RegExp(filters.search, 'i')] } }
+				{ tags: { $in: [new RegExp(filters.search, 'i')] } },
 			];
 		}
 
 		// Build sort object
-		const sort: any = {};
+		const sort: Record<string, 1 | -1> = {};
 		const sortBy = filters.sortBy || 'createdAt';
 		const sortOrder = filters.sortOrder || 'desc';
 		sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
 		// Build query options
-		const options: any = { sort };
+		const options: Record<string, unknown> = { sort };
 		if (filters.limit) {
 			options.limit = filters.limit;
 		}
@@ -210,7 +214,11 @@ export class PipelineService {
 	/**
 	 * Update pipeline
 	 */
-	async updatePipeline(pipelineId: string, userId: string, updateData: UpdatePipelineData): Promise<IPipeline> {
+	async updatePipeline(
+		pipelineId: string,
+		userId: string,
+		updateData: UpdatePipelineData,
+	): Promise<IPipeline> {
 		const pipeline = await Pipeline.findOne({ _id: pipelineId, userId });
 		if (!pipeline) {
 			throw new Error('Pipeline not found or access denied');
@@ -221,7 +229,7 @@ export class PipelineService {
 			const existingPipeline = await Pipeline.findOne({
 				userId,
 				name: updateData.name,
-				_id: { $ne: pipelineId }
+				_id: { $ne: pipelineId },
 			});
 
 			if (existingPipeline) {
@@ -231,7 +239,7 @@ export class PipelineService {
 
 		// Update pipeline
 		Object.assign(pipeline, updateData);
-		
+
 		// Recalculate complexity if pipeline changed
 		if (updateData.pipeline) {
 			pipeline.metadata.complexity = this.calculateComplexity(updateData.pipeline);
@@ -280,11 +288,11 @@ export class PipelineService {
 			pipeline: [...originalPipeline.pipeline],
 			connectionId: originalPipeline.connectionId,
 			database: originalPipeline.database,
-			collection: originalPipeline.collection,
+			collection: originalPipeline.collectionName,
 			sampleSize: originalPipeline.sampleSize,
 			isPublic: false, // Duplicates are private by default
 			isTemplate: false,
-			metadata: { ...originalPipeline.metadata }
+			metadata: { ...originalPipeline.metadata },
 		};
 
 		return await this.createPipeline(duplicateData);
@@ -318,13 +326,13 @@ export class PipelineService {
 		const totalPipelines = await Pipeline.countDocuments({ userId });
 		const publicPipelines = await Pipeline.countDocuments({ userId, isPublic: true });
 		const templates = await Pipeline.countDocuments({ userId, isTemplate: true });
-		
+
 		const pipelines = await Pipeline.find({ userId });
 		const totalExecutions = pipelines.reduce((sum, pipeline) => sum + pipeline.executionCount, 0);
-		
-		const mostUsedPipeline = pipelines.reduce((most, pipeline) => 
-			pipeline.executionCount > most.executionCount ? pipeline : most, 
-			pipelines[0] || null
+
+		const mostUsedPipeline = pipelines.reduce(
+			(most, pipeline) => (pipeline.executionCount > most.executionCount ? pipeline : most),
+			pipelines[0] || null,
 		);
 
 		return {
@@ -332,7 +340,7 @@ export class PipelineService {
 			publicPipelines,
 			templates,
 			totalExecutions,
-			mostUsedPipeline
+			mostUsedPipeline,
 		};
 	}
 
@@ -341,10 +349,11 @@ export class PipelineService {
 	 */
 	private calculateComplexity(pipeline: object[]): 'simple' | 'medium' | 'complex' {
 		const stageCount = pipeline.length;
-		const hasComplexStages = pipeline.some((stage: any) => 
-			stage.$lookup || stage.$facet || stage.$graphLookup || stage.$unionWith
-		);
-		
+		const hasComplexStages = pipeline.some((stage: unknown) => {
+			const s = stage as Record<string, unknown>;
+			return Boolean(s.$lookup || s.$facet || s.$graphLookup || s.$unionWith);
+		});
+
 		if (stageCount <= 3 && !hasComplexStages) return 'simple';
 		if (stageCount <= 6 && !hasComplexStages) return 'medium';
 		return 'complex';
@@ -366,25 +375,32 @@ export class PipelineService {
 			pipeline: pipeline.pipeline,
 			metadata: pipeline.metadata,
 			exportedAt: new Date().toISOString(),
-			version: pipeline.version
+			version: pipeline.version,
 		};
 	}
 
 	/**
 	 * Import pipeline from JSON
 	 */
-	async importPipeline(userId: string, importData: any, name: string): Promise<IPipeline> {
+	async importPipeline(
+		userId: string,
+		importData: Record<string, unknown>,
+		name: string,
+	): Promise<IPipeline> {
+		const description = typeof importData.description === 'string' ? importData.description : '';
+		const tags = Array.isArray(importData.tags) ? importData.tags : [];
+		const pipeline = Array.isArray(importData.pipeline) ? importData.pipeline : [];
 		const pipelineData: CreatePipelineData = {
 			userId,
 			name,
-			description: importData.description,
-			tags: importData.tags || [],
-			pipeline: importData.pipeline,
+			description,
+			tags,
+			pipeline,
 			connectionId: '', // Will need to be set by user
 			database: '', // Will need to be set by user
 			collection: '', // Will need to be set by user
 			sampleSize: 10,
-			metadata: importData.metadata || {}
+			metadata: importData.metadata || {},
 		};
 
 		return await this.createPipeline(pipelineData);
