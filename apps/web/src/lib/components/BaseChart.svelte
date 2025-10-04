@@ -1,7 +1,16 @@
 <script lang="ts">
+/** biome-ignore-all lint/correctness/noUnusedVariables: Svelte component with reactive variables that may appear unused but are used in template */
+
 import type { EChartsOption } from 'echarts';
 import { onDestroy, onMount } from 'svelte';
 import type { ChartConfig, ChartData } from '$lib/utils/chart-data';
+
+interface EChartsInstance {
+	init: (el: HTMLDivElement) => EChartsInstance;
+	setOption: (opt: EChartsOption, replaceMerge?: boolean) => void;
+	dispose: () => void;
+	getDataURL: (opts: { type: string; pixelRatio: number; backgroundColor: string }) => string;
+}
 
 interface Props {
 	data: ChartData;
@@ -15,7 +24,7 @@ const __use = (..._args: unknown[]) => {};
 __use(width, height);
 
 let chartContainer: HTMLDivElement;
-let chartInstance: unknown;
+let chartInstance: EChartsInstance | null = null;
 let echarts: unknown;
 
 onMount(async () => {
@@ -24,7 +33,7 @@ onMount(async () => {
 	echarts = echartsModule;
 
 	if (chartContainer) {
-		chartInstance = (echarts as unknown as { init: (el: HTMLDivElement) => unknown }).init(
+		chartInstance = (echarts as { init: (el: HTMLDivElement) => EChartsInstance }).init(
 			chartContainer,
 		);
 		updateChart();
@@ -32,8 +41,8 @@ onMount(async () => {
 });
 
 onDestroy(() => {
-	if (chartInstance && (chartInstance as { dispose?: () => void }).dispose) {
-		(chartInstance as { dispose: () => void }).dispose();
+	if (chartInstance) {
+		chartInstance.dispose();
 	}
 });
 
@@ -48,10 +57,7 @@ function updateChart() {
 	if (!chartInstance || !data || !config) return;
 
 	const option = generateEChartsOption(data, config);
-	(chartInstance as { setOption: (opt: EChartsOption, replaceMerge?: boolean) => void }).setOption(
-		option,
-		true,
-	);
+	chartInstance.setOption(option, true);
 }
 
 // removed unused export function
@@ -280,7 +286,7 @@ function getDefaultColor(index: number): string {
 	return colors[index % colors.length];
 }
 
-function _exportChart() {
+function exportChart() {
 	if (chartInstance) {
 		const dataURL = chartInstance.getDataURL({
 			type: 'png',
@@ -301,7 +307,7 @@ function _exportChart() {
 		<h4 class="chart-title">{config.title}</h4>
 		<button 
 			class="btn btn-ghost btn-sm export-btn"
-			onclick={_exportChart}
+			onclick={exportChart}
 			title="Export as PNG"
 		>
 			📊 Export

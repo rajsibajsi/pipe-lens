@@ -267,7 +267,7 @@ export function getChangeTypeIcon(type: DiffChange['type']): string {
  * Check if a change has nested changes
  */
 export function hasNestedChanges(change: DiffChange): boolean {
-	return change.children?.some((child) => child.type !== 'unchanged');
+	return change.children?.some((child) => child.type !== 'unchanged') ?? false;
 }
 
 /**

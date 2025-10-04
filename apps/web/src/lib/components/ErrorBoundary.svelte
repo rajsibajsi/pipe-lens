@@ -1,4 +1,5 @@
 <script lang="ts">
+/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
 import type { Snippet } from 'svelte';
 import { onMount } from 'svelte';
 
@@ -12,14 +13,14 @@ const { children, fallback, onError }: Props = $props();
 const __use = (..._args: unknown[]) => {};
 __use(children, fallback, onError);
 
-let _hasError = $state(false);
+let hasError = $state(false);
 let error = $state<Error | null>(null);
 let errorInfo = $state<Record<string, unknown> | null>(null);
 
 onMount(() => {
 	// Listen for unhandled errors
 	const handleError = (event: ErrorEvent) => {
-		_hasError = true;
+		hasError = true;
 		error = new Error(event.message);
 		errorInfo = {
 			filename: event.filename,
@@ -33,7 +34,7 @@ onMount(() => {
 	};
 
 	const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-		_hasError = true;
+		hasError = true;
 		error = new Error(event.reason?.message || 'Unhandled promise rejection');
 		errorInfo = {
 			reason: event.reason,
@@ -54,13 +55,13 @@ onMount(() => {
 	};
 });
 
-function _resetError() {
-	_hasError = false;
+function resetError() {
+	hasError = false;
 	error = null;
 	errorInfo = null;
 }
 
-function _reportError() {
+function reportError() {
 	if (error) {
 		// In a real app, you would send this to an error reporting service
 		console.error('Error reported:', error, errorInfo);

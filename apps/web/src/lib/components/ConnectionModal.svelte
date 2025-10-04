@@ -1,4 +1,5 @@
 <script lang="ts">
+/** biome-ignore-all lint/style/useConst: <explanation> */
 interface Props {
 	isOpen: boolean;
 	onClose: () => void;
@@ -7,10 +8,10 @@ interface Props {
 
 const { isOpen, onClose, onConnect }: Props = $props();
 
-const connectionName = $state('Local MongoDB');
-const connectionUri = $state('mongodb://admin:password@localhost:27017');
-const isConnecting = $state(false);
-const error = $state('');
+let connectionName = $state('Local MongoDB');
+let connectionUri = $state('mongodb://admin:password@localhost:27017');
+let isConnecting = $state(false);
+let error = $state('');
 
 // Mark as used for linter
 const __use = (..._args: unknown[]) => {};

@@ -1,4 +1,6 @@
 <script lang="ts">
+/** biome-ignore-all lint/style/useConst: <explanation> */
+/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
 import type { TableData } from '$lib/utils/chart-data';
 
 interface Props {
@@ -14,15 +16,15 @@ __use(maxHeight, showExport);
 
 let sortColumn = $state<string | null>(null);
 let sortDirection = $state<'asc' | 'desc'>('asc');
-const searchTerm = $state('');
+let searchTerm = $state('');
 let currentPage = $state(1);
 const pageSize = $state(50);
 
 // Computed properties
 let filteredData = $state<(string | number)[][]>([]);
 let sortedData = $state<(string | number)[][]>([]);
-let _paginatedData = $state<(string | number)[][]>([]);
-let _totalPages = $state(0);
+let paginatedData = $state<(string | number)[][]>([]);
+let totalPages = $state(0);
 
 $effect(() => {
 	if (!searchTerm) {
@@ -71,8 +73,8 @@ $effect(() => {
 $effect(() => {
 	const start = (currentPage - 1) * pageSize;
 	const end = start + pageSize;
-	_paginatedData = sortedData.slice(start, end);
-	_totalPages = Math.ceil(sortedData.length / pageSize);
+	paginatedData = sortedData.slice(start, end);
+	totalPages = Math.ceil(sortedData.length / pageSize);
 });
 
 function _sort(column: string) {
@@ -182,7 +184,7 @@ function _getSortIcon(column: string): string {
 					</tr>
 				</thead>
 				<tbody>
-                    {#each _paginatedData as row, rowIndex}
+                    {#each paginatedData as row, rowIndex}
 						<tr class="data-row">
 							{#each row as cell, cellIndex}
 								<td class="data-cell">
@@ -196,7 +198,7 @@ function _getSortIcon(column: string): string {
 		{/if}
 	</div>
 
-    {#if data.columns.length > 0 && _totalPages > 1}
+    {#if data.columns.length > 0 && totalPages > 1}
 		<div class="table-footer">
 			<div class="pagination-info">
 				Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} entries
@@ -210,12 +212,12 @@ function _getSortIcon(column: string): string {
 					← Previous
 				</button>
                 <span class="page-info">
-                    Page {currentPage} of {_totalPages}
+                    Page {currentPage} of {totalPages}
                 </span>
 				<button 
 					class="btn btn-ghost btn-sm"
-                    onclick={() => currentPage = Math.min(_totalPages, currentPage + 1)}
-                    disabled={currentPage === _totalPages}
+                    onclick={() => currentPage = Math.min(totalPages, currentPage + 1)}
+                    disabled={currentPage === totalPages}
 				>
 					Next →
 				</button>
