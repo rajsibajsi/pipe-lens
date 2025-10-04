@@ -1,4 +1,7 @@
 <script lang="ts">
+/** biome-ignore-all lint/style/useConst: <explanation> */
+/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
+
 import { onMount } from 'svelte';
 
 interface DocumentItem {
@@ -51,7 +54,7 @@ function getType(value: unknown): string {
 	return typeof value;
 }
 
-function _getFieldIcon(type: string): string {
+function getFieldIcon(type: string): string {
 	const icons: Record<string, string> = {
 		string: '📝',
 		number: '🔢',
@@ -64,7 +67,7 @@ function _getFieldIcon(type: string): string {
 	return icons[type] || '❓';
 }
 
-function _toggleField(path: string) {
+function toggleField(path: string) {
 	if (expandedFields.has(path)) {
 		expandedFields.delete(path);
 	} else {
@@ -73,7 +76,7 @@ function _toggleField(path: string) {
 	expandedFields = new Set(expandedFields); // Trigger reactivity
 }
 
-function _isExpanded(path: string): boolean {
+function isExpanded(path: string): boolean {
 	return expandedFields.has(path);
 }
 
@@ -106,7 +109,7 @@ function hasChanged(path: string, _value: unknown): boolean {
 	return JSON.stringify(currentValue) !== JSON.stringify(prevValue);
 }
 
-function _formatValue(value: unknown): string {
+function formatValue(value: unknown): string {
 	if (value === null) return 'null';
 	if (value === undefined) return 'undefined';
 	if (typeof value === 'string') return `"${value}"`;
@@ -183,13 +186,13 @@ function renderArray(arr: unknown[], path: string, depth: number): DocumentItem[
 	return items;
 }
 
-function _nextDocument() {
+function nextDocument() {
 	if (selectedDocument < documents.length - 1) {
 		selectedDocument++;
 	}
 }
 
-function _prevDocument() {
+function prevDocument() {
 	if (selectedDocument > 0) {
 		selectedDocument--;
 	}

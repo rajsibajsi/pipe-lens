@@ -1,5 +1,5 @@
 <script lang="ts">
-/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
+/** biome-ignore-all lint/correctness/noUnusedVariables: Svelte component with reactive variables that may appear unused but are used in template */
 
 import { onMount } from 'svelte';
 import { userStore } from '$lib/stores/user.store';

@@ -1,4 +1,7 @@
 <script lang="ts">
+/** biome-ignore-all lint/style/useConst: <explanation> */
+/** biome-ignore-all lint/correctness/noUnusedVariables: <explanation> */
+
 import { onMount } from 'svelte';
 import type { DiffChange, DiffResult } from '$lib/utils/diff';
 import {
@@ -6,6 +9,7 @@ import {
 	formatPath,
 	getChangeTypeColor,
 	getChangeTypeIcon,
+	hasNestedChanges,
 } from '$lib/utils/diff';
 
 interface Props {
@@ -27,12 +31,12 @@ const __use = (..._args: unknown[]) => {};
 __use(highlightChanges);
 
 let expandedPaths = $state(new Set<string>());
-let _selectedChange = $state<DiffChange | null>(null);
-const showUnchanged = $state(initialShowUnchanged);
-const filterType = $state(initialFilterType);
+let selectedChange = $state<DiffChange | null>(null);
+let showUnchanged = $state(initialShowUnchanged);
+let filterType = $state(initialFilterType);
 
 // Reactive state for filtered changes
-let _filteredChanges: DiffChange[] = $state([]);
+let filteredChanges: DiffChange[] = $state([]);
 
 $effect(() => {
 	let changes = diffResult.changes;
@@ -53,16 +57,16 @@ $effect(() => {
 		return depth <= maxDepth;
 	});
 
-	_filteredChanges = changes;
+	filteredChanges = changes;
 });
 
 onMount(() => {
 	// Reset state when diff result changes
 	expandedPaths = new Set();
-	_selectedChange = null;
+	selectedChange = null;
 });
 
-function _togglePath(path: string) {
+function togglePath(path: string) {
 	if (expandedPaths.has(path)) {
 		expandedPaths.delete(path);
 	} else {
@@ -71,12 +75,12 @@ function _togglePath(path: string) {
 	expandedPaths = new Set(expandedPaths); // Trigger reactivity
 }
 
-function _isExpanded(path: string): boolean {
+function isExpanded(path: string): boolean {
 	return expandedPaths.has(path);
 }
 
-function _selectChange(change: DiffChange) {
-	_selectedChange = change;
+function selectChange(change: DiffChange) {
+	selectedChange = change;
 }
 
 function formatValue(value: unknown): string {
@@ -91,10 +95,10 @@ function formatValue(value: unknown): string {
 	return String(value);
 }
 
-function _renderChange(change: DiffChange, depth = 0): string {
+function renderChange(change: DiffChange, depth = 0): string {
 	const indent = '  '.repeat(depth);
 	const icon = getChangeTypeIcon(change.type);
-	const _color = getChangeTypeColor(change.type);
+	const color = getChangeTypeColor(change.type);
 	const path = formatPath(change.path);
 
 	let result = `${indent}${icon} ${path}`;
@@ -112,7 +116,7 @@ function _renderChange(change: DiffChange, depth = 0): string {
 	return result;
 }
 
-function _getChangeCounts() {
+function getChangeCounts() {
 	return {
 		added: diffResult.summary.added,
 		removed: diffResult.summary.removed,

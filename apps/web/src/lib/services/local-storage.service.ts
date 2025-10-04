@@ -22,6 +22,18 @@ export interface LocalPipeline {
 	};
 }
 
+export interface PipelineImportData {
+	pipeline: object[];
+	description?: string;
+	tags?: string[];
+	metadata?: {
+		estimatedExecutionTime?: number;
+		complexity?: 'simple' | 'medium' | 'complex';
+		category?: string;
+		difficulty?: 'beginner' | 'intermediate' | 'advanced';
+	};
+}
+
 // biome-ignore lint/complexity/noStaticOnlyClass: Intentional static utility container
 export class LocalStorageService {
 	private static readonly STORAGE_KEY = 'pipe-lens-local-pipelines';
@@ -245,8 +257,10 @@ export class LocalStorageService {
 	static importPipeline(importData: unknown, name: string): LocalPipeline {
 		if (!browser) throw new Error('Local storage not available');
 
-		if (!importData.pipeline || !Array.isArray(importData.pipeline)) {
-			throw new Error('Invalid import data: pipeline must be an array');
+		if (!isPipelineImportData(importData)) {
+			throw new Error(
+				'Invalid import data: must contain a pipeline array and valid optional properties',
+			);
 		}
 
 		const pipelineData: Omit<LocalPipeline, 'id' | 'createdAt' | 'updatedAt' | 'executionCount'> = {
@@ -338,4 +352,68 @@ export class LocalStorageService {
 			throw new Error('Failed to save pipeline. Storage may be full.');
 		}
 	}
+}
+
+/**
+ * Type guard to check if an object has a pipeline property that is an array
+ */
+function hasPipelineArray(obj: unknown): obj is { pipeline: object[] } {
+	return (
+		typeof obj === 'object' &&
+		obj !== null &&
+		'pipeline' in obj &&
+		Array.isArray((obj as Record<string, unknown>).pipeline)
+	);
+}
+
+/**
+ * Type guard to check if an object has optional string properties
+ */
+function hasOptionalStringProperty(obj: unknown, property: string): boolean {
+	if (typeof obj !== 'object' || obj === null || !(property in obj)) {
+		return true; // property is optional
+	}
+
+	const value = (obj as Record<string, unknown>)[property];
+	return typeof value === 'string' || value === undefined;
+}
+
+/**
+ * Type guard to check if an object has optional string array properties
+ */
+function hasOptionalStringArrayProperty(obj: unknown, property: string): boolean {
+	if (typeof obj !== 'object' || obj === null || !(property in obj)) {
+		return true; // property is optional
+	}
+
+	const value = (obj as Record<string, unknown>)[property];
+	return Array.isArray(value) || value === undefined;
+}
+
+/**
+ * Type guard to check if an object has optional metadata object
+ */
+function hasOptionalMetadata(obj: unknown): boolean {
+	if (typeof obj !== 'object' || obj === null || !('metadata' in obj)) {
+		return true; // metadata is optional
+	}
+
+	const metadata = (obj as Record<string, unknown>).metadata;
+	if (metadata === undefined || metadata === null) {
+		return true; // undefined/null is valid for optional metadata
+	}
+
+	return typeof metadata === 'object';
+}
+
+/**
+ * Type guard to validate PipelineImportData
+ */
+function isPipelineImportData(obj: unknown): obj is PipelineImportData {
+	return (
+		hasPipelineArray(obj) &&
+		hasOptionalStringProperty(obj, 'description') &&
+		hasOptionalStringArrayProperty(obj, 'tags') &&
+		hasOptionalMetadata(obj)
+	);
 }
