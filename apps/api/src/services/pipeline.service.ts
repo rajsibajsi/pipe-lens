@@ -50,8 +50,15 @@ export interface PipelineFilters {
 	search?: string;
 	limit?: number;
 	offset?: number;
-	sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'executionCount';
+	sortBy?: PipelineSortBy;
 	sortOrder?: 'asc' | 'desc';
+}
+
+export enum PipelineSortBy {
+	NAME = 'name',
+	CREATED_AT = 'createdAt',
+	UPDATED_AT = 'updatedAt',
+	EXECUTION_COUNT = 'executionCount',
 }
 
 export class PipelineService {

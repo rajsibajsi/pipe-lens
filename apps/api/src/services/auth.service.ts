@@ -5,7 +5,7 @@ import { UserSession } from '../models/UserSession';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_REFRESH_SECRET: Secret = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
-const JWT_EXPIRES_IN = parseInt(process.env.JWT_EXPIRES_IN || '7776000'); // 90 days
+const JWT_EXPIRES_IN = parseInt(process.env.JWT_EXPIRES_IN || '7776000', 10); // 90 days
 
 export interface AuthResult {
 	user: IUser;

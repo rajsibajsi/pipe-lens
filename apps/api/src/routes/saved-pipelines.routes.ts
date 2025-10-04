@@ -4,6 +4,7 @@ import {
 	type CreatePipelineData,
 	type PipelineFilters,
 	PipelineService,
+	PipelineSortBy,
 } from '../services/pipeline.service';
 
 const router = Router();
@@ -102,12 +103,12 @@ router.get('/saved', authenticate, async (req: Request, res: Response) => {
 			search,
 			limit = 20,
 			offset = 0,
-			sortBy = 'updatedAt',
+			sortBy = PipelineSortBy.UPDATED_AT,
 			sortOrder = 'desc',
 		} = req.query;
 
 		const filters: PipelineFilters = {
-			userId: req.user!._id.toString(),
+			userId: req.user?._id.toString(),
 			tags: tags
 				? Array.isArray(tags)
 					? tags.map((t) => t as string)
@@ -116,21 +117,28 @@ router.get('/saved', authenticate, async (req: Request, res: Response) => {
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
-			limit: parseInt(limit as string),
-			offset: parseInt(offset as string),
-			sortBy: sortBy as any,
+			limit: parseInt(limit as string, 10),
+			offset: parseInt(offset as string, 10),
+			sortBy: sortBy as PipelineSortBy,
 			sortOrder: sortOrder as 'asc' | 'desc',
 		};
 
-		const pipelines = await pipelineService.getUserPipelines(req.user!._id.toString(), filters);
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
 
-		res.json({
+		const pipelines = await pipelineService.getUserPipelines(req.user?._id.toString(), filters);
+
+		return res.json({
 			success: true,
 			data: { pipelines },
 		});
 	} catch (error) {
 		console.error('Get pipelines error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Failed to get pipelines',
 		});
@@ -151,7 +159,7 @@ router.get('/saved/public', optionalAuth, async (req: Request, res: Response) =>
 			search,
 			limit = 20,
 			offset = 0,
-			sortBy = 'createdAt',
+			sortBy = PipelineSortBy.CREATED_AT,
 			sortOrder = 'desc',
 		} = req.query;
 
@@ -164,21 +172,21 @@ router.get('/saved/public', optionalAuth, async (req: Request, res: Response) =>
 			category: category as string,
 			difficulty: difficulty as string,
 			search: search as string,
-			limit: parseInt(limit as string),
-			offset: parseInt(offset as string),
-			sortBy: sortBy as any,
+			limit: parseInt(limit as string, 10),
+			offset: parseInt(offset as string, 10),
+			sortBy: sortBy as PipelineSortBy,
 			sortOrder: sortOrder as 'asc' | 'desc',
 		};
 
 		const pipelines = await pipelineService.getPublicPipelines(filters);
 
-		res.json({
+		return res.json({
 			success: true,
 			data: { pipelines },
 		});
 	} catch (error) {
 		console.error('Get public pipelines error:', error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Failed to get public pipelines',
 		});
@@ -246,7 +254,18 @@ router.put('/saved/:id', authenticate, pipelineRateLimit, async (req: Request, r
 			});
 		}
 
-		const pipeline = await pipelineService.updatePipeline(id, req.user!._id.toString(), updateData);
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
+		const pipeline = await pipelineService.updatePipeline(
+			id,
+			req.user?._id?.toString(),
+			updateData,
+		);
 
 		return res.json({
 			success: true,
@@ -271,7 +290,14 @@ router.delete('/saved/:id', authenticate, async (req: Request, res: Response) =>
 	try {
 		const { id } = req.params;
 
-		await pipelineService.deletePipeline(id, req.user!._id.toString());
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
+		await pipelineService.deletePipeline(id, req.user?._id?.toString());
 
 		return res.json({
 			success: true,
@@ -303,9 +329,16 @@ router.post('/saved/:id/duplicate', authenticate, async (req: Request, res: Resp
 			});
 		}
 
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
 		const duplicatedPipeline = await pipelineService.duplicatePipeline(
 			id,
-			req.user!._id.toString(),
+			req.user?._id.toString(),
 			name,
 		);
 
@@ -332,7 +365,14 @@ router.post('/saved/:id/execute', authenticate, async (req: Request, res: Respon
 	try {
 		const { id } = req.params;
 
-		const pipeline = await pipelineService.executePipeline(id, req.user!._id.toString());
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
+		const pipeline = await pipelineService.executePipeline(id, req.user?._id.toString());
 
 		return res.json({
 			success: true,
@@ -355,7 +395,14 @@ router.post('/saved/:id/execute', authenticate, async (req: Request, res: Respon
  */
 router.get('/saved/stats', authenticate, async (req: Request, res: Response) => {
 	try {
-		const stats = await pipelineService.getPipelineStats(req.user!._id.toString());
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
+		const stats = await pipelineService.getPipelineStats(req.user?._id.toString());
 
 		return res.json({
 			success: true,
@@ -379,7 +426,14 @@ router.get('/saved/:id/export', authenticate, async (req: Request, res: Response
 	try {
 		const { id } = req.params;
 
-		const exportData = await pipelineService.exportPipeline(id, req.user!._id.toString());
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
+		const exportData = await pipelineService.exportPipeline(id, req.user?._id.toString());
 
 		return res.json({
 			success: true,
@@ -417,8 +471,15 @@ router.post('/saved/import', authenticate, async (req: Request, res: Response) =
 			});
 		}
 
+		if (!req.user?._id) {
+			return res.status(401).json({
+				success: false,
+				message: 'Unauthorized',
+			});
+		}
+
 		const pipeline = await pipelineService.importPipeline(
-			req.user!._id.toString(),
+			req.user?._id.toString(),
 			importData,
 			name,
 		);
